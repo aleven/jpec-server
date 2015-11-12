@@ -18,13 +18,12 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j.version}</version>
-			<scope>compile</scope>
+			<version>1.7.7</version>
 		</dependency>
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>9.3-1103-jdbc41</version>
+			<version>9.3-1101-jdbc41</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.mail</groupId>
