@@ -27,6 +27,13 @@ public class Regola implements Serializable {
 	@Column(name = "pec06_id")
 	private long id;
 
+	@Column(name = "pec06_nome")
+	private String nome;
+	
+	@Column(name = "pec06_note")
+	@Lob
+	private String note;	
+	
 	@Column(name = "pec06_evento")
 	private String evento;
 
@@ -47,6 +54,22 @@ public class Regola implements Serializable {
 
 	public void setId(long id) {
 		this.id = id;
+	}
+
+	public String getNome() {
+		return nome;
+	}
+
+	public void setNome(String nome) {
+		this.nome = nome;
+	}
+
+	public String getNote() {
+		return note;
+	}
+
+	public void setNote(String note) {
+		this.note = note;
 	}
 
 	public String getEvento() {
