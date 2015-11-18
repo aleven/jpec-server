@@ -16,7 +16,7 @@ http://www.agid.gov.it/sites/default/files/leggi_decreti_direttive/pec_regole_te
 
 ## Requisiti Tecnici
 - database
-- servlet container > 
+- servlet api > 3
 - java 7
 
 ## Specifiche Tecniche
