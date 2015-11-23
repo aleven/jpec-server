@@ -11,7 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "pec04_protocollo")
+@Table(schema = "pec", name = "pec04_protocollo")
 public class ProtocolloPec implements Serializable {
 
 	protected static final Logger logger = Logger.getLogger(ProtocolloPec.class.getName());

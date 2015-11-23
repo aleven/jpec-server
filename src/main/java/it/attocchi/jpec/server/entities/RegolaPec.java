@@ -13,7 +13,7 @@ import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "pec06_regole")
+@Table(schema = "pec", name = "pec06_regole")
 public class RegolaPec implements Serializable {
 
 	protected static final Logger logger = Logger.getLogger(RegolaPec.class.getName());

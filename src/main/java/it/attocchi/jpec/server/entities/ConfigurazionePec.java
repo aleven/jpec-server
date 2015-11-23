@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Entity
-@Table(name = "pec03_config")
+@Table(schema = "pec", name = "pec03_config")
 public class ConfigurazionePec implements Serializable {
 
 	protected static final Logger logger = LoggerFactory.getLogger(ConfigurazionePec.class);

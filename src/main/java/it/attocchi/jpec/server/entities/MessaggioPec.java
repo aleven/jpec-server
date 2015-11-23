@@ -23,7 +23,7 @@ import javax.persistence.TemporalType;
 import org.apache.commons.lang3.StringUtils;
 
 @Entity
-@Table(name = "pec01_messaggi")
+@Table(schema = "pec", name = "pec01_messaggi")
 public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 
 	public enum Folder {

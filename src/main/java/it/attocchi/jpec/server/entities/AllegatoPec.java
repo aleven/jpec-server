@@ -20,7 +20,7 @@ import javax.persistence.Table;
 import org.apache.commons.io.FilenameUtils;
 
 @Entity
-@Table(name = "pec02_allegati")
+@Table(schema = "pec", name = "pec02_allegati")
 public class AllegatoPec extends AbstractEntityMarksWithIdLong<AllegatoPec> {
 
 	/**
@@ -137,8 +137,8 @@ public class AllegatoPec extends AbstractEntityMarksWithIdLong<AllegatoPec> {
 		return FilenameUtils.getName(fileName);
 	}
 
-//	public StreamedContent getStreamedContent() {
-//		InputStream in = new ByteArrayInputStream(data);
-//		return new DefaultStreamedContent(in, contetType, getOnlyFileName());
-//	}
+	// public StreamedContent getStreamedContent() {
+	// InputStream in = new ByteArrayInputStream(data);
+	// return new DefaultStreamedContent(in, contetType, getOnlyFileName());
+	// }
 }
