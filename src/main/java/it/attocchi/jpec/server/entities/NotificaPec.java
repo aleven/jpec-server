@@ -21,7 +21,7 @@ import javax.persistence.TemporalType;
 
 @Entity
 @Table(name = "pec05_notifiche")
-public class Notifica extends AbstractEntityMarksWithIdLong<Notifica> implements Serializable {
+public class NotificaPec extends AbstractEntityMarksWithIdLong<NotificaPec> implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 

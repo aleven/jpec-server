@@ -2,7 +2,7 @@ package it.attocchi.jpec.server.entities;
 
 import it.attocchi.jpa2.entities.AbstractEntityMarksWithIdLong;
 import it.attocchi.jpa2.entities.EntityMarks;
-import it.attocchi.test.jpa2.entities.Utente;
+import it.attocchi.jpec.server.bl.MessaggioPecBL;
 import it.attocchi.utils.HtmlUtils;
 
 import java.util.Date;
@@ -397,12 +397,8 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 		return res;
 	}
 
-	public static MessaggioPec createNew(Utente utente, Folder folder) {
+	public static MessaggioPec createNew(Folder folder) {
 		MessaggioPec nuovo = new MessaggioPec();
-		nuovo.markAsCreated(utente.getIdUtente());
-
-		nuovo.setNomeMittente(utente.getUsername());
-		nuovo.setEmailMittente(utente.getEmail1());
 
 		nuovo.folder = folder.name();
 
@@ -498,7 +494,7 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 
 	public String getOggettoAbbreviate() {
 		String res = oggetto;
-		int max = Configurazione.get().getLayoutColumnMaxChar();
+		int max = ConfigurazionePec.get().getLayoutColumnMaxChar();
 		if (StringUtils.isNotBlank(res) && max > 0) {
 			res = StringUtils.abbreviate(res, max);
 		}
@@ -506,7 +502,7 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 	}
 
 	public boolean isArchiviabile() {
-		return StringUtils.isNotEmpty(getOggetto()) && !getOggetto().startsWith(MessaggioBL.OGGETTO_POSTA_CERTIFICATA);
+		return StringUtils.isNotEmpty(getOggetto()) && !getOggetto().startsWith(MessaggioPecBL.OGGETTO_POSTA_CERTIFICATA);
 	}
 
 	public boolean isArchiviato() {

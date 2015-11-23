@@ -1,6 +1,6 @@
 package it.attocchi.jpec.server.entities;
 
-public enum ConfigurazioneEnum {
+public enum ConfigurazionePecEnum {
 	
 	// Abilita o Disabilita 
 	PEC_ENABLE_EMAIL_CHECK,

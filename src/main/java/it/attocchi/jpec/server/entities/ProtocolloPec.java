@@ -12,9 +12,9 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "pec04_protocollo")
-public class Protocollo implements Serializable {
+public class ProtocolloPec implements Serializable {
 
-	protected static final Logger logger = Logger.getLogger(Protocollo.class.getName());
+	protected static final Logger logger = Logger.getLogger(ProtocolloPec.class.getName());
 
 	/**
 	 * 

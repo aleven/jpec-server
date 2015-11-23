@@ -9,13 +9,14 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
+import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 
 @Entity
 @Table(name = "pec06_regole")
-public class Regola implements Serializable {
+public class RegolaPec implements Serializable {
 
-	protected static final Logger logger = Logger.getLogger(Regola.class.getName());
+	protected static final Logger logger = Logger.getLogger(RegolaPec.class.getName());
 
 	/**
 	 * 
@@ -29,11 +30,11 @@ public class Regola implements Serializable {
 
 	@Column(name = "pec06_nome")
 	private String nome;
-	
+
 	@Column(name = "pec06_note")
 	@Lob
-	private String note;	
-	
+	private String note;
+
 	@Column(name = "pec06_evento")
 	private String evento;
 

@@ -21,7 +21,7 @@ import org.apache.commons.io.FilenameUtils;
 
 @Entity
 @Table(name = "pec02_allegati")
-public class Allegato extends AbstractEntityMarksWithIdLong<Allegato> {
+public class AllegatoPec extends AbstractEntityMarksWithIdLong<AllegatoPec> {
 
 	/**
 	 * 
@@ -137,8 +137,8 @@ public class Allegato extends AbstractEntityMarksWithIdLong<Allegato> {
 		return FilenameUtils.getName(fileName);
 	}
 
-	public StreamedContent getStreamedContent() {
-		InputStream in = new ByteArrayInputStream(data);
-		return new DefaultStreamedContent(in, contetType, getOnlyFileName());
-	}
+//	public StreamedContent getStreamedContent() {
+//		InputStream in = new ByteArrayInputStream(data);
+//		return new DefaultStreamedContent(in, contetType, getOnlyFileName());
+//	}
 }
