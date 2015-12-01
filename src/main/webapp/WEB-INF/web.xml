@@ -2,6 +2,11 @@
 <web-app version="3.0" xmlns="http://java.sun.com/xml/ns/javaee"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
+	<display-name>jpec-server</display-name>
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+	</welcome-file-list>
+	
 	<!-- Servlet declaration can be omitted in which case it would be automatically 
 		added by Jersey -->
 	<servlet>
@@ -12,4 +17,20 @@
 		<servlet-name>javax.ws.rs.core.Application</servlet-name>
 		<url-pattern>/api/*</url-pattern>
 	</servlet-mapping>
+	
+	<!-- JPA LISTENER -->
+	<context-param>
+		<param-name>PersistenceUnitName</param-name>
+		<param-value>jpec-server-pu</param-value>
+	</context-param>
+		<listener>
+		<listener-class>it.attocchi.jpa2.JPAContextListener</listener-class>
+	</listener>
+	<!-- 	
+	<listener>
+		<listener-class>it.attocchi.jpa2.JPASessionListener</listener-class>
+	</listener>
+	-->
+	
+		
 </web-app>
