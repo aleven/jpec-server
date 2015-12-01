@@ -1,29 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <persistence version="2.0" xmlns="http://java.sun.com/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd">
-	<persistence-unit name="DEFAULT_PU" transaction-type="RESOURCE_LOCAL">
+	<persistence-unit name="jpec-server-pu" transaction-type="RESOURCE_LOCAL">
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
-
-		<!-- WebAppCommon -->		
-		<class>it.attocchi.jpa2.entities.EntityMarks</class>
+		<non-jta-data-source>java:/comp/env/jdbc/JPecDB</non-jta-data-source>
 		
+		<!-- Entities -->				
 		<class>it.attocchi.jpec.server.entities.MessaggioPec</class>
-		<class>it.attocchi.jpec.server.entities.Allegato</class>
-		<class>it.attocchi.jpec.server.entities.Configurazione</class>
-		<class>it.attocchi.jpec.server.entities.Protocollo</class>
-		<class>it.attocchi.jpec.server.entities.Notifica</class>
+		<class>it.attocchi.jpec.server.entities.AllegatoPec</class>
+		<class>it.attocchi.jpec.server.entities.ConfigurazionePec</class>
+		<class>it.attocchi.jpec.server.entities.ProtocolloPec</class>
+		<class>it.attocchi.jpec.server.entities.NotificaPec</class>
 		
 		<validation-mode>NONE</validation-mode>
 		<properties>
  
+ 			<!-- <property name="hibernate.hbm2ddl.auto" value="create-drop" /> -->
  			<property name="hibernate.hbm2ddl.auto" value="update" />
  
-			<property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver" />
+			<!-- <property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver" /> -->
 			<!-- CACHE -->
 			<property name="hibernate.cache.provider_class" value="org.hibernate.cache.NoCacheProvider" />
 			<!-- LOG -->
 			<property name="hibernate.show_sql" value="false" />
 			<property name="hibernate.format_sql" value="false" />
 			<property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect" />
+			<!-- <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect" /> -->
 
 			<!-- <property name="hibernate.ejb.entitymanager_factory_name" value="DEFAULT_PU" /> -->
 
