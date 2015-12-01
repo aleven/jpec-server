@@ -15,7 +15,7 @@ http://www.agid.gov.it/sites/default/files/leggi_decreti_direttive/pec_regole_te
 - api rest per utilizzo da applicativi aziendali
 
 ## Requisiti Tecnici
-- database
+- database (postgresql o mysql)
 - servlet api > 3
 - java 7
 
