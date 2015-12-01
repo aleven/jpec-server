@@ -23,7 +23,7 @@ import javax.persistence.TemporalType;
 import org.apache.commons.lang3.StringUtils;
 
 @Entity
-@Table(schema = "pec", name = "pec01_messaggi")
+@Table(schema = "", name = "pec01_messaggi")
 public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 
 	public enum Folder {
@@ -159,13 +159,16 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 
 	@Column(name = "pec01_message_id")
 	private String messageID;
-	
+
 	@Column(name = "pec01_x_riferimento_message_id")
 	private String xRiferimentoMessageID;
-	
-	@Column(name = "pec01_x_tiporicevuta")
+
+	@Column(name = "pec01_x_ricevuta")
+	private String xRicevuta;
+
+	@Column(name = "pec01_x_tipo_ricevuta")
 	private String xTipoRicevuta;
-	
+
 	public long getId() {
 		return id;
 	}
@@ -397,7 +400,7 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 		return res;
 	}
 
-	public static MessaggioPec createNew(Folder folder) {
+	public static MessaggioPec createNew(String utente, Folder folder) {
 		MessaggioPec nuovo = new MessaggioPec();
 
 		nuovo.folder = folder.name();
@@ -492,14 +495,14 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 		this.postacertContentType = postacertContentType;
 	}
 
-	public String getOggettoAbbreviate() {
-		String res = oggetto;
-		int max = ConfigurazionePec.get().getLayoutColumnMaxChar();
-		if (StringUtils.isNotBlank(res) && max > 0) {
-			res = StringUtils.abbreviate(res, max);
-		}
-		return res;
-	}
+	// public String getOggettoAbbreviate() {
+	// String res = oggetto;
+	// int max = ConfigurazionePec.get().getLayoutColumnMaxChar();
+	// if (StringUtils.isNotBlank(res) && max > 0) {
+	// res = StringUtils.abbreviate(res, max);
+	// }
+	// return res;
+	// }
 
 	public boolean isArchiviabile() {
 		return StringUtils.isNotEmpty(getOggetto()) && !getOggetto().startsWith(MessaggioPecBL.OGGETTO_POSTA_CERTIFICATA);
@@ -545,6 +548,14 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 		this.xRiferimentoMessageID = xRiferimentoMessageID;
 	}
 
+	public String getxRicevuta() {
+		return xRicevuta;
+	}
+
+	public void setxRicevuta(String xRicevuta) {
+		this.xRicevuta = xRicevuta;
+	}
+
 	public String getxTipoRicevuta() {
 		return xTipoRicevuta;
 	}
@@ -552,4 +563,5 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 	public void setxTipoRicevuta(String xTipoRicevuta) {
 		this.xTipoRicevuta = xTipoRicevuta;
 	}
+
 }
