@@ -3,13 +3,13 @@ package it.attocchi.jpec.server.entities;
 import it.attocchi.jpa2.JpaController;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Entity
-@Table(schema = "pec", name = "pec03_config")
+@Table(schema = "", name = "pec03_config")
 public class ConfigurazionePec implements Serializable {
 
 	protected static final Logger logger = LoggerFactory.getLogger(ConfigurazionePec.class);
@@ -51,24 +51,30 @@ public class ConfigurazionePec implements Serializable {
 	 * @param emf
 	 * @return
 	 */
-	public static ConfigurazionePec init(EntityManagerFactory emf) {
+	public static Map<String, ConfigurazionePec> init(EntityManagerFactory emf) {
 		return get(emf);
 	}
 
-	public static ConfigurazionePec get(EntityManagerFactory emf) {
+	public static Map<String, ConfigurazionePec> get(EntityManagerFactory emf) {
 		if (cache == null) {
 			try {
-				JpaController c = new JpaController(emf);
-				cache = c.findAll(ConfigurazionePec.class);
+				JpaController controller = new JpaController(emf);
+				List<ConfigurazionePec> data = controller.findAll(ConfigurazionePec.class);
 
-				if (cache == null) {
-					// Ne creaiamo una nuova
-					cache = new ConfigurazionePec();
-					cache.setAllegatiStoreDb(false);
+				// se non ci sono dati inserisco quelli di default
+				if (data == null || data.size() == 0) {
+					for (ConfigurazionePecEnum value : ConfigurazionePecEnum.values()) {
+						ConfigurazionePec newConfigurazione = new ConfigurazionePec();
+						newConfigurazione.setNome(value.name());
+						controller.insert(newConfigurazione);
+					}
+					// refresh dei dati
+					data = controller.findAll(ConfigurazionePec.class);
+				}
 
-					c.insert(cache);
-
-					cache = c.findFirst(ConfigurazionePec.class);
+				cache = new HashMap<String, ConfigurazionePec>();
+				for (ConfigurazionePec configurazione : data) {
+					cache.put(configurazione.getNome(), configurazione);
 				}
 
 			} catch (Exception ex) {
@@ -79,25 +85,54 @@ public class ConfigurazionePec implements Serializable {
 		return cache;
 	}
 
+	public static String getValueString(EntityManagerFactory emf, ConfigurazionePecEnum chiave) {
+		return get(emf).get(chiave.name()).getValore();
+	}
+	
+	public static Integer getValueInt(EntityManagerFactory emf, ConfigurazionePecEnum chiave) {
+		return Integer.parseInt(get(emf).get(chiave.name()).getValore());
+	}
+	
+	public static Boolean getValueBoolean(EntityManagerFactory emf, ConfigurazionePecEnum chiave) {
+		return Boolean.parseBoolean(get(emf).get(chiave.name()).getValore());
+	}		
+
 	public static void resetCurrent() {
 		cache = null;
 	}
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name = "pec03_id")
-	private long id;
-
 	@Column(name = "pec03_nome")
 	private String nome;
-
-	@Column(name = "pec03_descrizione")
-	private String descrizione;
 
 	@Column(name = "pec03_valore")
 	private String valore;
 
-	@Column(name = "pec03_tipocostante")
-	private String tipocostante;
+	@Column(name = "pec03_descrizione")
+	private String descrizione;
+
+	public String getNome() {
+		return nome;
+	}
+
+	public void setNome(String nome) {
+		this.nome = nome;
+	}
+
+	public String getValore() {
+		return valore;
+	}
+
+	public void setValore(String valore) {
+		this.valore = valore;
+	}
+
+	public String getDescrizione() {
+		return descrizione;
+	}
+
+	public void setDescrizione(String descrizione) {
+		this.descrizione = descrizione;
+	}
 
 }
