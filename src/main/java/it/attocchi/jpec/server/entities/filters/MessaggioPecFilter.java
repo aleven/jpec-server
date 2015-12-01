@@ -4,6 +4,7 @@ import it.attocchi.jpa2.JPAEntityFilter;
 import it.attocchi.jpa2.entities.EntityMarks_;
 import it.attocchi.jpec.server.entities.MessaggioPec;
 import it.attocchi.jpec.server.entities.MessaggioPec.Folder;
+import it.attocchi.jpec.server.entities.MessaggioPec_;
 import it.attocchi.utils.ListUtils;
 
 import java.util.Date;
@@ -18,7 +19,7 @@ import javax.persistence.criteria.Root;
 
 import org.apache.commons.lang3.StringUtils;
 
-public class MessaggioFilter extends JPAEntityFilter<MessaggioPec> {
+public class MessaggioPecFilter extends JPAEntityFilter<MessaggioPec> {
 
 	private long idUtenteCreazione;
 
@@ -30,7 +31,7 @@ public class MessaggioFilter extends JPAEntityFilter<MessaggioPec> {
 		this.idUtenteCreazione = idUtenteCreazione;
 	}
 
-	public MessaggioFilter setIdUtenteCreazioneL(int idUtenteCreazione) {
+	public MessaggioPecFilter setIdUtenteCreazioneL(int idUtenteCreazione) {
 		setIdUtenteCreazione(idUtenteCreazione);
 		return this;
 	}
@@ -47,6 +48,7 @@ public class MessaggioFilter extends JPAEntityFilter<MessaggioPec> {
 
 	private String oggetto;
 	private Date dataRicezione;
+	private String messageID;
 
 	public String getOggetto() {
 		return oggetto;
@@ -62,6 +64,14 @@ public class MessaggioFilter extends JPAEntityFilter<MessaggioPec> {
 
 	public void setDataRicezione(Date dataRicezione) {
 		this.dataRicezione = dataRicezione;
+	}
+
+	public String getMessageID() {
+		return messageID;
+	}
+
+	public void setMessageID(String messageID) {
+		this.messageID = messageID;
 	}
 
 	private Folder folder;
@@ -156,6 +166,10 @@ public class MessaggioFilter extends JPAEntityFilter<MessaggioPec> {
 			predicateList.add(criteriaBuilder.or(p1, p2, p3, p4, p5, p6, p7));
 		}
 
+		if (StringUtils.isNotEmpty(messageID)) {
+			predicateList.add(criteriaBuilder.equal(root.get(MessaggioPec_.messageID), messageID));
+		}
+		
 		if (dataRicezione != null) {
 			predicateList.add(criteriaBuilder.equal(root.get(MessaggioPec_.dataRicezione), dataRicezione));
 		}
