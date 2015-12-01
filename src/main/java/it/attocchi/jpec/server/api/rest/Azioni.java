@@ -22,7 +22,7 @@ public class Azioni extends RestBaseJpa2 {
 	public String doInviaeRicevi() {
 		String res = null;
 		try {
-			MessaggioPecBL.importaNuoviMessaggi(getContextEmf(), "");
+			MessaggioPecBL.importaNuoviMessaggi(getContextEmf(), "REST.ANONYMOUS");
 			new Date().toString();
 		} catch (Exception ex) {
 			res = ex.getMessage();
@@ -34,7 +34,14 @@ public class Azioni extends RestBaseJpa2 {
 	@Path("/ricevi")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String doRicevi() {
-		throw new NotImplementedException("questa api non e' ancora disponibile");
+		String res = null;
+		try {
+			MessaggioPecBL.importaNuoviMessaggi(getContextEmf(), "REST.ANONYMOUS");
+			new Date().toString();
+		} catch (Exception ex) {
+			res = ex.getMessage();
+		}
+		return res;
 	}
 
 	@POST
