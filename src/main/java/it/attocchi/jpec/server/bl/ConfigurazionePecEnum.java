@@ -1,4 +1,4 @@
-package it.attocchi.jpec.server.entities;
+package it.attocchi.jpec.server.bl;
 
 public enum ConfigurazionePecEnum {
 	

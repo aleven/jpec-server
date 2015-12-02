@@ -2,7 +2,6 @@ package it.attocchi.jpec.server.bl;
 
 import it.attocchi.jpa2.JpaController;
 import it.attocchi.jpec.server.entities.ConfigurazionePec;
-import it.attocchi.jpec.server.entities.ConfigurazionePecEnum;
 import it.attocchi.jpec.server.entities.MessaggioPec;
 import it.attocchi.jpec.server.entities.MessaggioPec.Folder;
 import it.attocchi.jpec.server.entities.MessaggioPec_;
