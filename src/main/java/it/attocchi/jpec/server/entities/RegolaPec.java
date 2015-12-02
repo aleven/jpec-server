@@ -1,20 +1,24 @@
 package it.attocchi.jpec.server.entities;
 
-import java.io.Serializable;
+import it.attocchi.jpa2.entities.AbstractEntityMarksWithIdLong;
+import it.attocchi.jpa2.entities.EntityMarks;
+
 import java.util.logging.Logger;
 
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
-import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 
 @Entity
-@Table(schema = "pec", name = "pec06_regole")
-public class RegolaPec implements Serializable {
+@Table(schema = "", name = "pec06_regole")
+public class RegolaPec extends AbstractEntityMarksWithIdLong<RegolaPec> {
 
 	protected static final Logger logger = Logger.getLogger(RegolaPec.class.getName());
 
@@ -49,6 +53,19 @@ public class RegolaPec implements Serializable {
 	@Column(name = "pec06_ordine")
 	private int ordine;
 
+	@Embedded
+	@AttributeOverrides({ @AttributeOverride(name = "dataCreazione", column = @Column(name = "pec06_dt_creazione")), @AttributeOverride(name = "dataModifica", column = @Column(name = "pec06_ts_modifica")), @AttributeOverride(name = "dataCancellazione", column = @Column(name = "pec06_dt_cancellazione")), @AttributeOverride(name = "utenteCreazioneId", column = @Column(name = "pec06_id_utente_creazione")), @AttributeOverride(name = "utenteModificaId", column = @Column(name = "pec06_id_utente_modifica")), @AttributeOverride(name = "utenteCancellazioneId", column = @Column(name = "pec06_id_utente_cancellazione")) })
+	private EntityMarks entityMarks;
+	
+	@Override
+	public EntityMarks getEntityMarks() {
+		return entityMarks;
+	}
+
+	public void setEntityMarks(EntityMarks entityMarks) {
+		this.entityMarks = entityMarks;
+	}
+	
 	public long getId() {
 		return id;
 	}
