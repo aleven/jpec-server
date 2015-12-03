@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <persistence version="2.0" xmlns="http://java.sun.com/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd">
 	<persistence-unit name="jpec-server-pu" transaction-type="RESOURCE_LOCAL">
-		<provider>org.hibernate.ejb.HibernatePersistence</provider>
+		<provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 		<non-jta-data-source>java:/comp/env/jdbc/JPecDB</non-jta-data-source>
 		
 		<!-- Entities -->				
 		<class>it.attocchi.jpec.server.entities.MessaggioPec</class>
-		<class>it.attocchi.jpec.server.entities.AllegatoPec</class>
 		<class>it.attocchi.jpec.server.entities.ConfigurazionePec</class>
-		<class>it.attocchi.jpec.server.entities.ProtocolloPec</class>
-		<class>it.attocchi.jpec.server.entities.NotificaPec</class>
+		<!-- Embedded -->
+		<class>it.attocchi.jpa2.entities.EntityMarks</class>
 		
 		<validation-mode>NONE</validation-mode>
 		<properties>
