@@ -46,7 +46,6 @@ public class TestGroovyShell {
         Binding binding = new Binding();
         binding.setVariable("email", email);
         GroovyShell shell = new GroovyShell(binding);
-
         Object res = shell.evaluate(groovyCode);
 
         if( res instanceof Boolean ){
