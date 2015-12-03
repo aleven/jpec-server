@@ -18,6 +18,14 @@ public class RegolaPecFilter extends JPAEntityFilter<RegolaPec> {
 
 	private RegolaPecEventoEnum evento;
 
+	public RegolaPecEventoEnum getEvento() {
+		return evento;
+	}
+
+	public void setEvento(RegolaPecEventoEnum evento) {
+		this.evento = evento;
+	}
+
 	@Override
 	public void buildWhere(EntityManagerFactory emf, List<Predicate> predicateList, CriteriaQuery<RegolaPec> criteriaQuery, CriteriaBuilder criteriaBuilder, Root<RegolaPec> root) {
 		if (evento != null) {
