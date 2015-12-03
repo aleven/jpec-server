@@ -20,7 +20,7 @@ import javax.persistence.Table;
 import org.apache.commons.io.FilenameUtils;
 
 @Entity
-@Table(schema = "pec", name = "pec02_allegati")
+@Table(schema = "", name = "pec02_allegati")
 public class AllegatoPec extends AbstractEntityMarksWithIdLong<AllegatoPec> {
 
 	/**

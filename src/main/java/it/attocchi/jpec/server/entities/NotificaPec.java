@@ -20,7 +20,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 @Entity
-@Table(schema = "pec", name = "pec05_notifiche")
+@Table(schema = "", name = "pec05_notifiche")
 public class NotificaPec extends AbstractEntityMarksWithIdLong<NotificaPec> implements Serializable {
 
 	private static final long serialVersionUID = 1L;
