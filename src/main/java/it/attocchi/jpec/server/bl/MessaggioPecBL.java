@@ -37,8 +37,7 @@ public class MessaggioPecBL {
 	// public static final String STATO_ANOMALIA_MessaggioPec =
 	// "ANOMALIA MessaggioPec:";
 
-	// public static final String OGGETTO_POSTA_CERTIFICATA =
-	// "POSTA CERTIFICATA:";
+	public static final String OGGETTO_POSTA_CERTIFICATA = "POSTA CERTIFICATA:";
 
 	protected static final Logger logger = LoggerFactory.getLogger(RegolaPecBL.class);
 
@@ -103,7 +102,7 @@ public class MessaggioPecBL {
 			// }
 
 			List<RegolaPec> regoleMessaggioDaImportare = RegolaPecBL.regole(emf, RegolaPecEventoEnum.MESSAGGO_DA_IMPORTARE);
-			
+
 			List<Message> mails = server.getMessages();
 
 			logger.info(mails.size() + " messaggi nel server");
@@ -113,7 +112,7 @@ public class MessaggioPecBL {
 				// MailMessage m = MailMessage.create(mail);
 				boolean regoleVerificate = RegolaPecBL.applicaRegole(emf, regoleMessaggioDaImportare, mail);
 				if (regoleVerificate) {
-					
+
 					String headerMessageId = "";
 					String headerXRicevuta = "";
 					String headerXTipoRicevuta = "";
@@ -167,7 +166,9 @@ public class MessaggioPecBL {
 						// boolean saved = false;
 						String pathFile = "";
 						if (enableEmlStore) {
-							pathFile = ArchivioEmlBL.salvaEmlRicevuto(emlStoreFolder, emlInStoreFolder, server, mail);
+							// pathFile =
+							// ArchivioEmlBL.salvaEmlRicevuto(emlStoreFolder,
+							// emlInStoreFolder, server, mail);
 						}
 
 						/* Importiamo il MessaggioPec */
