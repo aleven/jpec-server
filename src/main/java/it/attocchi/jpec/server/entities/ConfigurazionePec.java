@@ -1,8 +1,9 @@
 package it.attocchi.jpec.server.entities;
 
 import it.attocchi.jpa2.JpaController;
+import it.attocchi.jpa2.entities.AbstractEntityWithIdString;
+import it.attocchi.jpec.server.bl.ConfigurazionePecEnum;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 @Entity
 @Table(schema = "", name = "pec03_config")
-public class ConfigurazionePec implements Serializable {
+public class ConfigurazionePec extends AbstractEntityWithIdString {
 
 	protected static final Logger logger = LoggerFactory.getLogger(ConfigurazionePec.class);
 
@@ -88,14 +89,14 @@ public class ConfigurazionePec implements Serializable {
 	public static String getValueString(EntityManagerFactory emf, ConfigurazionePecEnum chiave) {
 		return get(emf).get(chiave.name()).getValore();
 	}
-	
+
 	public static Integer getValueInt(EntityManagerFactory emf, ConfigurazionePecEnum chiave) {
 		return Integer.parseInt(get(emf).get(chiave.name()).getValore());
 	}
-	
+
 	public static Boolean getValueBoolean(EntityManagerFactory emf, ConfigurazionePecEnum chiave) {
 		return Boolean.parseBoolean(get(emf).get(chiave.name()).getValore());
-	}		
+	}
 
 	public static void resetCurrent() {
 		cache = null;
@@ -133,6 +134,11 @@ public class ConfigurazionePec implements Serializable {
 
 	public void setDescrizione(String descrizione) {
 		this.descrizione = descrizione;
+	}
+
+	@Override
+	public String getId() {
+		return getNome();
 	}
 
 }
