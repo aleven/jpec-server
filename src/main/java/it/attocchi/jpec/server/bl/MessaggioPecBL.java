@@ -4,7 +4,7 @@ import it.attocchi.jpa2.JpaController;
 import it.attocchi.jpec.server.entities.ConfigurazionePec;
 import it.attocchi.jpec.server.entities.MessaggioPec;
 import it.attocchi.jpec.server.entities.MessaggioPec.Folder;
-import it.attocchi.jpec.server.entities.MessaggioPec_;
+import it.attocchi.jpec.server.entities.RegolaPec;
 import it.attocchi.jpec.server.entities.filters.MessaggioPecFilter;
 import it.attocchi.mail.parts.EmailBody;
 import it.attocchi.mail.utils.MailConnection;
@@ -22,7 +22,8 @@ import javax.persistence.EntityManagerFactory;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MessaggioPecBL {
 
@@ -31,13 +32,15 @@ public class MessaggioPecBL {
 	static final String HEADER_X_TIPO_RICEVUTA = "X-TipoRicevuta";
 	static final String HEADER_X_RIFERIMENTO_MESSAGE_ID = "X-Riferimento-Message-ID";
 
-//	public static final String STATO_ACCETTAZIONE = "ACCETTAZIONE:";
-//	public static final String STATO_CONSEGNA = "CONSEGNA:";
-//	public static final String STATO_ANOMALIA_MessaggioPec = "ANOMALIA MessaggioPec:";
+	// public static final String STATO_ACCETTAZIONE = "ACCETTAZIONE:";
+	// public static final String STATO_CONSEGNA = "CONSEGNA:";
+	// public static final String STATO_ANOMALIA_MessaggioPec =
+	// "ANOMALIA MessaggioPec:";
 
-//	public static final String OGGETTO_POSTA_CERTIFICATA = "POSTA CERTIFICATA:";
+	// public static final String OGGETTO_POSTA_CERTIFICATA =
+	// "POSTA CERTIFICATA:";
 
-	protected static final Logger logger = Logger.getLogger(MessaggioPecBL.class.getName());
+	protected static final Logger logger = LoggerFactory.getLogger(RegolaPecBL.class);
 
 	/**
 	 * Legge e Salva i nuovi Messaggi Ricevuti sul Server PEC
@@ -91,12 +94,16 @@ public class MessaggioPecBL {
 				throw new Exception("Impostare una modalita di connessione valida con il server (IMAP, POP3)");
 			}
 
-			// List<String> listaMessageID = JpaController.callFindProjection(emf, MessaggioPec.class, String.class, MessaggioPec_.messageID, null);
-			
+			// List<String> listaMessageID =
+			// JpaController.callFindProjection(emf, MessaggioPec.class,
+			// String.class, MessaggioPec_.messageID, null);
+
 			// if (deleteMessageFromServer) {
 			// server.setDeleteMessageFromServer(true);
 			// }
 
+			List<RegolaPec> regoleMessaggioDaImportare = RegolaPecBL.regole(emf, RegolaPecEventoEnum.MESSAGGO_DA_IMPORTARE);
+			
 			List<Message> mails = server.getMessages();
 
 			logger.info(mails.size() + " messaggi nel server");
@@ -104,126 +111,130 @@ public class MessaggioPecBL {
 			int i = 0;
 			for (Message mail : mails) {
 				// MailMessage m = MailMessage.create(mail);
-				
-				String headerMessageId = "";
-				String headerXRicevuta = "";
-				String headerXTipoRicevuta = "";
-				String headerXRiferimentoMessageId = "";
-
-				logger.debug("--");
-				logger.debug("getMessageNumber=" + mail.getMessageNumber());
-				if (mail.getAllHeaders() != null) {
-					Enumeration headers = mail.getAllHeaders();
-					while (headers.hasMoreElements()) {
-						Header h = (Header) headers.nextElement();
-						logger.debug(" " + h.getName() + ":" + h.getValue());
-						String headerName = h.getName();
-						if (HEADER_MESSAGE_ID.equalsIgnoreCase(headerName)) {
-							headerMessageId = h.getValue();
-						} else if (HEADER_X_RICEVUTA.equalsIgnoreCase(headerName)) {
-							headerXRicevuta = h.getValue();
-						} else if (HEADER_X_TIPO_RICEVUTA.equalsIgnoreCase(headerName)) {
-							headerXTipoRicevuta = h.getValue();							
-						} else if (HEADER_X_RIFERIMENTO_MESSAGE_ID.equalsIgnoreCase(headerName)) {
-							headerXRiferimentoMessageId = h.getValue();
-						}
-					}
-				}
-				logger.debug("getSubject=" + mail.getSubject());
-				logger.debug(" decoded=" + javax.mail.internet.MimeUtility.decodeText(mail.getSubject()));
-
-				// popEmails.add(m);
-
-				/*
-				 * NON IMPORTO MESSAGGI CHE HANNO LO STESSO MESSAGEID
-				 */
-				/* non posso guardare la data ricezione che e' sempre nulla */
-				MessaggioPecFilter filtro = new MessaggioPecFilter();
-				// filtro.setDataInvioOriginale(mail.getSentDate());
-				// -- filtro.setDataRicezione(mail.getReceivedDate());
-				// filtro.setOggetto(mail.getSubject());
-				filtro.setMessageID(headerMessageId);
-				
-				/*
-				 * CORREZZIONE VELOCE DEL 13/03/2013. Quando contrassegnato come
-				 * archiviato altrimenti ritorna dentro come nuovo
-				 */
-				filtro.setIncludiEliminati(true);
-				filtro.setMostraArchiviati(true);
-
-				MessaggioPec MessaggioPec = JpaController.callFindFirst(emf, MessaggioPec.class, filtro);
-
-				if (MessaggioPec == null) {
-
-					// boolean saved = false;
-					String pathFile = "";
-					if (enableEmlStore) {
-						pathFile = ArchivioEmlBL.salvaEmlRicevuto(emlStoreFolder, emlInStoreFolder, server, mail);
-					}
-
-					/* Importiamo il MessaggioPec */
-					MessaggioPec nuovo = MessaggioPec.createNew(utente, Folder.IN);
+				boolean regoleVerificate = RegolaPecBL.applicaRegole(emf, regoleMessaggioDaImportare, mail);
+				if (regoleVerificate) {
 					
-					// dati header PEC
-					nuovo.setMessageID(headerMessageId);
-					nuovo.setxRicevuta(headerXRicevuta);
-					nuovo.setxTipoRicevuta(headerXTipoRicevuta);
-					nuovo.setxRiferimentoMessageID(headerXRiferimentoMessageId);
+					String headerMessageId = "";
+					String headerXRicevuta = "";
+					String headerXTipoRicevuta = "";
+					String headerXRiferimentoMessageId = "";
 
-					nuovo.setOggetto(mail.getSubject());
-					nuovo.setDataInvioOriginale(mail.getSentDate());
-					nuovo.setDataRicezione(mail.getReceivedDate());
-
-					EmailBody body = MailUtils.getBody(mail);
-					nuovo.setMessaggio(body.getBody());
-
-					nuovo.setEmailMittente(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllSenders(mail)));
-					nuovo.setDestinatari(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllRecipents(mail)));
-
-					/*
-					 * Estrazione postacert.eml
-					 */
-					String postacertExtract = ConfigurazionePec.getValueString(emf, ConfigurazionePecEnum.PEC_POSTACERT_EXTRACT);
-					if (StringUtils.isNotBlank(postacertExtract)) {
-						/*
-						 * Lo facciamo per quelle che entrano come PEC e non
-						 * come ANOMALIE
-						 */
-						// if
-						// (mail.getSubject().startsWith(OGGETTO_POSTA_CERTIFICATA))
-						// {
-						File path = new File(pathFile);
-						path = new File(path.getParentFile(), FilenameUtils.removeExtension(path.getName()));
-						if (!path.exists())
-							path.mkdirs();
-						File postacertFile = new File(path, postacertExtract);
-						PecParser pecParser = new PecParser(postacertExtract, true, postacertFile);
-						pecParser.dumpPart(mail);
-						EmailBody bodyPostacert = pecParser.getTesto();
-						nuovo.setPostacertFile(postacertFile.getPath());
-						if (bodyPostacert != null) {
-							nuovo.setPostacertBody(bodyPostacert.getBody());
-							nuovo.setPostacertContentType(bodyPostacert.getContentType());
+					logger.debug("--");
+					logger.debug("getMessageNumber=" + mail.getMessageNumber());
+					if (mail.getAllHeaders() != null) {
+						Enumeration headers = mail.getAllHeaders();
+						while (headers.hasMoreElements()) {
+							Header h = (Header) headers.nextElement();
+							logger.debug(" " + h.getName() + ":" + h.getValue());
+							String headerName = h.getName();
+							if (HEADER_MESSAGE_ID.equalsIgnoreCase(headerName)) {
+								headerMessageId = h.getValue();
+							} else if (HEADER_X_RICEVUTA.equalsIgnoreCase(headerName)) {
+								headerXRicevuta = h.getValue();
+							} else if (HEADER_X_TIPO_RICEVUTA.equalsIgnoreCase(headerName)) {
+								headerXTipoRicevuta = h.getValue();
+							} else if (HEADER_X_RIFERIMENTO_MESSAGE_ID.equalsIgnoreCase(headerName)) {
+								headerXRiferimentoMessageId = h.getValue();
+							}
 						}
-						// }
 					}
+					logger.debug("getSubject=" + mail.getSubject());
+					logger.debug(" decoded=" + javax.mail.internet.MimeUtility.decodeText(mail.getSubject()));
 
-					if (StringUtils.isNotBlank(pathFile)) {
-						nuovo.setEmlFile(pathFile);
-					}
-					JpaController.callInsert(emf, nuovo);
+					// popEmails.add(m);
 
 					/*
-					 * Tutto e' andato bene ed ho salvato, se l'opzione e'
-					 * attivo contrassegno il MessaggioPec da elminare
+					 * NON IMPORTO MESSAGGI CHE HANNO LO STESSO MESSAGEID
 					 */
-					if (deleteMessageFromServer) {
-						server.markMessageDeleted(mail);
+					/* non posso guardare la data ricezione che e' sempre nulla */
+					MessaggioPecFilter filtro = new MessaggioPecFilter();
+					// filtro.setDataInvioOriginale(mail.getSentDate());
+					// -- filtro.setDataRicezione(mail.getReceivedDate());
+					// filtro.setOggetto(mail.getSubject());
+					filtro.setMessageID(headerMessageId);
+
+					/*
+					 * CORREZZIONE VELOCE DEL 13/03/2013. Quando contrassegnato
+					 * come archiviato altrimenti ritorna dentro come nuovo
+					 */
+					filtro.setIncludiEliminati(true);
+					filtro.setMostraArchiviati(true);
+
+					MessaggioPec MessaggioPec = JpaController.callFindFirst(emf, MessaggioPec.class, filtro);
+
+					if (MessaggioPec == null) {
+
+						// boolean saved = false;
+						String pathFile = "";
+						if (enableEmlStore) {
+							pathFile = ArchivioEmlBL.salvaEmlRicevuto(emlStoreFolder, emlInStoreFolder, server, mail);
+						}
+
+						/* Importiamo il MessaggioPec */
+						MessaggioPec nuovo = MessaggioPec.createNew(utente, Folder.IN);
+
+						// dati header PEC
+						nuovo.setMessageID(headerMessageId);
+						nuovo.setxRicevuta(headerXRicevuta);
+						nuovo.setxTipoRicevuta(headerXTipoRicevuta);
+						nuovo.setxRiferimentoMessageID(headerXRiferimentoMessageId);
+
+						nuovo.setOggetto(mail.getSubject());
+						nuovo.setDataInvioOriginale(mail.getSentDate());
+						nuovo.setDataRicezione(mail.getReceivedDate());
+
+						EmailBody body = MailUtils.getBody(mail);
+						nuovo.setMessaggio(body.getBody());
+
+						nuovo.setEmailMittente(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllSenders(mail)));
+						nuovo.setDestinatari(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllRecipents(mail)));
+
+						/*
+						 * Estrazione postacert.eml
+						 */
+						String postacertExtract = ConfigurazionePec.getValueString(emf, ConfigurazionePecEnum.PEC_POSTACERT_EXTRACT);
+						if (StringUtils.isNotBlank(postacertExtract)) {
+							/*
+							 * Lo facciamo per quelle che entrano come PEC e non
+							 * come ANOMALIE
+							 */
+							// if
+							// (mail.getSubject().startsWith(OGGETTO_POSTA_CERTIFICATA))
+							// {
+							File path = new File(pathFile);
+							path = new File(path.getParentFile(), FilenameUtils.removeExtension(path.getName()));
+							if (!path.exists())
+								path.mkdirs();
+							File postacertFile = new File(path, postacertExtract);
+							PecParser pecParser = new PecParser(postacertExtract, true, postacertFile);
+							pecParser.dumpPart(mail);
+							EmailBody bodyPostacert = pecParser.getTesto();
+							nuovo.setPostacertFile(postacertFile.getPath());
+							if (bodyPostacert != null) {
+								nuovo.setPostacertBody(bodyPostacert.getBody());
+								nuovo.setPostacertContentType(bodyPostacert.getContentType());
+							}
+							// }
+						}
+
+						if (StringUtils.isNotBlank(pathFile)) {
+							nuovo.setEmlFile(pathFile);
+						}
+						JpaController.callInsert(emf, nuovo);
+
+						/*
+						 * Tutto e' andato bene ed ho salvato, se l'opzione e'
+						 * attivo contrassegno il MessaggioPec da elminare
+						 */
+						if (deleteMessageFromServer) {
+							server.markMessageDeleted(mail);
+						}
+
+						i++;
 					}
-
-					i++;
+				} else {
+					logger.warn("regole di importazione per il messaggio non sono state superate");
 				}
-
 			}
 			logger.info(i + " nuovi messaggi importati");
 
