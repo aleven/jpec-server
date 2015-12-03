@@ -51,7 +51,7 @@ public class RegolaPec extends AbstractEntityMarksWithIdLong<RegolaPec> {
 	private String azione;
 
 	@Column(name = "pec06_ordine")
-	private int ordine;
+	private Integer ordine;
 
 	@Embedded
 	@AttributeOverrides({ @AttributeOverride(name = "dataCreazione", column = @Column(name = "pec06_dt_creazione")), @AttributeOverride(name = "dataModifica", column = @Column(name = "pec06_ts_modifica")), @AttributeOverride(name = "dataCancellazione", column = @Column(name = "pec06_dt_cancellazione")), @AttributeOverride(name = "utenteCreazioneId", column = @Column(name = "pec06_id_utente_creazione")), @AttributeOverride(name = "utenteModificaId", column = @Column(name = "pec06_id_utente_modifica")), @AttributeOverride(name = "utenteCancellazioneId", column = @Column(name = "pec06_id_utente_cancellazione")) })
@@ -114,11 +114,11 @@ public class RegolaPec extends AbstractEntityMarksWithIdLong<RegolaPec> {
 		this.azione = azione;
 	}
 
-	public int getOrdine() {
+	public Integer getOrdine() {
 		return ordine;
 	}
 
-	public void setOrdine(int ordine) {
+	public void setOrdine(Integer ordine) {
 		this.ordine = ordine;
 	}
 
