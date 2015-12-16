@@ -111,9 +111,14 @@ public class ConfigurazioneBL {
 							try {
 								Properties props = new Properties();
 								props.load(new FileInputStream(file));
-								// new
-								// File(req.getServletContext().getRealPath("/WEB-INF/fileName.properties"))));
-								logger.info("caricato configurazione mailbox da {}", propertyFileName);
+								String mailboxName = props.getProperty(ConfigurazionePecEnum.PEC_MAILBOX_NAME.name());
+								if (StringUtils.isNoneBlank(mailboxName)) {
+									if (fileConfig == null) {
+										fileConfig = new HashMap<String, Properties>();
+									}
+									fileConfig.put(mailboxName, props);
+								}
+								logger.info("caricato configurazione mailbox {} da {}", mailboxName, propertyFileName);
 							} catch (Exception ex) {
 								logger.error("impossibile caricare configurazione mailbox", ex);
 							}
