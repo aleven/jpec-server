@@ -6,7 +6,7 @@
 	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>
 	</welcome-file-list>
-	
+			
 	<!-- Servlet declaration can be omitted in which case it would be automatically 
 		added by Jersey -->
 	<servlet>
@@ -23,7 +23,7 @@
 		<param-name>PersistenceUnitName</param-name>
 		<param-value>jpec-server-pu</param-value>
 	</context-param>
-		<listener>
+	<listener>
 		<listener-class>it.attocchi.jpa2.JPAContextListener</listener-class>
 	</listener>
 	<!-- 	
@@ -32,5 +32,9 @@
 	</listener>
 	-->
 	
+	<!-- Inizializzazione Context dopo JPAContextListener per avere a disposizione EMF -->
+	<listener>
+		<listener-class>it.attocchi.jpec.server.servlet.StartupContext</listener-class>
+	</listener>
 		
 </web-app>
