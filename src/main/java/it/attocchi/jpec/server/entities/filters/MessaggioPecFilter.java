@@ -49,6 +49,7 @@ public class MessaggioPecFilter extends JPAEntityFilter<MessaggioPec> {
 	private String oggetto;
 	private Date dataRicezione;
 	private String messageID;
+	private String mailbox;
 
 	public String getOggetto() {
 		return oggetto;
@@ -72,6 +73,14 @@ public class MessaggioPecFilter extends JPAEntityFilter<MessaggioPec> {
 
 	public void setMessageID(String messageID) {
 		this.messageID = messageID;
+	}
+
+	public String getMailbox() {
+		return mailbox;
+	}
+
+	public void setMailbox(String mailbox) {
+		this.mailbox = mailbox;
 	}
 
 	private Folder folder;
@@ -169,7 +178,7 @@ public class MessaggioPecFilter extends JPAEntityFilter<MessaggioPec> {
 		if (StringUtils.isNotEmpty(messageID)) {
 			predicateList.add(criteriaBuilder.equal(root.get(MessaggioPec_.messageID), messageID));
 		}
-		
+
 		if (dataRicezione != null) {
 			predicateList.add(criteriaBuilder.equal(root.get(MessaggioPec_.dataRicezione), dataRicezione));
 		}
@@ -200,6 +209,10 @@ public class MessaggioPecFilter extends JPAEntityFilter<MessaggioPec> {
 		if (folder != null) {
 			predicateList.add(criteriaBuilder.equal(root.get(MessaggioPec_.folder), folder.name()));
 		}
+		
+		if (StringUtils.isNoneBlank(mailbox)) {
+			predicateList.add(criteriaBuilder.equal(root.get(MessaggioPec_.mailbox), mailbox));
+		}		
 
 		if (!includiEliminati) {
 			predicateList.add(criteriaBuilder.isNull(root.get(MessaggioPec_.entityMarks).get(EntityMarks_.dataCancellazione)));

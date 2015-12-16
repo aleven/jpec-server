@@ -169,6 +169,9 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 	@Column(name = "pec01_x_tipo_ricevuta")
 	private String xTipoRicevuta;
 
+	@Column(name = "pec01_mailbox")
+	private String mailbox;
+	
 	public long getId() {
 		return id;
 	}
@@ -562,6 +565,14 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 
 	public void setxTipoRicevuta(String xTipoRicevuta) {
 		this.xTipoRicevuta = xTipoRicevuta;
+	}
+
+	public String getMailbox() {
+		return mailbox;
+	}
+
+	public void setMailbox(String mailbox) {
+		this.mailbox = mailbox;
 	}
 
 }
