@@ -53,22 +53,22 @@ public class MessaggioPecBL {
 		boolean res = false;
 		// List<MailMessage> popEmails = new ArrayList<MailMessage>();
 
-		ConfigurazionePec.resetCurrent();
+		ConfigurazioneBL.resetCurrent();
 
-		if (ConfigurazionePec.getValueBoolean(emf, ConfigurazionePecEnum.PEC_ENABLE_EMAIL_CHECK)) {
+		if (ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_ENABLE_EMAIL_CHECK)) {
 
-			String popServer = ConfigurazionePec.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER);
-			int popPort = ConfigurazionePec.getValueInt(emf, ConfigurazionePecEnum.PEC_SERVER_PORT);
-			String popUsername = ConfigurazionePec.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER_USERNAME);
-			String popPassword = ConfigurazionePec.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER_PASSWORD);
-			boolean enablePopSSL = ConfigurazionePec.getValueBoolean(emf, ConfigurazionePecEnum.PEC_SERVER_SSL);
-			boolean enablePopSSLNoCertCheck = ConfigurazionePec.getValueBoolean(emf, ConfigurazionePecEnum.PEC_SERVER_SSLNOCHECK);
+			String popServer = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER);
+			int popPort = ConfigurazioneBL.getValueInt(emf, ConfigurazionePecEnum.PEC_SERVER_PORT);
+			String popUsername = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER_USERNAME);
+			String popPassword = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER_PASSWORD);
+			boolean enablePopSSL = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_SERVER_SSL);
+			boolean enablePopSSLNoCertCheck = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_SERVER_SSLNOCHECK);
 
-			boolean enableEmlStore = ConfigurazionePec.getValueBoolean(emf, ConfigurazionePecEnum.PEC_ENABLE_EML_STORE);
-			String emlStoreFolder = ConfigurazionePec.getValueString(emf, ConfigurazionePecEnum.PEC_EML_STORE_FOLDER);
-			String emlInStoreFolder = ConfigurazionePec.getValueString(emf, ConfigurazionePecEnum.PEC_FOLDER_IN);
+			boolean enableEmlStore = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_ENABLE_EML_STORE);
+			String emlStoreFolder = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_EML_STORE_FOLDER);
+			String emlInStoreFolder = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_FOLDER_IN);
 
-			boolean deleteMessageFromServer = ConfigurazionePec.getValueBoolean(emf, ConfigurazionePecEnum.PEC_SERVER_DELETE_MESSAGE);
+			boolean deleteMessageFromServer = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_SERVER_DELETE_MESSAGE);
 
 			logger.info("verifica messaggi da " + popServer + ":" + popPort);
 
@@ -78,7 +78,7 @@ public class MessaggioPecBL {
 			server.setEnableSSLNoCertCheck(enablePopSSLNoCertCheck);
 			server.setEnableDeleteMessageFromServer(deleteMessageFromServer);
 
-			String serverMode = ConfigurazionePec.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER_MODE);
+			String serverMode = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER_MODE);
 			if ("IMAP".equals(serverMode.toUpperCase())) {
 				if (enablePopSSL)
 					server.connectIMAPS();
@@ -193,7 +193,7 @@ public class MessaggioPecBL {
 						/*
 						 * Estrazione postacert.eml
 						 */
-						String postacertExtract = ConfigurazionePec.getValueString(emf, ConfigurazionePecEnum.PEC_POSTACERT_EXTRACT);
+						String postacertExtract = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_POSTACERT_EXTRACT);
 						if (StringUtils.isNotBlank(postacertExtract)) {
 							/*
 							 * Lo facciamo per quelle che entrano come PEC e non
