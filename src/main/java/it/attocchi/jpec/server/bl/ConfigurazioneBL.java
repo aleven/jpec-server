@@ -5,6 +5,7 @@ import it.attocchi.jpec.server.entities.ConfigurazionePec;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,7 @@ public class ConfigurazioneBL {
 	private static final long serialVersionUID = 1L;
 
 	private static Map<String, ConfigurazionePec> dbConfig = null;
-	private static Map<String, Properties> fileConfig = null;
+	private static Map<String, Properties> mailboxes = new HashMap<String, Properties>();
 
 	public static ConfigurazionePec get(ConfigurazionePecEnum chiave) {
 		ConfigurazionePec res = null;
@@ -98,8 +99,8 @@ public class ConfigurazioneBL {
 	}
 
 	public static Map<String, Properties> loadFromFiles(EntityManagerFactory emf) {
-		if (fileConfig == null) {
-			String mailboxesPath = getValueString(emf, ConfigurazionePecEnum.PEC_MAILBOXES_FOLDER);
+		if (mailboxes == null) {
+			String mailboxesPath = getValueStringDB(emf, ConfigurazionePecEnum.PEC_MAILBOXES_FOLDER);
 			if (StringUtils.isNotBlank(mailboxesPath)) {
 				logger.info("verifica configurazione mailbox_*.properties in {}", mailboxesPath);
 				File mailboxesDir = new File(mailboxesPath);
@@ -113,10 +114,10 @@ public class ConfigurazioneBL {
 								props.load(new FileInputStream(file));
 								String mailboxName = props.getProperty(ConfigurazionePecEnum.PEC_MAILBOX_NAME.name());
 								if (StringUtils.isNoneBlank(mailboxName)) {
-									if (fileConfig == null) {
-										fileConfig = new HashMap<String, Properties>();
+									if (mailboxes == null) {
+										mailboxes = new HashMap<String, Properties>();
 									}
-									fileConfig.put(mailboxName, props);
+									mailboxes.put(mailboxName, props);
 								}
 								logger.info("caricato configurazione mailbox {} da {}", mailboxName, propertyFileName);
 							} catch (Exception ex) {
@@ -127,19 +128,56 @@ public class ConfigurazioneBL {
 				}
 			}
 		}
-		return fileConfig;
+		return mailboxes;
 	}
 
-	public static String getValueString(EntityManagerFactory emf, ConfigurazionePecEnum chiave) {
+	public static String getValueStringDB(EntityManagerFactory emf, ConfigurazionePecEnum chiave) {
 		return loadFromDB(emf).get(chiave.name()).getValore();
 	}
 
-	public static Integer getValueInt(EntityManagerFactory emf, ConfigurazionePecEnum chiave) {
-		return Integer.parseInt(loadFromDB(emf).get(chiave.name()).getValore());
+	/**
+	 * 
+	 * @param emf
+	 * @param chiave
+	 * @param mailboxRequested
+	 *            blank for default mailbox (the database configuration)
+	 * @return
+	 */
+	public static String getValueString(EntityManagerFactory emf, ConfigurazionePecEnum chiave, String mailboxRequested) {
+		String res = null;
+
+		if (StringUtils.isBlank(mailboxRequested)) {
+			res = getValueStringDB(emf, chiave);
+		} else {
+			boolean isDBMailbox = mailboxRequested.equals(getValueStringDB(emf, ConfigurazionePecEnum.PEC_MAILBOX_NAME));
+			if (isDBMailbox) {
+				res = loadFromDB(emf).get(chiave.name()).getValore();
+			} else {
+				Map<String, Properties> configuredMailbox = loadFromFiles(emf);
+				for (String mailboxName : configuredMailbox.keySet()) {
+					if (mailboxRequested.equals(mailboxName)) {
+						Properties p = configuredMailbox.get(mailboxName);
+						res = p.getProperty(chiave.name());
+						break;
+					}
+				}
+			}
+
+		}
+		return res;
+
 	}
 
-	public static Boolean getValueBoolean(EntityManagerFactory emf, ConfigurazionePecEnum chiave) {
-		return Boolean.parseBoolean(loadFromDB(emf).get(chiave.name()).getValore());
+	public static Integer getValueInt(EntityManagerFactory emf, ConfigurazionePecEnum chiave, String mailboxRequested) {
+		return Integer.parseInt(getValueString(emf, chiave, mailboxRequested));
+	}
+	
+	public static Boolean getValueBooleanDB(EntityManagerFactory emf, ConfigurazionePecEnum chiave) {
+		return Boolean.parseBoolean(getValueStringDB(emf, chiave));
+	}
+	
+	public static Boolean getValueBoolean(EntityManagerFactory emf, ConfigurazionePecEnum chiave, String mailboxRequested) {
+		return Boolean.parseBoolean(getValueString(emf, chiave, mailboxRequested));
 	}
 
 	public static void saveValueString(EntityManagerFactory emf, ConfigurazionePecEnum chiave, String valore) {
@@ -156,7 +194,7 @@ public class ConfigurazioneBL {
 				newConfigurazione.setValore(valore);
 				controller.insert(newConfigurazione);
 			}
-			
+
 		} catch (Exception ex) {
 			logger.error("getCurrent", ex);
 		} finally {
@@ -167,7 +205,7 @@ public class ConfigurazioneBL {
 
 	public static void resetCurrent() {
 		dbConfig = null;
-		fileConfig = null;
+		mailboxes = null;
 	}
 
 	/**
@@ -177,7 +215,7 @@ public class ConfigurazioneBL {
 	 */
 	public static synchronized void initializeFromContextPath(EntityManagerFactory emf, String contextRealPath) {
 		init(emf);
-		String mailboxFolder = getValueString(emf, ConfigurazionePecEnum.PEC_MAILBOXES_FOLDER);
+		String mailboxFolder = getValueStringDB(emf, ConfigurazionePecEnum.PEC_MAILBOXES_FOLDER);
 		if (StringUtils.isBlank(mailboxFolder) && StringUtils.isNotBlank(contextRealPath)) {
 			logger.info("inizializzazione configurazione DB con folder del Context {}", contextRealPath);
 			saveValueString(emf, ConfigurazionePecEnum.PEC_MAILBOXES_FOLDER, contextRealPath);
@@ -186,4 +224,12 @@ public class ConfigurazioneBL {
 		}
 	}
 
+	public static List<String> getAllMailboxes(EntityManagerFactory emf) {
+		List<String> res = new ArrayList<String>();
+		res.add(getValueStringDB(emf, ConfigurazionePecEnum.PEC_MAILBOX_NAME));
+		loadFromFiles(emf);
+		if (mailboxes != null)
+			res.addAll(mailboxes.keySet());
+		return res;
+	}
 }
