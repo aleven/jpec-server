@@ -55,197 +55,201 @@ public class MessaggioPecBL {
 
 		ConfigurazioneBL.resetCurrent();
 
-		if (ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_ENABLE_EMAIL_CHECK)) {
+		if (ConfigurazioneBL.getValueBooleanDB(emf, ConfigurazionePecEnum.PEC_ENABLE_EMAIL_CHECK)) {
+			
+			for (String mailboxName : ConfigurazioneBL.getAllMailboxes(emf)) {
+				logger.info("verifica mailbox {}", mailboxName);
+				
+				String popServer = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER, mailboxName);
+				int popPort = ConfigurazioneBL.getValueInt(emf, ConfigurazionePecEnum.PEC_SERVER_PORT, mailboxName);
+				String popUsername = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER_USERNAME, mailboxName);
+				String popPassword = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER_PASSWORD, mailboxName);
+				boolean enablePopSSL = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_SERVER_SSL, mailboxName);
+				boolean enablePopSSLNoCertCheck = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_SERVER_SSLNOCHECK, mailboxName);
 
-			String popServer = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER);
-			int popPort = ConfigurazioneBL.getValueInt(emf, ConfigurazionePecEnum.PEC_SERVER_PORT);
-			String popUsername = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER_USERNAME);
-			String popPassword = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER_PASSWORD);
-			boolean enablePopSSL = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_SERVER_SSL);
-			boolean enablePopSSLNoCertCheck = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_SERVER_SSLNOCHECK);
+				boolean enableEmlStore = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_ENABLE_EML_STORE, mailboxName);
+				String emlStoreFolder = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_EML_STORE_FOLDER, mailboxName);
+				String emlInStoreFolder = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_FOLDER_IN, mailboxName);
 
-			boolean enableEmlStore = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_ENABLE_EML_STORE);
-			String emlStoreFolder = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_EML_STORE_FOLDER);
-			String emlInStoreFolder = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_FOLDER_IN);
+				boolean deleteMessageFromServer = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_SERVER_DELETE_MESSAGE, mailboxName);
 
-			boolean deleteMessageFromServer = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_SERVER_DELETE_MESSAGE);
+				logger.info("verifica messaggi da " + popServer + ":" + popPort);
 
-			logger.info("verifica messaggi da " + popServer + ":" + popPort);
+				MailConnection server = null;
+				server = new MailConnection(popServer, popPort, popUsername, popPassword);
 
-			MailConnection server = null;
-			server = new MailConnection(popServer, popPort, popUsername, popPassword);
+				server.setEnableSSLNoCertCheck(enablePopSSLNoCertCheck);
+				server.setEnableDeleteMessageFromServer(deleteMessageFromServer);
 
-			server.setEnableSSLNoCertCheck(enablePopSSLNoCertCheck);
-			server.setEnableDeleteMessageFromServer(deleteMessageFromServer);
-
-			String serverMode = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER_MODE);
-			if ("IMAP".equals(serverMode.toUpperCase())) {
-				if (enablePopSSL)
-					server.connectIMAPS();
-				else
-					server.connectIMAP();
-			} else if ("POP3".equals(serverMode.toUpperCase())) {
-				if (enablePopSSL)
-					server.connectPOP3S();
-				else
-					server.connectPOP3();
-			} else {
-				throw new Exception("Impostare una modalita di connessione valida con il server (IMAP, POP3)");
-			}
-
-			// List<String> listaMessageID =
-			// JpaController.callFindProjection(emf, MessaggioPec.class,
-			// String.class, MessaggioPec_.messageID, null);
-
-			// if (deleteMessageFromServer) {
-			// server.setDeleteMessageFromServer(true);
-			// }
-
-			List<RegolaPec> regoleMessaggioDaImportare = RegolaPecBL.regole(emf, RegolaPecEventoEnum.MESSAGGO_DA_IMPORTARE);
-
-			List<Message> mails = server.getMessages();
-
-			logger.info(mails.size() + " messaggi nel server");
-			logger.info("inizio verifica messaggi gia' importati...");
-			int i = 0;
-			for (Message mail : mails) {
-				// MailMessage m = MailMessage.create(mail);
-				boolean regoleVerificate = RegolaPecBL.applicaRegole(emf, regoleMessaggioDaImportare, mail);
-				if (regoleVerificate) {
-
-					String headerMessageId = "";
-					String headerXRicevuta = "";
-					String headerXTipoRicevuta = "";
-					String headerXRiferimentoMessageId = "";
-
-					logger.debug("--");
-					logger.debug("getMessageNumber=" + mail.getMessageNumber());
-					if (mail.getAllHeaders() != null) {
-						Enumeration headers = mail.getAllHeaders();
-						while (headers.hasMoreElements()) {
-							Header h = (Header) headers.nextElement();
-							logger.debug(" " + h.getName() + ":" + h.getValue());
-							String headerName = h.getName();
-							if (HEADER_MESSAGE_ID.equalsIgnoreCase(headerName)) {
-								headerMessageId = h.getValue();
-							} else if (HEADER_X_RICEVUTA.equalsIgnoreCase(headerName)) {
-								headerXRicevuta = h.getValue();
-							} else if (HEADER_X_TIPO_RICEVUTA.equalsIgnoreCase(headerName)) {
-								headerXTipoRicevuta = h.getValue();
-							} else if (HEADER_X_RIFERIMENTO_MESSAGE_ID.equalsIgnoreCase(headerName)) {
-								headerXRiferimentoMessageId = h.getValue();
-							}
-						}
-					}
-					logger.debug("getSubject=" + mail.getSubject());
-					logger.debug(" decoded=" + javax.mail.internet.MimeUtility.decodeText(mail.getSubject()));
-
-					// popEmails.add(m);
-
-					/*
-					 * NON IMPORTO MESSAGGI CHE HANNO LO STESSO MESSAGEID
-					 */
-					/* non posso guardare la data ricezione che e' sempre nulla */
-					MessaggioPecFilter filtro = new MessaggioPecFilter();
-					// filtro.setDataInvioOriginale(mail.getSentDate());
-					// -- filtro.setDataRicezione(mail.getReceivedDate());
-					// filtro.setOggetto(mail.getSubject());
-					filtro.setMessageID(headerMessageId);
-
-					/*
-					 * CORREZZIONE VELOCE DEL 13/03/2013. Quando contrassegnato
-					 * come archiviato altrimenti ritorna dentro come nuovo
-					 */
-					filtro.setIncludiEliminati(true);
-					filtro.setMostraArchiviati(true);
-
-					MessaggioPec MessaggioPec = JpaController.callFindFirst(emf, MessaggioPec.class, filtro);
-
-					if (MessaggioPec == null) {
-
-						// boolean saved = false;
-						String pathFile = "";
-						if (enableEmlStore) {
-							// pathFile =
-							// ArchivioEmlBL.salvaEmlRicevuto(emlStoreFolder,
-							// emlInStoreFolder, server, mail);
-						}
-
-						/* Importiamo il MessaggioPec */
-						MessaggioPec nuovo = MessaggioPec.createNew(utente, Folder.IN);
-
-						// dati header PEC
-						nuovo.setMessageID(headerMessageId);
-						nuovo.setxRicevuta(headerXRicevuta);
-						nuovo.setxTipoRicevuta(headerXTipoRicevuta);
-						nuovo.setxRiferimentoMessageID(headerXRiferimentoMessageId);
-
-						nuovo.setOggetto(mail.getSubject());
-						nuovo.setDataInvioOriginale(mail.getSentDate());
-						nuovo.setDataRicezione(mail.getReceivedDate());
-
-						EmailBody body = MailUtils.getBody(mail);
-						nuovo.setMessaggio(body.getBody());
-
-						nuovo.setEmailMittente(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllSenders(mail)));
-						nuovo.setDestinatari(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllRecipents(mail)));
-
-						/*
-						 * Estrazione postacert.eml
-						 */
-						String postacertExtract = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_POSTACERT_EXTRACT);
-						if (StringUtils.isNotBlank(postacertExtract)) {
-							/*
-							 * Lo facciamo per quelle che entrano come PEC e non
-							 * come ANOMALIE
-							 */
-							// if
-							// (mail.getSubject().startsWith(OGGETTO_POSTA_CERTIFICATA))
-							// {
-							File path = new File(pathFile);
-							path = new File(path.getParentFile(), FilenameUtils.removeExtension(path.getName()));
-							if (!path.exists())
-								path.mkdirs();
-							File postacertFile = new File(path, postacertExtract);
-							PecParser pecParser = new PecParser(postacertExtract, true, postacertFile);
-							pecParser.dumpPart(mail);
-							EmailBody bodyPostacert = pecParser.getTesto();
-							nuovo.setPostacertFile(postacertFile.getPath());
-							if (bodyPostacert != null) {
-								nuovo.setPostacertBody(bodyPostacert.getBody());
-								nuovo.setPostacertContentType(bodyPostacert.getContentType());
-							}
-							// }
-						}
-
-						if (StringUtils.isNotBlank(pathFile)) {
-							nuovo.setEmlFile(pathFile);
-						}
-						JpaController.callInsert(emf, nuovo);
-
-						/*
-						 * Tutto e' andato bene ed ho salvato, se l'opzione e'
-						 * attivo contrassegno il MessaggioPec da elminare
-						 */
-						if (deleteMessageFromServer) {
-							server.markMessageDeleted(mail);
-						}
-
-						i++;
-					}
+				String serverMode = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER_MODE, mailboxName);
+				if ("IMAP".equals(serverMode.toUpperCase())) {
+					if (enablePopSSL)
+						server.connectIMAPS();
+					else
+						server.connectIMAP();
+				} else if ("POP3".equals(serverMode.toUpperCase())) {
+					if (enablePopSSL)
+						server.connectPOP3S();
+					else
+						server.connectPOP3();
 				} else {
-					logger.warn("regole di importazione per il messaggio non sono state superate");
+					throw new Exception("Impostare una modalita di connessione valida con il server (IMAP, POP3)");
 				}
+
+				// List<String> listaMessageID =
+				// JpaController.callFindProjection(emf, MessaggioPec.class,
+				// String.class, MessaggioPec_.messageID, null);
+
+				// if (deleteMessageFromServer) {
+				// server.setDeleteMessageFromServer(true);
+				// }
+
+				List<RegolaPec> regoleMessaggioDaImportare = RegolaPecBL.regole(emf, RegolaPecEventoEnum.MESSAGGO_DA_IMPORTARE);
+
+				List<Message> mails = server.getMessages();
+
+				logger.info(mails.size() + " messaggi nel server");
+				logger.info("inizio verifica messaggi gia' importati...");
+				int i = 0;
+				for (Message mail : mails) {
+					// MailMessage m = MailMessage.create(mail);
+					boolean regoleVerificate = RegolaPecBL.applicaRegole(emf, regoleMessaggioDaImportare, mail);
+					if (regoleVerificate) {
+
+						String headerMessageId = "";
+						String headerXRicevuta = "";
+						String headerXTipoRicevuta = "";
+						String headerXRiferimentoMessageId = "";
+
+						logger.debug("--");
+						logger.debug("getMessageNumber=" + mail.getMessageNumber());
+						if (mail.getAllHeaders() != null) {
+							Enumeration headers = mail.getAllHeaders();
+							while (headers.hasMoreElements()) {
+								Header h = (Header) headers.nextElement();
+								logger.debug(" " + h.getName() + ":" + h.getValue());
+								String headerName = h.getName();
+								if (HEADER_MESSAGE_ID.equalsIgnoreCase(headerName)) {
+									headerMessageId = h.getValue();
+								} else if (HEADER_X_RICEVUTA.equalsIgnoreCase(headerName)) {
+									headerXRicevuta = h.getValue();
+								} else if (HEADER_X_TIPO_RICEVUTA.equalsIgnoreCase(headerName)) {
+									headerXTipoRicevuta = h.getValue();
+								} else if (HEADER_X_RIFERIMENTO_MESSAGE_ID.equalsIgnoreCase(headerName)) {
+									headerXRiferimentoMessageId = h.getValue();
+								}
+							}
+						}
+						logger.debug("getSubject=" + mail.getSubject());
+						logger.debug(" decoded=" + javax.mail.internet.MimeUtility.decodeText(mail.getSubject()));
+
+						// popEmails.add(m);
+
+						/*
+						 * NON IMPORTO MESSAGGI CHE HANNO LO STESSO MESSAGEID
+						 */
+						/* non posso guardare la data ricezione che e' sempre nulla */
+						MessaggioPecFilter filtro = new MessaggioPecFilter();
+						// filtro.setDataInvioOriginale(mail.getSentDate());
+						// -- filtro.setDataRicezione(mail.getReceivedDate());
+						// filtro.setOggetto(mail.getSubject());
+						filtro.setMessageID(headerMessageId);
+
+						/*
+						 * CORREZZIONE VELOCE DEL 13/03/2013. Quando contrassegnato
+						 * come archiviato altrimenti ritorna dentro come nuovo
+						 */
+						filtro.setIncludiEliminati(true);
+						filtro.setMostraArchiviati(true);
+
+						MessaggioPec MessaggioPec = JpaController.callFindFirst(emf, MessaggioPec.class, filtro);
+
+						if (MessaggioPec == null) {
+
+							// boolean saved = false;
+							String pathFile = "";
+							if (enableEmlStore) {
+								// pathFile =
+								// ArchivioEmlBL.salvaEmlRicevuto(emlStoreFolder,
+								// emlInStoreFolder, server, mail);
+							}
+
+							/* Importiamo il MessaggioPec */
+							MessaggioPec nuovo = MessaggioPec.createNew(utente, Folder.IN);
+
+							// dati header PEC
+							nuovo.setMessageID(headerMessageId);
+							nuovo.setxRicevuta(headerXRicevuta);
+							nuovo.setxTipoRicevuta(headerXTipoRicevuta);
+							nuovo.setxRiferimentoMessageID(headerXRiferimentoMessageId);
+
+							nuovo.setOggetto(mail.getSubject());
+							nuovo.setDataInvioOriginale(mail.getSentDate());
+							nuovo.setDataRicezione(mail.getReceivedDate());
+
+							EmailBody body = MailUtils.getBody(mail);
+							nuovo.setMessaggio(body.getBody());
+
+							nuovo.setEmailMittente(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllSenders(mail)));
+							nuovo.setDestinatari(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllRecipents(mail)));
+
+							/*
+							 * Estrazione postacert.eml
+							 */
+							String postacertExtract = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_POSTACERT_EXTRACT, mailboxName);
+							if (StringUtils.isNotBlank(postacertExtract)) {
+								/*
+								 * Lo facciamo per quelle che entrano come PEC e non
+								 * come ANOMALIE
+								 */
+								// if
+								// (mail.getSubject().startsWith(OGGETTO_POSTA_CERTIFICATA))
+								// {
+								File path = new File(pathFile);
+								path = new File(path.getParentFile(), FilenameUtils.removeExtension(path.getName()));
+								if (!path.exists())
+									path.mkdirs();
+								File postacertFile = new File(path, postacertExtract);
+								PecParser pecParser = new PecParser(postacertExtract, true, postacertFile);
+								pecParser.dumpPart(mail);
+								EmailBody bodyPostacert = pecParser.getTesto();
+								nuovo.setPostacertFile(postacertFile.getPath());
+								if (bodyPostacert != null) {
+									nuovo.setPostacertBody(bodyPostacert.getBody());
+									nuovo.setPostacertContentType(bodyPostacert.getContentType());
+								}
+								// }
+							}
+
+							if (StringUtils.isNotBlank(pathFile)) {
+								nuovo.setEmlFile(pathFile);
+							}
+							JpaController.callInsert(emf, nuovo);
+
+							/*
+							 * Tutto e' andato bene ed ho salvato, se l'opzione e'
+							 * attivo contrassegno il MessaggioPec da elminare
+							 */
+							if (deleteMessageFromServer) {
+								server.markMessageDeleted(mail);
+							}
+
+							i++;
+						}
+					} else {
+						logger.warn("regole di importazione per il messaggio non sono state superate");
+					}
+				}
+				logger.info(i + " nuovi messaggi importati");
+
+				// if (deleteMessageFromServer) {
+				// // server.deleteMessagesFromServer();
+				// // server.ExpungeFolder();
+				// }
+
+				MailConnection.close(server);
 			}
-			logger.info(i + " nuovi messaggi importati");
-
-			// if (deleteMessageFromServer) {
-			// // server.deleteMessagesFromServer();
-			// // server.ExpungeFolder();
-			// }
-
-			MailConnection.close(server);
-
+			
 			// addInfoMessage("Aggiornato");
 			res = true;
 
