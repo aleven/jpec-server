@@ -175,23 +175,23 @@ public class MessaggioPecBL {
 							}
 
 							/* Importiamo il MessaggioPec */
-							MessaggioPec nuovo = MessaggioPec.createNew(utente, Folder.IN);
+							MessaggioPec messaggioPec = MessaggioPec.createNew(utente, Folder.IN, mailboxName);
 
 							// dati header PEC
-							nuovo.setMessageID(headerMessageId);
-							nuovo.setxRicevuta(headerXRicevuta);
-							nuovo.setxTipoRicevuta(headerXTipoRicevuta);
-							nuovo.setxRiferimentoMessageID(headerXRiferimentoMessageId);
+							messaggioPec.setMessageID(headerMessageId);
+							messaggioPec.setxRicevuta(headerXRicevuta);
+							messaggioPec.setxTipoRicevuta(headerXTipoRicevuta);
+							messaggioPec.setxRiferimentoMessageID(headerXRiferimentoMessageId);
 
-							nuovo.setOggetto(mail.getSubject());
-							nuovo.setDataInvioOriginale(mail.getSentDate());
-							nuovo.setDataRicezione(mail.getReceivedDate());
+							messaggioPec.setOggetto(mail.getSubject());
+							messaggioPec.setDataInvioOriginale(mail.getSentDate());
+							messaggioPec.setDataRicezione(mail.getReceivedDate());
 
 							EmailBody body = MailUtils.getBody(mail);
-							nuovo.setMessaggio(body.getBody());
+							messaggioPec.setMessaggio(body.getBody());
 
-							nuovo.setEmailMittente(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllSenders(mail)));
-							nuovo.setDestinatari(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllRecipents(mail)));
+							messaggioPec.setEmailMittente(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllSenders(mail)));
+							messaggioPec.setDestinatari(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllRecipents(mail)));
 
 							/*
 							 * Estrazione postacert.eml
@@ -213,18 +213,18 @@ public class MessaggioPecBL {
 								PecParser pecParser = new PecParser(postacertExtract, true, postacertFile);
 								pecParser.dumpPart(mail);
 								EmailBody bodyPostacert = pecParser.getTesto();
-								nuovo.setPostacertFile(postacertFile.getPath());
+								messaggioPec.setPostacertFile(postacertFile.getPath());
 								if (bodyPostacert != null) {
-									nuovo.setPostacertBody(bodyPostacert.getBody());
-									nuovo.setPostacertContentType(bodyPostacert.getContentType());
+									messaggioPec.setPostacertBody(bodyPostacert.getBody());
+									messaggioPec.setPostacertContentType(bodyPostacert.getContentType());
 								}
 								// }
 							}
 
 							if (StringUtils.isNotBlank(pathFile)) {
-								nuovo.setEmlFile(pathFile);
+								messaggioPec.setEmlFile(pathFile);
 							}
-							JpaController.callInsert(emf, nuovo);
+							JpaController.callInsert(emf, messaggioPec);
 
 							/*
 							 * Tutto e' andato bene ed ho salvato, se l'opzione e'

@@ -403,16 +403,17 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 		return res;
 	}
 
-	public static MessaggioPec createNew(String utente, Folder folder) {
-		MessaggioPec nuovo = new MessaggioPec();
+	public static MessaggioPec createNew(String utente, Folder folder, String mailboxName) {
+		MessaggioPec messaggioPec = new MessaggioPec();
 
-		nuovo.folder = folder.name();
+		messaggioPec.folder = folder.name();
+		messaggioPec.mailbox = mailboxName;
 
-		nuovo.setProcessato(false);
+		messaggioPec.setProcessato(false);
 
-		nuovo.setLetto(false);
+		messaggioPec.setLetto(false);
 
-		return nuovo;
+		return messaggioPec;
 	}
 
 	// /**
