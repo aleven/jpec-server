@@ -171,11 +171,11 @@ public class ConfigurazioneBL {
 	public static Integer getValueInt(EntityManagerFactory emf, ConfigurazionePecEnum chiave, String mailboxRequested) {
 		return Integer.parseInt(getValueString(emf, chiave, mailboxRequested));
 	}
-	
+
 	public static Boolean getValueBooleanDB(EntityManagerFactory emf, ConfigurazionePecEnum chiave) {
 		return Boolean.parseBoolean(getValueStringDB(emf, chiave));
 	}
-	
+
 	public static Boolean getValueBoolean(EntityManagerFactory emf, ConfigurazionePecEnum chiave, String mailboxRequested) {
 		return Boolean.parseBoolean(getValueString(emf, chiave, mailboxRequested));
 	}
@@ -226,10 +226,14 @@ public class ConfigurazioneBL {
 
 	public static List<String> getAllMailboxes(EntityManagerFactory emf) {
 		List<String> res = new ArrayList<String>();
-		res.add(getValueStringDB(emf, ConfigurazionePecEnum.PEC_MAILBOX_NAME));
+		String dbMailbox = getValueStringDB(emf, ConfigurazionePecEnum.PEC_MAILBOX_NAME);
+		if (StringUtils.isNotBlank(dbMailbox)) {
+			res.add(dbMailbox);
+		}
 		loadFromFiles(emf);
-		if (mailboxes != null)
+		if (mailboxes != null) {
 			res.addAll(mailboxes.keySet());
+		}
 		return res;
 	}
 }
