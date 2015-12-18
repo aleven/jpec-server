@@ -1,7 +1,5 @@
 package it.attocchi.jpec.server.protocollo;
 
-import it.attocchi.jpec.server.entities.RegolaPec;
-
 import javax.mail.Message;
 import javax.persistence.EntityManagerFactory;
 
@@ -13,19 +11,11 @@ public class ProtocolloHelper {
 
 	protected final Logger logger = LoggerFactory.getLogger(ProtocolloHelper.class);
 
-	private EntityManagerFactory emf;
-	private Message messaggioEmail;
-	private RegolaPec regola;
-	private String protocolloImpl;
-
-	public ProtocolloHelper(EntityManagerFactory emf, String protocolloImpl, Message messaggioEmail) {
+	public ProtocolloHelper() {
 		super();
-		this.emf = emf;
-		this.protocolloImpl = protocolloImpl;
-		this.messaggioEmail = messaggioEmail;
 	}
 
-	public String genera() {
+	public String esegui(EntityManagerFactory emf, String protocolloImpl, Message messaggioEmail) {
 		String res = "";
 
 		if (StringUtils.isNotBlank(protocolloImpl)) {
@@ -33,6 +23,10 @@ public class ProtocolloHelper {
 				Object protocolloInstance = Class.forName(protocolloImpl).newInstance();
 				if (protocolloInstance instanceof ProtocolloGenerico) {
 					ProtocolloGenerico protocollo = (ProtocolloGenerico) protocolloInstance;
+
+					ProtocolloContext context = new ProtocolloContext(emf, protocolloImpl, messaggioEmail);
+					protocollo.inizialize(context);
+
 					res = protocollo.esegui();
 				} else {
 					logger.error("la classe specificata per la generazione del protocollo non implementa l'interfaccia {}", ProtocolloGenerico.class);
