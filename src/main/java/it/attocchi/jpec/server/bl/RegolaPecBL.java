@@ -84,7 +84,7 @@ public class RegolaPecBL {
 				}
 			}
 		} else {
-			// logger.warn("nessuna regola da applicare per evento {}", evento);
+			logger.warn("nessuna regola da applicare");
 		}
 		return tutteLeRegoleVerificate;
 	}
