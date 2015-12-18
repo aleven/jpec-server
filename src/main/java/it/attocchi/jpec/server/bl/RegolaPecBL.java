@@ -55,7 +55,7 @@ public class RegolaPecBL {
 				if (StringUtils.isNotBlank(groovyCode)) {
 					Binding binding = new Binding();
 					binding.setVariable("email", email);
-					binding.setVariable("helper", new RegolaPecHelper());
+					binding.setVariable("helper", new RegolaPecHelper(regola, email));
 
 //					String grrovyBody = groovyCode.trim();
 //					if (!grrovyBody.startsWith("{")) {
