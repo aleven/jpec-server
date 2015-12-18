@@ -1,11 +1,11 @@
 package it.attocchi.jpec.server.bl;
 
 import it.attocchi.jpa2.JpaController;
-import it.attocchi.jpec.server.entities.ConfigurazionePec;
 import it.attocchi.jpec.server.entities.MessaggioPec;
 import it.attocchi.jpec.server.entities.MessaggioPec.Folder;
 import it.attocchi.jpec.server.entities.RegolaPec;
 import it.attocchi.jpec.server.entities.filters.MessaggioPecFilter;
+import it.attocchi.jpec.server.protocollo.ProtocolloHelper;
 import it.attocchi.mail.parts.EmailBody;
 import it.attocchi.mail.utils.MailConnection;
 import it.attocchi.mail.utils.MailUtils;
@@ -56,10 +56,10 @@ public class MessaggioPecBL {
 		ConfigurazioneBL.resetCurrent();
 
 		if (ConfigurazioneBL.getValueBooleanDB(emf, ConfigurazionePecEnum.PEC_ENABLE_EMAIL_CHECK)) {
-			
+
 			for (String mailboxName : ConfigurazioneBL.getAllMailboxes(emf)) {
 				logger.info("verifica mailbox {}", mailboxName);
-				
+
 				String popServer = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER, mailboxName);
 				int popPort = ConfigurazioneBL.getValueInt(emf, ConfigurazionePecEnum.PEC_SERVER_PORT, mailboxName);
 				String popUsername = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER_USERNAME, mailboxName);
@@ -104,7 +104,7 @@ public class MessaggioPecBL {
 				// server.setDeleteMessageFromServer(true);
 				// }
 
-				List<RegolaPec> regoleMessaggioDaImportare = RegolaPecBL.regole(emf, RegolaPecEventoEnum.MESSAGGO_DA_IMPORTARE);
+				List<RegolaPec> regoleImporta = RegolaPecBL.regole(emf, RegolaPecEventoEnum.IMPORTA);
 
 				List<Message> mails = server.getMessages();
 
@@ -113,8 +113,8 @@ public class MessaggioPecBL {
 				int i = 0;
 				for (Message mail : mails) {
 					// MailMessage m = MailMessage.create(mail);
-					boolean regoleVerificate = RegolaPecBL.applicaRegole(emf, regoleMessaggioDaImportare, mail);
-					if (regoleVerificate) {
+					boolean regoleImportaConvalidate = RegolaPecBL.applicaRegole(emf, regoleImporta, mail);
+					if (regoleImportaConvalidate) {
 
 						String headerMessageId = "";
 						String headerXRicevuta = "";
@@ -148,24 +148,25 @@ public class MessaggioPecBL {
 						/*
 						 * NON IMPORTO MESSAGGI CHE HANNO LO STESSO MESSAGEID
 						 */
-						/* non posso guardare la data ricezione che e' sempre nulla */
+						/*
+						 * non posso guardare la data ricezione che e' sempre
+						 * nulla
+						 */
 						MessaggioPecFilter filtro = new MessaggioPecFilter();
 						// filtro.setDataInvioOriginale(mail.getSentDate());
 						// -- filtro.setDataRicezione(mail.getReceivedDate());
 						// filtro.setOggetto(mail.getSubject());
 						filtro.setMessageID(headerMessageId);
-
 						/*
-						 * CORREZZIONE VELOCE DEL 13/03/2013. Quando contrassegnato
-						 * come archiviato altrimenti ritorna dentro come nuovo
+						 * CORREZZIONE VELOCE DEL 13/03/2013. Quando
+						 * contrassegnato come archiviato altrimenti ritorna
+						 * dentro come nuovo
 						 */
 						filtro.setIncludiEliminati(true);
 						filtro.setMostraArchiviati(true);
 
-						MessaggioPec MessaggioPec = JpaController.callFindFirst(emf, MessaggioPec.class, filtro);
-
-						if (MessaggioPec == null) {
-
+						MessaggioPec messaggioEsistente = JpaController.callFindFirst(emf, MessaggioPec.class, filtro);
+						if (messaggioEsistente == null) {
 							// boolean saved = false;
 							String pathFile = "";
 							if (enableEmlStore) {
@@ -193,14 +194,25 @@ public class MessaggioPecBL {
 							messaggioPec.setEmailMittente(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllSenders(mail)));
 							messaggioPec.setDestinatari(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllRecipents(mail)));
 
+							/* PROTOCOLLA */
+							List<RegolaPec> regoleProtocolla = RegolaPecBL.regole(emf, RegolaPecEventoEnum.PROTOCOLLA);
+							boolean regoleProtocollaConvalidate = RegolaPecBL.applicaRegole(emf, regoleProtocolla, mail);
+							if (regoleImportaConvalidate) {
+								String protocolloImplGenerico = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_PROTOCOLLO_IMPL, mailboxName);
+								String protocolloImplMailbox = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_PROTOCOLLO_IMPL, mailboxName);
+								String protocolloImpl = (StringUtils.isNotBlank(protocolloImplMailbox)) ? protocolloImplMailbox : protocolloImplGenerico;
+								String protocollo = new ProtocolloHelper(emf, protocolloImpl, mail).genera();
+								messaggioPec.setProtocollo(protocollo);
+							}
+
 							/*
 							 * Estrazione postacert.eml
 							 */
 							String postacertExtract = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_POSTACERT_EXTRACT, mailboxName);
 							if (StringUtils.isNotBlank(postacertExtract)) {
 								/*
-								 * Lo facciamo per quelle che entrano come PEC e non
-								 * come ANOMALIE
+								 * Lo facciamo per quelle che entrano come PEC e
+								 * non come ANOMALIE
 								 */
 								// if
 								// (mail.getSubject().startsWith(OGGETTO_POSTA_CERTIFICATA))
@@ -227,14 +239,16 @@ public class MessaggioPecBL {
 							JpaController.callInsert(emf, messaggioPec);
 
 							/*
-							 * Tutto e' andato bene ed ho salvato, se l'opzione e'
-							 * attivo contrassegno il MessaggioPec da elminare
+							 * Tutto e' andato bene ed ho salvato, se l'opzione
+							 * e' attivo contrassegno il MessaggioPec
 							 */
 							if (deleteMessageFromServer) {
 								server.markMessageDeleted(mail);
 							}
 
 							i++;
+						} else {
+							logger.warn("messaggio {} gia' importato per mailbox {}", headerMessageId, messaggioEsistente.getMailbox());
 						}
 					} else {
 						logger.warn("regole di importazione per il messaggio non sono state superate");
@@ -249,7 +263,7 @@ public class MessaggioPecBL {
 
 				MailConnection.close(server);
 			}
-			
+
 			// addInfoMessage("Aggiornato");
 			res = true;
 
