@@ -201,7 +201,7 @@ public class MessaggioPecBL {
 								String protocolloImplGenerico = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_PROTOCOLLO_IMPL, mailboxName);
 								String protocolloImplMailbox = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_PROTOCOLLO_IMPL, mailboxName);
 								String protocolloImpl = (StringUtils.isNotBlank(protocolloImplMailbox)) ? protocolloImplMailbox : protocolloImplGenerico;
-								String protocollo = new ProtocolloHelper(emf, protocolloImpl, mail).genera();
+								String protocollo = new ProtocolloHelper().esegui(emf, protocolloImpl, mail);
 								messaggioPec.setProtocollo(protocollo);
 							}
 
