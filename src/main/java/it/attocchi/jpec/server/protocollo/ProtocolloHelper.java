@@ -33,7 +33,7 @@ public class ProtocolloHelper {
 				Object protocolloInstance = Class.forName(protocolloImpl).newInstance();
 				if (protocolloInstance instanceof ProtocolloGenerico) {
 					ProtocolloGenerico protocollo = (ProtocolloGenerico) protocolloInstance;
-					res = protocollo.calcola();
+					res = protocollo.esegui();
 				} else {
 					logger.error("la classe specificata per la generazione del protocollo non implementa l'interfaccia {}", ProtocolloGenerico.class);
 				}
