@@ -4,7 +4,7 @@ public interface ProtocolloGenerico {
 	
 	String esegui();
 
-	void inizialize(ProtocolloContext context);
+	ProtocolloGenerico inizialize(ProtocolloContext context);
 	ProtocolloContext getContext();
 	
 }

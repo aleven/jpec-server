@@ -15,12 +15,12 @@ public class ProtocolloContext {
 	private EntityManagerFactory emf;
 	private Message messaggioEmail;
 	private RegolaPec regola;
-	private String protocolloImpl;
+	// private String protocolloImpl;
 
-	public ProtocolloContext(EntityManagerFactory emf, String protocolloImpl, Message messaggioEmail) {
+	public ProtocolloContext(EntityManagerFactory emf, Message messaggioEmail) {
 		super();
 		this.emf = emf;
-		this.protocolloImpl = protocolloImpl;
+		// this.protocolloImpl = protocolloImpl;
 		this.messaggioEmail = messaggioEmail;
 	}
 
@@ -48,12 +48,12 @@ public class ProtocolloContext {
 		this.regola = regola;
 	}
 
-	public String getProtocolloImpl() {
-		return protocolloImpl;
-	}
-
-	public void setProtocolloImpl(String protocolloImpl) {
-		this.protocolloImpl = protocolloImpl;
-	}
+//	public String getProtocolloImpl() {
+//		return protocolloImpl;
+//	}
+//
+//	public void setProtocolloImpl(String protocolloImpl) {
+//		this.protocolloImpl = protocolloImpl;
+//	}
 
 }

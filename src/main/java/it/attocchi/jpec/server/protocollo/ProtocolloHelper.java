@@ -24,7 +24,7 @@ public class ProtocolloHelper {
 				if (protocolloInstance instanceof ProtocolloGenerico) {
 					ProtocolloGenerico protocollo = (ProtocolloGenerico) protocolloInstance;
 
-					ProtocolloContext context = new ProtocolloContext(emf, protocolloImpl, messaggioEmail);
+					ProtocolloContext context = new ProtocolloContext(emf, messaggioEmail);
 					protocollo.inizialize(context);
 
 					res = protocollo.esegui();

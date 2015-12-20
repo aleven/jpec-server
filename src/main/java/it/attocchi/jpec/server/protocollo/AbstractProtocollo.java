@@ -5,8 +5,9 @@ public abstract class AbstractProtocollo implements ProtocolloGenerico {
 	private ProtocolloContext context;
 
 	@Override
-	public void inizialize(ProtocolloContext context) {
+	public ProtocolloGenerico inizialize(ProtocolloContext context) {
 		this.context = context;
+		return this;
 	}
 
 	@Override
