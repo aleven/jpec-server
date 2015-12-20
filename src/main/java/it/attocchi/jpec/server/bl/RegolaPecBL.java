@@ -50,7 +50,7 @@ public class RegolaPecBL {
 		boolean tutteLeRegoleVerificate = true;
 		if (regoleDaApplicare != null && regoleDaApplicare.size() > 0) {
 			for (RegolaPec regola : regoleDaApplicare) {
-				logger.debug("applico la regola {}", regola);
+				logger.debug("applico la regola {}", regola.getNome());
 				String groovyCode = regola.getCriterio();
 				if (StringUtils.isNotBlank(groovyCode)) {
 					Binding binding = new Binding();
@@ -69,18 +69,18 @@ public class RegolaPecBL {
 					try {
 						res = shell.evaluate(groovyCode);
 					} catch (Exception ex) {
-						logger.error("errore valutazione regola groovy {}", groovyCode);
+						logger.error("errore valutazione criterio groovy:\n{}", groovyCode);
 						logger.error("dettagli", ex);
 					}
 
 					if (res != null && res instanceof Boolean) {
 						tutteLeRegoleVerificate = tutteLeRegoleVerificate && (Boolean) res;
-						logger.debug("risultato del criterio {}", res);
+						logger.debug("risultato del criterio: {}", res);
 					} else {
-						logger.error("impossibile verificare come risultato boolean il criterio della {}", regola);
+						logger.error("impossibile verificare come risultato boolean il criterio della {}", regola.getNome());
 					}
 				} else {
-					logger.warn("regola {} senza criterio", regola);
+					logger.warn("regola {} senza criterio", regola.getNome());
 				}
 			}
 		} else {

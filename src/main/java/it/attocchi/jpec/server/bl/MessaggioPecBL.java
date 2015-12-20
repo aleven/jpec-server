@@ -205,6 +205,7 @@ public class MessaggioPecBL {
 									logger.info("utilizzo implementazione protocolo {}", protocolloImpl);
 									String protocollo = new ProtocolloHelper().esegui(emf, protocolloImpl, mail);
 									messaggioPec.setProtocollo(protocollo);
+									logger.info("messaggio protocollato: {}", protocollo);
 								} else {
 									logger.warn("nessuna implementazione protocollo configurata");
 								}
