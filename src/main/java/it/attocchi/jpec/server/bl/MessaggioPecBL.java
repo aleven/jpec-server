@@ -39,7 +39,7 @@ public class MessaggioPecBL {
 
 	public static final String OGGETTO_POSTA_CERTIFICATA = "POSTA CERTIFICATA:";
 
-	protected static final Logger logger = LoggerFactory.getLogger(RegolaPecBL.class);
+	protected static final Logger logger = LoggerFactory.getLogger(MessaggioPecBL.class);
 
 	/**
 	 * Legge e Salva i nuovi Messaggi Ricevuti sul Server PEC
@@ -197,7 +197,7 @@ public class MessaggioPecBL {
 							/* PROTOCOLLA */
 							List<RegolaPec> regoleProtocolla = RegolaPecBL.regole(emf, RegolaPecEventoEnum.PROTOCOLLA);
 							boolean regoleProtocollaConvalidate = RegolaPecBL.applicaRegole(emf, regoleProtocolla, mail);
-							if (regoleImportaConvalidate) {
+							if (regoleProtocollaConvalidate) {
 								String protocolloImplGenerico = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_PROTOCOLLO_IMPL, mailboxName);
 								String protocolloImplMailbox = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_PROTOCOLLO_IMPL, mailboxName);
 								String protocolloImpl = (StringUtils.isNotBlank(protocolloImplMailbox)) ? protocolloImplMailbox : protocolloImplGenerico;
