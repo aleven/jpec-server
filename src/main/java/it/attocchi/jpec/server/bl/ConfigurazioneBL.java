@@ -236,4 +236,8 @@ public class ConfigurazioneBL {
 		}
 		return res;
 	}
+	
+	public static Properties getConfigurazione(String mailboxName) {
+		return (mailboxes != null) ? mailboxes.get(mailboxName) : null;
+	}
 }

@@ -15,6 +15,7 @@ import it.attocchi.utils.ListUtils;
 import java.io.File;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Properties;
 
 import javax.mail.Header;
 import javax.mail.Message;
@@ -213,8 +214,9 @@ public class MessaggioPecBL {
 									logger.info("configurazione protocolo mailbox {}", protocolloImplMailbox);
 									String protocolloImpl = (StringUtils.isNotBlank(protocolloImplMailbox)) ? protocolloImplMailbox : protocolloImplGenerico;
 									if (StringUtils.isNotBlank(protocolloImpl)) {
+										Properties configurazioneMailbox = ConfigurazioneBL.getConfigurazione(mailboxName);
 										logger.info("utilizzo implementazione protocolo {}", protocolloImpl);
-										String protocollo = new ProtocolloHelper().esegui(emf, protocolloImpl, mail);
+										String protocollo = new ProtocolloHelper().esegui(emf, protocolloImpl, mail, configurazioneMailbox);
 										messaggioPec.setProtocollo(protocollo);
 										logger.info("messaggio protocollato: {}", protocollo);
 									} else {
