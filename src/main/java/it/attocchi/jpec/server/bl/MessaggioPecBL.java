@@ -207,7 +207,7 @@ public class MessaggioPecBL {
 								List<RegolaPec> regoleProtocolla = RegolaPecBL.regole(emf, RegolaPecEventoEnum.PROTOCOLLA);
 								boolean regoleProtocollaConvalidate = RegolaPecBL.applicaRegole(emf, regoleProtocolla, mail);
 								if (regoleProtocollaConvalidate) {
-									String protocolloImplGenerico = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_PROTOCOLLO_IMPL, mailboxName);
+									String protocolloImplGenerico = ConfigurazioneBL.getValueStringDB(emf, ConfigurazionePecEnum.PEC_PROTOCOLLO_IMPL);
 									logger.info("configurazione protocolo generica {}", protocolloImplGenerico);
 									String protocolloImplMailbox = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_PROTOCOLLO_IMPL, mailboxName);
 									logger.info("configurazione protocolo mailbox {}", protocolloImplMailbox);
