@@ -1,5 +1,7 @@
 package it.attocchi.jpec.server.protocollo;
 
+import java.util.Properties;
+
 import javax.mail.Message;
 import javax.persistence.EntityManagerFactory;
 
@@ -15,7 +17,7 @@ public class ProtocolloHelper {
 		super();
 	}
 
-	public String esegui(EntityManagerFactory emf, String protocolloImpl, Message messaggioEmail) {
+	public String esegui(EntityManagerFactory emf, String protocolloImpl, Message messaggioEmail, Properties configurazioneMailbox) {
 		String res = "";
 
 		if (StringUtils.isNotBlank(protocolloImpl)) {
@@ -24,7 +26,7 @@ public class ProtocolloHelper {
 				if (protocolloInstance instanceof ProtocolloGenerico) {
 					ProtocolloGenerico protocollo = (ProtocolloGenerico) protocolloInstance;
 
-					ProtocolloContext context = new ProtocolloContext(emf, messaggioEmail);
+					ProtocolloContext context = new ProtocolloContext(emf, messaggioEmail, configurazioneMailbox);
 					protocollo.inizialize(context);
 
 					res = protocollo.esegui();

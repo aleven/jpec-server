@@ -2,6 +2,8 @@ package it.attocchi.jpec.server.protocollo;
 
 import it.attocchi.jpec.server.entities.RegolaPec;
 
+import java.util.Properties;
+
 import javax.mail.Message;
 import javax.persistence.EntityManagerFactory;
 
@@ -15,13 +17,13 @@ public class ProtocolloContext {
 	private EntityManagerFactory emf;
 	private Message messaggioEmail;
 	private RegolaPec regola;
-	// private String protocolloImpl;
+	private Properties configurazioneMailbox;
 
-	public ProtocolloContext(EntityManagerFactory emf, Message messaggioEmail) {
+	public ProtocolloContext(EntityManagerFactory emf, Message messaggioEmail, Properties configurazioneMailbox) {
 		super();
 		this.emf = emf;
-		// this.protocolloImpl = protocolloImpl;
 		this.messaggioEmail = messaggioEmail;
+		this.configurazioneMailbox = configurazioneMailbox;
 	}
 
 	public EntityManagerFactory getEmf() {
@@ -48,12 +50,12 @@ public class ProtocolloContext {
 		this.regola = regola;
 	}
 
-//	public String getProtocolloImpl() {
-//		return protocolloImpl;
-//	}
-//
-//	public void setProtocolloImpl(String protocolloImpl) {
-//		this.protocolloImpl = protocolloImpl;
-//	}
+	public Properties getConfigurazioneMailbox() {
+		return configurazioneMailbox;
+	}
+
+	public void setConfigurazioneMailbox(Properties configurazioneMailbox) {
+		this.configurazioneMailbox = configurazioneMailbox;
+	}
 
 }
