@@ -132,7 +132,7 @@ public class ConfigurazioneBL {
 	}
 
 	public static String getValueStringDB(EntityManagerFactory emf, ConfigurazionePecEnum chiave) {
-		return loadFromDB(emf).get(chiave.name()).getValore();
+		 return loadFromDB(emf).get(chiave.name()) != null ? loadFromDB(emf).get(chiave.name()).getValore() : null;
 	}
 
 	/**
