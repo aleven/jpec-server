@@ -27,7 +27,7 @@ public class ConfigurazioneBL {
 	private static final long serialVersionUID = 1L;
 
 	private static Map<String, ConfigurazionePec> dbConfig = null;
-	private static Map<String, Properties> mailboxes = new HashMap<String, Properties>();
+	private static Map<String, Properties> mailboxes = null;
 
 	public static ConfigurazionePec get(ConfigurazionePecEnum chiave) {
 		ConfigurazionePec res = null;
