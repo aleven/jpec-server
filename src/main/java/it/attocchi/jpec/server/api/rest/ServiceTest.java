@@ -13,14 +13,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Path("/test")
-public class Test extends RestBaseJpa2 {
+public class ServiceTest extends RestBaseJpa2 {
 
-	protected static final Logger logger = LoggerFactory.getLogger(Test.class);
+	protected static final Logger logger = LoggerFactory.getLogger(ServiceTest.class);
 	
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	public String getIt() {
 		logger.debug("{}", restServletContext.getContextPath());
+		logger.debug("{}", uriInfo.getAbsolutePath());
 		return new Date().toString();
 	}
 }
