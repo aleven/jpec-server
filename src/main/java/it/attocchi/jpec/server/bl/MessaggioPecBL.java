@@ -1,18 +1,24 @@
 package it.attocchi.jpec.server.bl;
 
 import it.attocchi.jpa2.JpaController;
+import it.attocchi.jpec.server.api.rest.data.NuovoMessaggioRequest;
+import it.attocchi.jpec.server.entities.AllegatoPec;
 import it.attocchi.jpec.server.entities.MessaggioPec;
 import it.attocchi.jpec.server.entities.MessaggioPec.Folder;
 import it.attocchi.jpec.server.entities.RegolaPec;
 import it.attocchi.jpec.server.entities.filters.MessaggioPecFilter;
+import it.attocchi.jpec.server.exceptions.PecException;
 import it.attocchi.jpec.server.protocollo.ProtocolloHelper;
 import it.attocchi.mail.parts.EmailBody;
 import it.attocchi.mail.utils.MailConnection;
+import it.attocchi.mail.utils.MailSender;
 import it.attocchi.mail.utils.MailUtils;
 import it.attocchi.mail.utils.PecParser;
+import it.attocchi.mail.utils.items.MailHeader;
 import it.attocchi.utils.ListUtils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
@@ -23,6 +29,7 @@ import javax.persistence.EntityManagerFactory;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.mail.EmailAttachment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -305,4 +312,171 @@ public class MessaggioPecBL {
 		return res;
 	}
 
+	/**
+	 * Messaggio is UPDATED with EML file DATA, remember to store on DB after
+	 * this
+	 * 
+	 * @param emf
+	 * @param messaggio
+	 * @param allegati
+	 * @return
+	 * @throws Exception
+	 */
+	public static boolean inviaEmail(EntityManagerFactory emf, MessaggioPec messaggio, List<AllegatoPec> allegati, String utente) throws Exception {
+		boolean res = false;
+
+		ConfigurazioneBL.resetCurrent();
+
+		if (ConfigurazioneBL.getValueBooleanDB(emf, ConfigurazionePecEnum.PEC_ENABLE_EMAIL_SEND)) {
+
+			String mailbox = messaggio.getMailbox();
+
+			String smtpServer = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SMTP_SERVER, mailbox);
+			int smtpPort = ConfigurazioneBL.getValueInt(emf, ConfigurazionePecEnum.PEC_SMTP_PORT, mailbox);
+			String senderEmail = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SENDER_EMAIL, mailbox);
+			String senderName = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SENDER_NAME, mailbox);
+			boolean enableSSL = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_SMTP_SSL, mailbox);
+			boolean enableSSLNoCertCheck = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_SMTP_SSLNOCHECK, mailbox);
+			String smtpUsername = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SMTP_USERNAME, mailbox);
+			String smtpPassword = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SMTP_PASSWORD, mailbox);
+
+			boolean enableEmlStore = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_ENABLE_EML_STORE, mailbox);
+			String emlStoreFolder = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_EML_STORE_FOLDER, mailbox);
+			// String emlOutStoreFolder = ConfigurazioneBL.getValueBoolean(emf,
+			// ConfigurazionePecEnum.PEC_FOLDER_OUT, mailbox);
+
+			MailSender m = MailSender.createMailSender(smtpServer, smtpPort, senderEmail, senderName, enableSSL, enableSSLNoCertCheck, smtpUsername, smtpPassword);
+
+			List<EmailAttachment> attachments = null;
+			if (allegati != null) {
+				attachments = new ArrayList<EmailAttachment>();
+				for (AllegatoPec a : allegati) {
+					EmailAttachment attachment = new EmailAttachment();
+					attachment.setName(a.getOnlyFileName());
+					attachment.setPath(a.getStorePath());
+					attachment.setDisposition(EmailAttachment.ATTACHMENT);
+
+					attachments.add(attachment);
+				}
+			}
+
+			List<MailHeader> customHeaders = new ArrayList<MailHeader>();
+			// customHeaders.add(new MailHeader(HEADER_X_HYDRO_PROTOCOL,
+			// messaggio.getProtocollo()));
+
+			/* Archivio File */
+			File storeEml = null;
+			if (enableEmlStore) {
+				// storeEml = ArchivioEmlBL.fileEmlInviato(emlStoreFolder,
+				// emlOutStoreFolder, messaggio.getProtocollo());
+				// if (storeEml != null) {
+				// messaggio.setEmlFile(storeEml.getPath());
+				// }
+			}
+			/**/
+
+			if (attachments == null) {
+				m.sendMail(messaggio.getDestinatari(), null, null, messaggio.getOggetto(), messaggio.getMessaggio(), customHeaders, storeEml);
+			} else {
+				m.sendMail(messaggio.getDestinatari(), null, null, messaggio.getOggetto(), messaggio.getMessaggio(), customHeaders, attachments, storeEml);
+			}
+
+			res = true;
+		} else {
+			logger.warn("isEnableEmailSend false");
+		}
+
+		return res;
+	}
+
+	public static MessaggioPec creaMessaggio(EntityManagerFactory emf, NuovoMessaggioRequest requestData, String utente) throws PecException {
+		MessaggioPec messaggio = null;
+		JpaController controller = new JpaController(emf);
+		try {
+			controller.beginTransaction();
+
+			/* Check mailbox */
+			String mailbox = requestData.getMailbox();
+			List<String> mailboxes = ConfigurazioneBL.getAllMailboxes(emf);
+			boolean found = mailboxes.contains(mailbox);
+			if (!found) {
+				throw new PecException("Mailbox " + mailbox + " non trovata.");
+			}
+			/* Check data */
+
+			/* create message */
+			messaggio = MessaggioPec.createNew(utente, Folder.OUT, mailbox);
+			// Assegnazione del Protocollo
+			// String protocollo =
+			// ProtocolloBL.getNextProtocolloFormat(controller, "[", "PEC",
+			// "yy", "000", "]");
+			messaggio.setProtocollo(requestData.getProtocollo());
+			messaggio.setOggetto(requestData.getOggetto());
+
+			// messaggio.markAsCreated();
+			controller.insert(messaggio);
+
+			if (ListUtils.isNotEmpty(requestData.getAllegati())) {
+				// for (Allegato allegato : allegati) {
+				// allegato.setIdMessaggio(messaggio.getId());
+				// controller.update(allegato);
+				// }
+			}
+
+			controller.commitTransaction();
+
+			// boolean resInvio = MessaggioBL.inviaEmail(getEmfShared(),
+			// messaggio, allegati);
+			//
+			// // if (resInvio) {
+			// // try {
+			// //
+			// // // MessaggioBL.inviaNotificaResponsabili(getEmfShared(),
+			// // messaggio);
+			// //
+			// NotificaBL.notificaNuovoInvioAiResponsabili(getEmfShared(),
+			// // controller, getIdUtenteLoggato(), messaggio);
+			// //
+			// // } catch (Exception ex) {
+			// // addErrorMessage(ex);
+			// // }
+			// // }
+			//
+			// /* Potremmo non aver inviato l'email perch� disabilitato */
+			// if (resInvio) {
+			//
+			// controller.beginTransaction();
+			//
+			// NotificaBL.creaNotificaNuovoInvioAiResponsabili(getEmfShared(),
+			// controller, getIdUtenteLoggato(), messaggio);
+			//
+			// messaggio.setDataInvio(DateUtilsLT.Now());
+			// messaggio.setInviato(true);
+			// controller.update(messaggio);
+			//
+			// controller.commitTransaction();
+			//
+			// addInfoMessage("Messaggio Inviato");
+			//
+			// init();
+			//
+			// // MessaggioBL.importaNuoviMessaggi(getEmfShared(),
+			// // getCurrentUser());
+			//
+			// res = true;
+			// } else {
+			// addWarnMessage("Messaggio Non Inviato!");
+			// }
+
+		} catch (Exception ex) {
+			logger.error("send", ex);
+			throw new PecException("Si e' verificato un errore nell'invio del messaggio.", ex);
+
+		} finally {
+			JpaController.callRollback(controller);
+			JpaController.callCloseEmf(controller);
+		}
+
+		return messaggio;
+	}
 }
