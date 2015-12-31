@@ -1,15 +1,13 @@
 package it.attocchi.jpec.server.api.rest.data;
 
-import javax.ws.rs.core.Link;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 @XmlRootElement
 public class NuovoMessaggioResponse {
 
 	private long messageId;
-	private javax.ws.rs.core.Link link;
+	// private javax.ws.rs.core.Link link;
+	private String link;
 
 	public long getMessageId() {
 		return messageId;
@@ -19,14 +17,21 @@ public class NuovoMessaggioResponse {
 		this.messageId = messageId;
 	}
 
-	public void setLink(Link link) {
-		this.link = link;
-	}
-
-	@XmlElement(name = "link")
-	@XmlJavaTypeAdapter(Link.JaxbAdapter.class)
-	public Link getLink() {
+//	public void setLink(Link link) {
+//		this.link = link;
+//	}
+//
+//	@XmlElement(name = "link")
+//	@XmlJavaTypeAdapter(Link.JaxbAdapter.class)
+//	public Link getLink() {
+//		return link;
+//	}
+	
+	public String getLink() {
 		return link;
 	}
 	
+	public void setLink(String link) {
+		this.link = link;
+	}
 }

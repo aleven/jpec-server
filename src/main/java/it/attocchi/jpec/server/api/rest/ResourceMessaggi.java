@@ -66,7 +66,7 @@ public class ResourceMessaggi extends RestBaseJpa2 {
 			// URI.create("http://stackoverflow.com/questions/24968448");
 			// Link link = Link.fromUri(uri).rel("self").build();
 			Link link = Link.fromUri(uri).build();
-			responseData.setLink(link);
+			responseData.setLink(link.toString());
 
 			response = Response.ok(responseData).build();
 
