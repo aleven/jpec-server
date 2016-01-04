@@ -6,6 +6,7 @@ import it.attocchi.jpec.server.entities.AllegatoPec;
 import it.attocchi.jpec.server.entities.MessaggioPec;
 import it.attocchi.jpec.server.entities.MessaggioPec.Folder;
 import it.attocchi.jpec.server.entities.RegolaPec;
+import it.attocchi.jpec.server.entities.filters.AllegatoPecFilter;
 import it.attocchi.jpec.server.entities.filters.MessaggioPecFilter;
 import it.attocchi.jpec.server.exceptions.PecException;
 import it.attocchi.jpec.server.protocollo.ProtocolloHelper;
@@ -19,6 +20,7 @@ import it.attocchi.utils.ListUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
@@ -312,6 +314,32 @@ public class MessaggioPecBL {
 		return res;
 	}
 
+	public static List<AllegatoPec> getAllegatiMessaggio(EntityManagerFactory emf, long idMessaggioPec) throws Exception {
+		List<AllegatoPec> res = new ArrayList<AllegatoPec>();
+
+		AllegatoPecFilter filtro = new AllegatoPecFilter();
+		filtro.setIdMessaggio(idMessaggioPec);
+		res = JpaController.callFind(emf, AllegatoPec.class, filtro);
+
+		return res;
+	}
+	
+	public static synchronized String inviaMessaggio(EntityManagerFactory emf, long idMessaggioPec, String utente) throws Exception {
+		MessaggioPec messaggio = getMessaggioPec(emf, idMessaggioPec);
+		List<AllegatoPec> allegati = getAllegatiMessaggio(emf, idMessaggioPec);
+
+		if (messaggio.isInviato())
+			throw new PecException("Il messaggio risulta già inviato.");
+		if (StringUtils.isBlank(messaggio.getOggetto()) && StringUtils.isBlank(messaggio.getMessaggio()))
+			throw new PecException("Specificare un oggetto ed un testo validi per il messaggio.");
+		if (StringUtils.isBlank(messaggio.getOggetto()))
+			throw new PecException("Specificare un oggetto valido per il messaggio.");
+		if (StringUtils.isBlank(messaggio.getMessaggio()))
+			throw new PecException("Specificare un testo valido per il messaggio.");
+		
+		return inviaEmail(emf, messaggio, allegati, utente);
+	}
+
 	/**
 	 * Messaggio is UPDATED with EML file DATA, remember to store on DB after
 	 * this
@@ -322,8 +350,8 @@ public class MessaggioPecBL {
 	 * @return
 	 * @throws Exception
 	 */
-	public static boolean inviaEmail(EntityManagerFactory emf, MessaggioPec messaggio, List<AllegatoPec> allegati, String utente) throws Exception {
-		boolean res = false;
+	private static synchronized String inviaEmail(EntityManagerFactory emf, MessaggioPec messaggio, List<AllegatoPec> allegati, String utente) throws Exception {
+		String res = null;
 
 		ConfigurazioneBL.resetCurrent();
 
@@ -375,13 +403,23 @@ public class MessaggioPecBL {
 			}
 			/**/
 
-			if (attachments == null) {
-				m.sendMail(messaggio.getDestinatari(), null, null, messaggio.getOggetto(), messaggio.getMessaggio(), customHeaders, storeEml);
+			String messageID;
+			if (attachments == null || attachments.size() == 0) {
+				logger.debug("invio messaggio senza allegati");
+				messageID = m.sendMail(messaggio.getDestinatari(), null, null, messaggio.getOggetto(), messaggio.getMessaggio(), customHeaders, storeEml);
 			} else {
-				m.sendMail(messaggio.getDestinatari(), null, null, messaggio.getOggetto(), messaggio.getMessaggio(), customHeaders, attachments, storeEml);
+				logger.debug("invio messaggio con allegati");
+				messageID = m.sendMail(messaggio.getDestinatari(), null, null, messaggio.getOggetto(), messaggio.getMessaggio(), customHeaders, attachments, storeEml);
 			}
+			logger.debug("messaggio inviato {}", messageID);
+			
+			messaggio.setMessageID(messageID);
+			messaggio.setInviato(true);
+			messaggio.setDataInvio(new Date());
+			JpaController.callUpdate(emf, messaggio);
+			logger.debug("aggiornato stato messaggio {}", messaggio);
 
-			res = true;
+			res = messageID;
 		} else {
 			logger.warn("isEnableEmailSend false");
 		}
