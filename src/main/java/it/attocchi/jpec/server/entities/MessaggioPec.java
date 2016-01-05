@@ -45,6 +45,14 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 	@Lob
 	private String destinatari;
 
+	@Column(name = "pec01_destinatari_cc")
+	@Lob
+	private String destinatariCC;
+
+	@Column(name = "pec01_destinatari_ccn")
+	@Lob
+	private String destinatariCCN;
+
 	@Column(name = "pec01_oggetto")
 	@Lob
 	private String oggetto;
@@ -171,7 +179,7 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 
 	@Column(name = "pec01_mailbox")
 	private String mailbox;
-	
+
 	public long getId() {
 		return id;
 	}
@@ -574,6 +582,22 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 
 	public void setMailbox(String mailbox) {
 		this.mailbox = mailbox;
+	}
+
+	public String getDestinatariCC() {
+		return destinatariCC;
+	}
+
+	public void setDestinatariCC(String destinatariCC) {
+		this.destinatariCC = destinatariCC;
+	}
+
+	public String getDestinatariCCN() {
+		return destinatariCCN;
+	}
+
+	public void setDestinatariCCN(String destinatariCCN) {
+		this.destinatariCCN = destinatariCCN;
 	}
 
 }
