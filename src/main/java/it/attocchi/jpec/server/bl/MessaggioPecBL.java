@@ -323,13 +323,20 @@ public class MessaggioPecBL {
 
 		return res;
 	}
-	
+
 	public static synchronized String inviaMessaggio(EntityManagerFactory emf, long idMessaggioPec, String utente) throws Exception {
 		MessaggioPec messaggio = getMessaggioPec(emf, idMessaggioPec);
 		List<AllegatoPec> allegati = getAllegatiMessaggio(emf, idMessaggioPec);
 
 		if (messaggio.isInviato())
 			throw new PecException("Il messaggio risulta già inviato.");
+		validateMessaggio(messaggio);
+
+		return inviaEmail(emf, messaggio, allegati, utente);
+	}
+
+	private static void validateMessaggio(MessaggioPec messaggio) throws PecException {
+		
 		if (StringUtils.isBlank(messaggio.getOggetto()) && StringUtils.isBlank(messaggio.getMessaggio()))
 			throw new PecException("Specificare un oggetto ed un testo validi per il messaggio.");
 		if (StringUtils.isBlank(messaggio.getOggetto()))
@@ -337,7 +344,8 @@ public class MessaggioPecBL {
 		if (StringUtils.isBlank(messaggio.getMessaggio()))
 			throw new PecException("Specificare un testo valido per il messaggio.");
 		
-		return inviaEmail(emf, messaggio, allegati, utente);
+		if (StringUtils.isBlank(messaggio.getDestinatari()))
+			throw new PecException("Specificare almeno un destinatario valido per il messaggio.");
 	}
 
 	/**
@@ -412,7 +420,7 @@ public class MessaggioPecBL {
 				messageID = m.sendMail(messaggio.getDestinatari(), null, null, messaggio.getOggetto(), messaggio.getMessaggio(), customHeaders, attachments, storeEml);
 			}
 			logger.debug("messaggio inviato {}", messageID);
-			
+
 			messaggio.setMessageID(messageID);
 			messaggio.setInviato(true);
 			messaggio.setDataInvio(new Date());
@@ -440,7 +448,6 @@ public class MessaggioPecBL {
 			if (!found) {
 				throw new PecException("La mailbox specificata non e' configurata (" + mailbox + ").");
 			}
-			/* Check data */
 
 			/* create message */
 			messaggio = MessaggioPec.createNew(utente, Folder.OUT, mailbox);
@@ -451,10 +458,13 @@ public class MessaggioPecBL {
 			messaggio.setProtocollo(requestData.getProtocollo());
 			messaggio.setOggetto(requestData.getOggetto());
 			messaggio.setMessaggio(requestData.getTestoMessaggio());
-			
+
 			messaggio.setDestinatari(ListUtils.toCommaSeparedNoBracket(requestData.getDestinatari()));
 			messaggio.setDestinatariCC(ListUtils.toCommaSeparedNoBracket(requestData.getDestinatariCC()));
 			messaggio.setDestinatariCCN(ListUtils.toCommaSeparedNoBracket(requestData.getDestinatariCCN()));
+
+			/* Check data */
+			validateMessaggio(messaggio);
 
 			// messaggio.markAsCreated();
 			controller.insert(messaggio);
@@ -511,9 +521,13 @@ public class MessaggioPecBL {
 			// addWarnMessage("Messaggio Non Inviato!");
 			// }
 
+		} catch (PecException ex) {
+			logger.error("creaMessaggio", ex);
+			throw ex;
+			
 		} catch (Exception ex) {
-			logger.error("send", ex);
-			throw new PecException("Si e' verificato un errore nell'invio del messaggio.", ex);
+			logger.error("creaMessaggio", ex);
+			throw new PecException("Si e' verificato un errore durante il salvataggio del messaggio.", ex);
 
 		} finally {
 			JpaController.callRollback(controller);
