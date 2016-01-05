@@ -438,7 +438,7 @@ public class MessaggioPecBL {
 			List<String> mailboxes = ConfigurazioneBL.getAllMailboxes(emf);
 			boolean found = mailboxes.contains(mailbox);
 			if (!found) {
-				throw new PecException("Mailbox " + mailbox + " non trovata.");
+				throw new PecException("La mailbox specificata non e' configurata (" + mailbox + ").");
 			}
 			/* Check data */
 
@@ -450,6 +450,11 @@ public class MessaggioPecBL {
 			// "yy", "000", "]");
 			messaggio.setProtocollo(requestData.getProtocollo());
 			messaggio.setOggetto(requestData.getOggetto());
+			messaggio.setMessaggio(requestData.getTestoMessaggio());
+			
+			messaggio.setDestinatari(ListUtils.toCommaSeparedNoBracket(requestData.getDestinatari()));
+			messaggio.setDestinatariCC(ListUtils.toCommaSeparedNoBracket(requestData.getDestinatariCC()));
+			messaggio.setDestinatariCCN(ListUtils.toCommaSeparedNoBracket(requestData.getDestinatariCCN()));
 
 			// messaggio.markAsCreated();
 			controller.insert(messaggio);
