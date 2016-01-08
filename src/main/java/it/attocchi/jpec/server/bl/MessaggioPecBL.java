@@ -2,6 +2,7 @@ package it.attocchi.jpec.server.bl;
 
 import it.attocchi.jpa2.JpaController;
 import it.attocchi.jpec.server.api.rest.data.NuovoMessaggioRequest;
+import it.attocchi.jpec.server.api.rest.data.UploadAllegatoRequest;
 import it.attocchi.jpec.server.entities.AllegatoPec;
 import it.attocchi.jpec.server.entities.MessaggioPec;
 import it.attocchi.jpec.server.entities.MessaggioPec.Folder;
@@ -19,6 +20,7 @@ import it.attocchi.mail.utils.items.MailHeader;
 import it.attocchi.utils.ListUtils;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -29,6 +31,7 @@ import javax.mail.Header;
 import javax.mail.Message;
 import javax.persistence.EntityManagerFactory;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailAttachment;
@@ -324,26 +327,49 @@ public class MessaggioPecBL {
 		return res;
 	}
 
+	public static synchronized List<String> inviaMessaggiInCoda(EntityManagerFactory emf, String utente) throws Exception {
+		List<String> res = new ArrayList<String>();
+		MessaggioPecFilter filtro = new MessaggioPecFilter();
+		filtro.setSoloNonInviati(true);
+		List<MessaggioPec> messaggiDaInviare = JpaController.callFind(emf, MessaggioPec.class, filtro);
+		if (!messaggiDaInviare.isEmpty()) {
+			for (MessaggioPec messaggioDaInviare : messaggiDaInviare) {
+				try {
+					String messageId = inviaMessaggio(emf, messaggioDaInviare.getId(), utente);
+					if (StringUtils.isNotBlank(messageId)) {
+						res.add(messageId);
+					} else {
+						logger.warn("Il messageId del messaggio inviato e' vuoto");
+					}
+				} catch (PecException ex) {
+					logger.error("inviaMessaggiInCoda (" + messaggiDaInviare.toString() + ")", ex);
+				}
+			}
+		}
+		return res;
+	}
+
 	public static synchronized String inviaMessaggio(EntityManagerFactory emf, long idMessaggioPec, String utente) throws Exception {
 		MessaggioPec messaggio = getMessaggioPec(emf, idMessaggioPec);
 		List<AllegatoPec> allegati = getAllegatiMessaggio(emf, idMessaggioPec);
 
-		if (messaggio.isInviato())
+		if (messaggio.isInviato()) {
 			throw new PecException("Il messaggio risulta già inviato.");
+		}
 		validateMessaggio(messaggio);
 
 		return inviaEmail(emf, messaggio, allegati, utente);
 	}
 
 	private static void validateMessaggio(MessaggioPec messaggio) throws PecException {
-		
+
 		if (StringUtils.isBlank(messaggio.getOggetto()) && StringUtils.isBlank(messaggio.getMessaggio()))
 			throw new PecException("Specificare un oggetto ed un testo validi per il messaggio.");
 		if (StringUtils.isBlank(messaggio.getOggetto()))
 			throw new PecException("Specificare un oggetto valido per il messaggio.");
 		if (StringUtils.isBlank(messaggio.getMessaggio()))
 			throw new PecException("Specificare un testo valido per il messaggio.");
-		
+
 		if (StringUtils.isBlank(messaggio.getDestinatari()))
 			throw new PecException("Specificare almeno un destinatario valido per il messaggio.");
 	}
@@ -384,7 +410,7 @@ public class MessaggioPecBL {
 			MailSender m = MailSender.createMailSender(smtpServer, smtpPort, senderEmail, senderName, enableSSL, enableSSLNoCertCheck, smtpUsername, smtpPassword);
 
 			List<EmailAttachment> attachments = null;
-			if (allegati != null) {
+			if (allegati != null && allegati.size() > 0) {
 				attachments = new ArrayList<EmailAttachment>();
 				for (AllegatoPec a : allegati) {
 					EmailAttachment attachment = new EmailAttachment();
@@ -469,12 +495,28 @@ public class MessaggioPecBL {
 			// messaggio.markAsCreated();
 			controller.insert(messaggio);
 
-			if (ListUtils.isNotEmpty(requestData.getAllegati())) {
-				// for (Allegato allegato : allegati) {
-				// allegato.setIdMessaggio(messaggio.getId());
-				// controller.update(allegato);
-				// }
-			}
+			// if (ListUtils.isNotEmpty(requestData.getAllegati())) {
+			// for (AllegatoRequest allegatoRequest : requestData.getAllegati())
+			// {
+			// // validateAllegato(allegatoRequest);
+			//
+			// AllegatoPec allegato = new AllegatoPec();
+			// allegato.setFileName(allegatoRequest.getFileName());
+			// allegato.setContetType(allegatoRequest.getContentType());
+			// File f = File.createTempFile("PEC_", ".upload");
+			//
+			// byte[] decodedBytes =
+			// Base64.decodeBase64(allegatoRequest.getFileBase64());
+			// FileUtils.writeByteArrayToFile(f, decodedBytes);
+			//
+			// allegato.setStoreFileName(FilenameUtils.getName(f.getName()));
+			// allegato.setStorePath(FilenameUtils.getFullPath((f.getName())));
+			//
+			// allegato.setIdMessaggio(messaggio.getId());
+			//
+			// controller.insert(allegato);
+			// }
+			// }
 
 			controller.commitTransaction();
 
@@ -524,7 +566,7 @@ public class MessaggioPecBL {
 		} catch (PecException ex) {
 			logger.error("creaMessaggio", ex);
 			throw ex;
-			
+
 		} catch (Exception ex) {
 			logger.error("creaMessaggio", ex);
 			throw new PecException("Si e' verificato un errore durante il salvataggio del messaggio.", ex);
@@ -536,4 +578,28 @@ public class MessaggioPecBL {
 
 		return messaggio;
 	}
+
+	public static AllegatoPec saveFile(EntityManagerFactory emf, UploadAllegatoRequest allegatoRequest, InputStream file) throws Exception {
+		// validateAllegato(allegatoRequest);
+
+		AllegatoPec allegato = new AllegatoPec();
+		allegato.setFileName(allegatoRequest.getFileName());
+		allegato.setContetType(allegatoRequest.getContentType());
+
+		File f = File.createTempFile(FilenameUtils.getBaseName(allegatoRequest.getFileName()) + "_", "." + FilenameUtils.getExtension(allegatoRequest.getFileName()));
+
+		// byte[] decodedBytes =
+		// Base64.decodeBase64(allegatoRequest.getFileBase64());
+		FileUtils.copyInputStreamToFile(file, f);
+
+		allegato.setStoreFileName(FilenameUtils.getName(f.getName()));
+		allegato.setStorePath(f.getPath());
+
+		allegato.setIdMessaggio(allegatoRequest.getIdMessaggio());
+
+		JpaController.callInsert(emf, allegato);
+
+		return allegato;
+	}
+
 }
