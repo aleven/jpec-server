@@ -94,6 +94,7 @@ public class MessaggioPecFilter extends JPAEntityFilter<MessaggioPec> {
 	}
 
 	private boolean soloNonProcessati;
+	private boolean soloNonInviati;
 
 	public boolean isSoloNonProcessati() {
 		return soloNonProcessati;
@@ -101,6 +102,14 @@ public class MessaggioPecFilter extends JPAEntityFilter<MessaggioPec> {
 
 	public void setSoloNonProcessati(boolean soloNonProcessati) {
 		this.soloNonProcessati = soloNonProcessati;
+	}
+
+	public boolean isSoloNonInviati() {
+		return soloNonInviati;
+	}
+
+	public void setSoloNonInviati(boolean soloNonInviati) {
+		this.soloNonInviati = soloNonInviati;
 	}
 
 	private Date dataInvioOriginale;
@@ -188,14 +197,17 @@ public class MessaggioPecFilter extends JPAEntityFilter<MessaggioPec> {
 		}
 
 		if (soloNonProcessati) {
-			// predicateList.add(criteriaBuilder.equal(root.<Date>
-			// get("processato"), false));
 			predicateList.add(criteriaBuilder.isFalse(root.get(MessaggioPec_.processato)));
 		}
 
+		if (soloNonInviati) {
+			predicateList.add(criteriaBuilder.isFalse(root.get(MessaggioPec_.inviato)));
+		}
+
 		if (ListUtils.isNotEmpty(excludeSubjects)) {
-			for (String s : excludeSubjects)
+			for (String s : excludeSubjects) {
 				predicateList.add(criteriaBuilder.notLike(root.get(MessaggioPec_.oggetto), getForLike(s)));
+			}
 		}
 
 		if (isExcludeProtocolled()) {
@@ -209,10 +221,10 @@ public class MessaggioPecFilter extends JPAEntityFilter<MessaggioPec> {
 		if (folder != null) {
 			predicateList.add(criteriaBuilder.equal(root.get(MessaggioPec_.folder), folder.name()));
 		}
-		
+
 		if (StringUtils.isNoneBlank(mailbox)) {
 			predicateList.add(criteriaBuilder.equal(root.get(MessaggioPec_.mailbox), mailbox));
-		}		
+		}
 
 		if (!includiEliminati) {
 			predicateList.add(criteriaBuilder.isNull(root.get(MessaggioPec_.entityMarks).get(EntityMarks_.dataCancellazione)));
