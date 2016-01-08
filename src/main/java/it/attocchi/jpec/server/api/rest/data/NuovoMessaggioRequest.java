@@ -17,7 +17,7 @@ public class NuovoMessaggioRequest {
 	private String oggetto;
 	private String testoMessaggio;
 	private boolean inviaTestoComeHtml;
-	private List<String> allegati;
+	// private List<AllegatoRequest> allegati;
 
 	public String getMailbox() {
 		return mailbox;
@@ -59,13 +59,13 @@ public class NuovoMessaggioRequest {
 		this.inviaTestoComeHtml = inviaTestoComeHtml;
 	}
 
-	public List<String> getAllegati() {
-		return allegati;
-	}
-
-	public void setAllegati(List<String> allegati) {
-		this.allegati = allegati;
-	}
+//	public List<AllegatoRequest> getAllegati() {
+//		return allegati;
+//	}
+//
+//	public void setAllegati(List<AllegatoRequest> allegati) {
+//		this.allegati = allegati;
+//	}
 
 	public List<String> getDestinatari() {
 		return destinatari;
