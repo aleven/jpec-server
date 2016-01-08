@@ -5,6 +5,7 @@ import it.attocchi.jpec.server.exceptions.PecException;
 import it.webappcommon.rest.RestBaseJpa2;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -59,9 +60,11 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		Response response = null;
 		try {
 			logger.debug("{}", restServletContext.getContextPath());
-			// MessaggioPecBL.inviaMessaggiInCoda NON IN CORSO (getContextEmf(),
-			// "REST.ANONYMOUS");
-			response = Response.ok(new Date().toString(), MediaType.TEXT_PLAIN).build();
+			List<String> messaggiInviati = MessaggioPecBL.inviaMessaggiInCoda(getContextEmf(), "REST.ANONYMOUS");
+			response = Response.ok(messaggiInviati, MediaType.TEXT_PLAIN).build();
+		} catch (PecException ex) {
+			logger.error("PRECONDITION_FAILED", ex);
+			response = Response.status(Response.Status.PRECONDITION_FAILED).entity(ex.getMessage()).type(MediaType.TEXT_PLAIN).build();			
 		} catch (Exception ex) {
 			logger.error("INTERNAL_SERVER_ERROR", ex);
 			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).type(MediaType.TEXT_PLAIN).build();
