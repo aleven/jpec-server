@@ -9,14 +9,15 @@
 			
 	<!-- Servlet declaration can be omitted in which case it would be automatically 
 		added by Jersey -->
+	<!--
 	<servlet>
 		<servlet-name>javax.ws.rs.core.Application</servlet-name>
 	</servlet>
-
 	<servlet-mapping>
 		<servlet-name>javax.ws.rs.core.Application</servlet-name>
 		<url-pattern>/api/*</url-pattern>
 	</servlet-mapping>
+	-->
 	
 	<!-- JPA LISTENER -->
 	<context-param>
