@@ -16,7 +16,15 @@ http://www.agid.gov.it/sites/default/files/leggi_decreti_direttive/pec_regole_te
 
 ## Requisiti Tecnici
 - database (postgresql o mysql)
-- servlet api > 3
+- servlet container with servlet spec >= 3.0
 - java 7
 
 ## Specifiche Tecniche
+
+
+## TODO
+- allegati non in TEMP
+- invio email con esito errore memorizzato in campo messaggio dedicato 
+- procedura riconoscimento ricevuta da message id
+- servizio stato messaggio
+- norifiche interne
