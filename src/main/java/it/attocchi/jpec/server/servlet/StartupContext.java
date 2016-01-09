@@ -18,7 +18,7 @@ public class StartupContext implements ServletContextListener {
 	public void contextInitialized(ServletContextEvent sce) {
 		try {
 			String contextPath = sce.getServletContext().getContextPath();
-			String contextRealPath = sce.getServletContext().getRealPath("/WEB-INF");
+			String contextRealPath = sce.getServletContext().getRealPath("/");
 			logger.info("initializing Context: " + contextPath);
 			logger.info("context real path: " + contextRealPath);
 			

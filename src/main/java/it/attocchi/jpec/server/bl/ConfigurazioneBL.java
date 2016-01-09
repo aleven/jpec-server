@@ -2,9 +2,12 @@ package it.attocchi.jpec.server.bl;
 
 import it.attocchi.jpa2.JpaController;
 import it.attocchi.jpec.server.entities.ConfigurazionePec;
+import it.attocchi.jpec.server.exceptions.PecException;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -132,7 +135,7 @@ public class ConfigurazioneBL {
 	}
 
 	public static String getValueStringDB(EntityManagerFactory emf, ConfigurazionePecEnum chiave) {
-		 return loadFromDB(emf).get(chiave.name()) != null ? loadFromDB(emf).get(chiave.name()).getValore() : null;
+		return loadFromDB(emf).get(chiave.name()) != null ? loadFromDB(emf).get(chiave.name()).getValore() : null;
 	}
 
 	/**
@@ -213,14 +216,52 @@ public class ConfigurazioneBL {
 	 * @param emf
 	 * @param contextRealPath
 	 */
-	public static synchronized void initializeFromContextPath(EntityManagerFactory emf, String contextRealPath) {
+	public static synchronized void initializeFromContextPath(EntityManagerFactory emf, String contextRealPath) throws PecException {
 		init(emf);
+
+		boolean someUpdated = false;
 		String mailboxFolder = getValueStringDB(emf, ConfigurazionePecEnum.PEC_MAILBOXES_FOLDER);
 		if (StringUtils.isBlank(mailboxFolder) && StringUtils.isNotBlank(contextRealPath)) {
-			logger.info("inizializzazione configurazione DB con folder del Context {}", contextRealPath);
-			saveValueString(emf, ConfigurazionePecEnum.PEC_MAILBOXES_FOLDER, contextRealPath);
+			Path webinf = Paths.get(contextRealPath, "WEB-INF");
+			logger.info("inizializzazione cartella impostazioni mailboxes {}", webinf.toString());
+			saveValueString(emf, ConfigurazionePecEnum.PEC_MAILBOXES_FOLDER, webinf.toString());
+			someUpdated = true;
+		}
+
+		String allegatiFolder = getValueStringDB(emf, ConfigurazionePecEnum.PEC_ATTACH_STORE_FOLDER);
+		if (StringUtils.isBlank(allegatiFolder) && StringUtils.isNotBlank(contextRealPath)) {
+			String allegati = Paths.get(contextRealPath, "WEB-INF", "allegati").toString();
+			logger.info("inizializzazione cartella salvataggio allegati {}", allegati);
+			saveValueString(emf, ConfigurazionePecEnum.PEC_ATTACH_STORE_FOLDER, allegati);
+			someUpdated = true;
+		}
+
+		if (someUpdated) {
 			resetCurrent();
 			init(emf);
+		}
+
+		/* verifica accesso cartelle */
+		mailboxFolder = getValueStringDB(emf, ConfigurazionePecEnum.PEC_MAILBOXES_FOLDER);
+		allegatiFolder = getValueStringDB(emf, ConfigurazionePecEnum.PEC_ATTACH_STORE_FOLDER);
+
+		checkFolder(mailboxFolder, true, true, false);
+		checkFolder(allegatiFolder, true, true, true);
+	}
+
+	private static void checkFolder(String folder, boolean autoCreate, boolean testRead, boolean testWrite) throws PecException {
+		Path p = Paths.get(folder);
+		if (autoCreate && !p.toFile().exists()) {
+			p.toFile().mkdirs();
+			logger.warn("creato la cartella {}", p.toString());
+		}
+
+		if (testRead && !p.toFile().canRead()) {
+			throw new PecException("Impossibile leggere dalla cartella " + p.toString());
+		}
+
+		if (testWrite && !p.toFile().canWrite()) {
+			throw new PecException("Impossibile scrivere sulla cartella " + p.toString());
 		}
 	}
 
@@ -236,7 +277,7 @@ public class ConfigurazioneBL {
 		}
 		return res;
 	}
-	
+
 	public static Properties getConfigurazione(String mailboxName) {
 		return (mailboxes != null) ? mailboxes.get(mailboxName) : null;
 	}
