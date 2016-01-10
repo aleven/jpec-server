@@ -437,21 +437,28 @@ public class MessaggioPecBL {
 			}
 			/**/
 
-			String messageID;
-			if (attachments == null || attachments.size() == 0) {
-				logger.debug("invio messaggio senza allegati");
-				messageID = m.sendMail(messaggio.getDestinatari(), null, null, messaggio.getOggetto(), messaggio.getMessaggio(), customHeaders, storeEml);
-			} else {
-				logger.debug("invio messaggio con allegati");
-				messageID = m.sendMail(messaggio.getDestinatari(), null, null, messaggio.getOggetto(), messaggio.getMessaggio(), customHeaders, attachments, storeEml);
+			String messageID = "";
+			try {
+				if (attachments == null || attachments.size() == 0) {
+					logger.debug("invio messaggio senza allegati");
+					messageID = m.sendMail(messaggio.getDestinatari(), null, null, messaggio.getOggetto(), messaggio.getMessaggio(), customHeaders, storeEml);
+				} else {
+					logger.debug("invio messaggio con allegati");
+					messageID = m.sendMail(messaggio.getDestinatari(), null, null, messaggio.getOggetto(), messaggio.getMessaggio(), customHeaders, attachments, storeEml);
+				}
+				logger.debug("messaggio inviato {}", messageID);
+				messaggio.setMessageID(messageID);
+				messaggio.setInviato(true);
+				messaggio.setDataInvio(new Date());
+				JpaController.callUpdate(emf, messaggio);
+				logger.debug("aggiornato stato messaggio {}", messaggio);
+			} catch (Exception ex) {
+				logger.error("errore durante invio email", ex);
+				messaggio.setErroreInvio(ex.getMessage());
+				JpaController.callUpdate(emf, messaggio);
+				logger.debug("aggiornato stato messaggio {}", messaggio);
+				throw ex;
 			}
-			logger.debug("messaggio inviato {}", messageID);
-
-			messaggio.setMessageID(messageID);
-			messaggio.setInviato(true);
-			messaggio.setDataInvio(new Date());
-			JpaController.callUpdate(emf, messaggio);
-			logger.debug("aggiornato stato messaggio {}", messaggio);
 
 			res = messageID;
 		} else {
@@ -611,7 +618,6 @@ public class MessaggioPecBL {
 		return allegato;
 	}
 
-
 	private static void validateAllegato(UploadAllegatoRequest allegatoRequest, InputStream file) throws PecException {
 
 		if (allegatoRequest == null)
@@ -619,7 +625,6 @@ public class MessaggioPecBL {
 		if (file == null)
 			throw new PecException("Contenuto per il file da allegare mancante.");
 
-		
 		if (StringUtils.isBlank(allegatoRequest.getFileName()))
 			throw new PecException("Specificare un nome valido per il file da allegare.");
 		if (allegatoRequest.getIdMessaggio() <= 0)
