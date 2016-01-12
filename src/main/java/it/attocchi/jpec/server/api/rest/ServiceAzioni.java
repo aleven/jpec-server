@@ -2,6 +2,7 @@ package it.attocchi.jpec.server.api.rest;
 
 import it.attocchi.jpec.server.bl.MessaggioPecBL;
 import it.attocchi.jpec.server.exceptions.PecException;
+import it.attocchi.utils.Crono;
 import it.webappcommon.rest.RestBaseJpa2;
 
 import java.util.Date;
@@ -29,8 +30,24 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		Response response = null;
 		try {
 			logger.debug("{}", restServletContext.getContextPath());
+			
+			StringBuffer sb = new StringBuffer();
+			
+			Crono.start("invia");
+			List<String> messaggiInviati = MessaggioPecBL.inviaMessaggiInCoda(getContextEmf(), "REST.ANONYMOUS");
+			sb.append(Crono.stopAndLog("invia"));
+			sb.append("\n");
+			Crono.start("importa");
 			MessaggioPecBL.importaNuoviMessaggi(getContextEmf(), "REST.ANONYMOUS");
-			response = Response.ok(new Date().toString(), MediaType.TEXT_PLAIN).build();
+			sb.append(Crono.stopAndLog("importa"));
+			sb.append("\n");
+			Crono.start("aggiorna");
+			MessaggioPecBL.aggiornaStatoMessaggi(getContextEmf(), "REST.ANONYMOUS");
+			sb.append(Crono.stopAndLog("aggiorna"));
+			sb.append("\n");
+			sb.append(new Date().toString());
+			
+			response = Response.ok(sb.toString(), MediaType.TEXT_PLAIN).build();
 		} catch (Exception ex) {
 			logger.error("INTERNAL_SERVER_ERROR", ex);
 			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).type(MediaType.TEXT_PLAIN).build();
@@ -54,6 +71,22 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		return response;
 	}
 
+	@GET
+	@Path("/aggiornastato")
+	// @Produces(MediaType.TEXT_PLAIN)
+	public Response doAggiornaStato() {
+		Response response = null;
+		try {
+			logger.debug("{}", restServletContext.getContextPath());
+			MessaggioPecBL.aggiornaStatoMessaggi(getContextEmf(), "REST.ANONYMOUS");
+			response = Response.ok(new Date().toString(), MediaType.TEXT_PLAIN).build();
+		} catch (Exception ex) {
+			logger.error("INTERNAL_SERVER_ERROR", ex);
+			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).type(MediaType.TEXT_PLAIN).build();
+		}
+		return response;
+	}
+	
 	@PUT
 	@Path("/invia")
 	public Response doInvia() {
