@@ -1,18 +1,22 @@
 package it.attocchi.jpec.server.regole;
 
+import it.attocchi.jpec.server.bl.MessaggioPecBL;
 import it.attocchi.jpec.server.bl.RegolaPecBL;
 import it.attocchi.jpec.server.entities.RegolaPec;
 import it.attocchi.mail.parts.MailAttachmentUtil;
 import it.attocchi.mail.utils.MailUtils;
 
+import java.util.Enumeration;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.mail.Address;
 import javax.mail.Flags.Flag;
+import javax.mail.Header;
 import javax.mail.Message;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +54,38 @@ public class RegolaPecHelper {
 		return res;
 	}
 
+	/**
+	 * 
+	 * @param messaggioEmail
+	 * @return
+	 */
+	public boolean isMessaggioRicevuta() {
+		boolean res = false;
+		try {
+			logger.debug("criterio isMessaggioDaLeggere applicato da regola {} su messaggio {}", regola, messaggioEmail);
+			String headerXRicevuta = "";
+			if (messaggioEmail.getAllHeaders() != null) {
+				Enumeration headers = messaggioEmail.getAllHeaders();
+				while (headers.hasMoreElements()) {
+					Header h = (Header) headers.nextElement();
+					String headerName = h.getName();
+					if (MessaggioPecBL.HEADER_X_RICEVUTA.equalsIgnoreCase(headerName)) {
+						headerXRicevuta = h.getValue();
+						break;
+					}
+				}
+			}
+			res = StringUtils.isNoneBlank(headerXRicevuta);
+		} catch (Exception ex) {
+			logger.error("errore isMessaggioDaLeggere", ex);
+		}
+		return res;
+	}
+	
+	public boolean isNotMessaggioRicevuta() {
+		return !isMessaggioRicevuta();
+	}
+	
 	/**
 	 * 
 	 * @param regExp
