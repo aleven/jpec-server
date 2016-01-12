@@ -40,17 +40,19 @@ import org.slf4j.LoggerFactory;
 
 public class MessaggioPecBL {
 
-	static final String HEADER_MESSAGE_ID = "Message-ID";
-	static final String HEADER_X_RICEVUTA = "X-Ricevuta";
-	static final String HEADER_X_TIPO_RICEVUTA = "X-TipoRicevuta";
-	static final String HEADER_X_RIFERIMENTO_MESSAGE_ID = "X-Riferimento-Message-ID";
+	public static final String HEADER_MESSAGE_ID = "Message-ID";
+	public static final String HEADER_X_RICEVUTA = "X-Ricevuta";
+	public static final String HEADER_X_TIPO_RICEVUTA = "X-TipoRicevuta";
+	public static final String HEADER_X_RIFERIMENTO_MESSAGE_ID = "X-Riferimento-Message-ID";
 
-	// public static final String STATO_ACCETTAZIONE = "ACCETTAZIONE:";
-	// public static final String STATO_CONSEGNA = "CONSEGNA:";
-	// public static final String STATO_ANOMALIA_MessaggioPec =
-	// "ANOMALIA MessaggioPec:";
-
+//	public static final String OGGETTO_ACCETTAZIONE = "ACCETTAZIONE:";
+//	public static final String OGGETTO_CONSEGNA = "CONSEGNA:";
+	public static final String OGGETTO_ANOMALIA_MESSAGGIO = "ANOMALIA MESSAGGIO:";
 	public static final String OGGETTO_POSTA_CERTIFICATA = "POSTA CERTIFICATA:";
+	
+	public static final String RICEVUTA_ACCETTAZIONE = "accettazione";
+	public static final String RICEVUTA_CONSEGNA = "avvenuta-consegna";
+	public static final String RICEVUTA_ANOMALIA_MESSAGGIO = "ANOMALIA MESSAGGIO:";	
 
 	protected static final Logger logger = LoggerFactory.getLogger(MessaggioPecBL.class);
 
@@ -62,7 +64,7 @@ public class MessaggioPecBL {
 	 * @return
 	 * @throws Exception
 	 */
-	public static boolean importaNuoviMessaggi(EntityManagerFactory emf, String utente) throws Exception {
+	public static synchronized boolean importaNuoviMessaggi(EntityManagerFactory emf, String utente) throws Exception {
 		boolean res = false;
 		// List<MailMessage> popEmails = new ArrayList<MailMessage>();
 
@@ -221,13 +223,13 @@ public class MessaggioPecBL {
 								boolean regoleProtocollaConvalidate = RegolaPecBL.applicaRegole(emf, regoleProtocolla, mail);
 								if (regoleProtocollaConvalidate) {
 									String protocolloImplGenerico = ConfigurazioneBL.getValueStringDB(emf, ConfigurazionePecEnum.PEC_PROTOCOLLO_IMPL);
-									logger.info("configurazione protocolo generica {}", protocolloImplGenerico);
+									logger.debug("configurazione protocolo generica {}", protocolloImplGenerico);
 									String protocolloImplMailbox = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_PROTOCOLLO_IMPL, mailboxName);
-									logger.info("configurazione protocolo mailbox {}", protocolloImplMailbox);
+									logger.debug("configurazione protocolo mailbox {}", protocolloImplMailbox);
 									String protocolloImpl = (StringUtils.isNotBlank(protocolloImplMailbox)) ? protocolloImplMailbox : protocolloImplGenerico;
 									if (StringUtils.isNotBlank(protocolloImpl)) {
 										Properties configurazioneMailbox = ConfigurazioneBL.getConfigurazione(mailboxName);
-										logger.info("utilizzo implementazione protocolo {}", protocolloImpl);
+										logger.debug("utilizzo implementazione protocolo {}", protocolloImpl);
 										String protocollo = new ProtocolloHelper().esegui(emf, protocolloImpl, mail, configurazioneMailbox);
 										messaggioPec.setProtocollo(protocollo);
 										logger.info("messaggio protocollato: {}", protocollo);
@@ -267,6 +269,7 @@ public class MessaggioPecBL {
 								if (StringUtils.isNotBlank(pathFile)) {
 									messaggioPec.setEmlFile(pathFile);
 								}
+								messaggioPec.markAsCreated(0);
 								JpaController.callInsert(emf, messaggioPec);
 
 								/*
@@ -330,6 +333,7 @@ public class MessaggioPecBL {
 	public static synchronized List<String> inviaMessaggiInCoda(EntityManagerFactory emf, String utente) throws Exception {
 		List<String> res = new ArrayList<String>();
 		MessaggioPecFilter filtro = new MessaggioPecFilter();
+		filtro.setFolder(Folder.OUT);
 		filtro.setSoloNonInviati(true);
 		List<MessaggioPec> messaggiDaInviare = JpaController.callFind(emf, MessaggioPec.class, filtro);
 		if (!messaggiDaInviare.isEmpty()) {
@@ -450,11 +454,13 @@ public class MessaggioPecBL {
 				messaggio.setMessageID(messageID);
 				messaggio.setInviato(true);
 				messaggio.setDataInvio(new Date());
+				messaggio.markAsUpdated(0);
 				JpaController.callUpdate(emf, messaggio);
 				logger.debug("aggiornato stato messaggio {}", messaggio);
 			} catch (Exception ex) {
 				logger.error("errore durante invio email", ex);
 				messaggio.setErroreInvio(ex.getMessage());
+				messaggio.markAsUpdated(0);
 				JpaController.callUpdate(emf, messaggio);
 				logger.debug("aggiornato stato messaggio {}", messaggio);
 				throw ex;
@@ -612,7 +618,7 @@ public class MessaggioPecBL {
 		allegato.setStorePath(f.getPath());
 
 		allegato.setIdMessaggio(allegatoRequest.getIdMessaggio());
-
+		allegato.markAsCreated(0);
 		JpaController.callInsert(emf, allegato);
 
 		return allegato;
@@ -632,164 +638,179 @@ public class MessaggioPecBL {
 
 	}
 	
-//	public static boolean aggiornaStatoMessaggi(EntityManagerFactory emf, Utente utente) throws Exception {
-//		boolean res = false;
-//
-//		MessaggioPecFilter filtroRicevutiNonProcessati = new MessaggioPecFilter();
-//		filtroRicevutiNonProcessati.setFolder(Folder.IN);
-//		filtroRicevutiNonProcessati.setSoloNonProcessati(true);
-//
-//		MessaggioPecFilter filtroInviati = new MessaggioPecFilter();
-//		filtroInviati.setFolder(Folder.OUT);
-//		filtroInviati.setEscludiConsegnati(true);
-//
-//		List<MessaggioPec> messaggiRicevuti = JpaController.callFind(emf, MessaggioPec.class, filtroRicevutiNonProcessati);
-//		List<MessaggioPec> messaggiInviati = JpaController.callFind(emf, MessaggioPec.class, filtroInviati);
-//
-//		// TODO: probabilmente questa procedura va ottimizzata in caso di Tanti
-//		// Messaggi
-//
-//		int i = 0;
-//		for (MessaggioPec messaggioNuovoRicevuto : messaggiRicevuti) {
-//
-//			boolean messaggioCambioStato = false;
-//			/*
-//			 * Verifica LO STATO
-//			 */
-//			for (MessaggioPec messaggioInviato : messaggiInviati) {
-//				String oggettoRicevuto = messaggioNuovoRicevuto.getOggetto();
-//
-//				/*
-//				 * con il protocollo verifico se e' un messaggio di stato di
-//				 * questo messaggio inviato
-//				 */
-//				if (StringUtils.isNotBlank(oggettoRicevuto) && StringUtils.isNotBlank(messaggioInviato.getProtocollo())) {
-//					if (oggettoRicevuto.indexOf(messaggioInviato.getProtocollo()) > -1) {
-//
-//						if (oggettoRicevuto.startsWith(STATO_ACCETTAZIONE)) {
-//							if (!messaggioInviato.isAccettato()) {
-//								messaggioInviato.setAccettato(true);
-//								messaggioInviato.setAccettatoIdMessaggio(messaggioNuovoRicevuto.getId());
-//
-//								JpaController.callUpdate(emf, messaggioInviato);
-//
+	public static synchronized boolean aggiornaStatoMessaggi(EntityManagerFactory emf, String utente) throws Exception {
+		boolean res = false;
+
+		MessaggioPecFilter filtroRicevute = new MessaggioPecFilter();
+		filtroRicevute.setFolder(Folder.IN);
+		filtroRicevute.setSoloNonProcessati(true);
+		filtroRicevute.setSoloRicevuteConRiferimento(true);
+
+		MessaggioPecFilter filtroInviati = new MessaggioPecFilter();
+		filtroInviati.setFolder(Folder.OUT);
+		// filtroInviati.setEscludiConsegnati(true);
+		filtroInviati.setConStatoDaAggiornare(true);
+		filtroInviati.setConMessageID(true);
+
+		List<MessaggioPec> ricevuteDaProcessare = JpaController.callFind(emf, MessaggioPec.class, filtroRicevute);
+		List<MessaggioPec> messaggiInviati = JpaController.callFind(emf, MessaggioPec.class, filtroInviati);
+
+		// TODO: probabilmente questa procedura va ottimizzata in caso di Tanti
+		// Messaggi
+
+		int i = 0;
+		for (MessaggioPec ricevutaPec : ricevuteDaProcessare) {
+
+			boolean messaggioCambioStato = false;
+			/*
+			 * Verifica LO STATO
+			 */
+			for (MessaggioPec messaggioInviato : messaggiInviati) {
+				String oggettoRicevuto = ricevutaPec.getOggetto();
+				String ricevuta = ricevutaPec.getxRicevuta();
+				String ricevutaRiferimentoMessageId = ricevutaPec.getxRiferimentoMessageID();
+
+				/*
+				 * con il protocollo verifico se e' un messaggio di stato di
+				 * questo messaggio inviato
+				 */
+				// if (StringUtils.isNotBlank(oggettoRicevuto) && StringUtils.isNotBlank(messaggioInviato.getProtocollo())) {
+				// sono in presenza di una ricevuta in ingresso
+				// la ricevuta ha un riferimento ad un messageid
+				// sono in possessio del messaggio che ho inviato
+				if (StringUtils.isNotBlank(ricevuta) && StringUtils.isNotBlank(ricevutaRiferimentoMessageId) && StringUtils.isNotBlank(messaggioInviato.getMessageID())) {
+					if (ricevutaRiferimentoMessageId.equals(messaggioInviato.getMessageID())) {
+					// if (oggettoRicevuto.indexOf(messaggioInviato.getProtocollo()) > -1) {
+
+						if (RICEVUTA_ACCETTAZIONE.equals(ricevuta)) {
+							if (!messaggioInviato.isAccettato()) {
+								messaggioInviato.setAccettato(true);
+								messaggioInviato.setAccettatoIdMessaggio(ricevutaPec.getId());
+
+								messaggioInviato.markAsUpdated(0);
+								JpaController.callUpdate(emf, messaggioInviato);
+
 //								String newPath = ArchivioEmlBL.spostaEml("ACCETTAZIONE", messaggioInviato, messaggioNuovoRicevuto);
 //								if (StringUtils.isNotBlank(newPath)) {
 //									messaggioNuovoRicevuto.setEmlFile(newPath);
 //								}
-//								messaggioNuovoRicevuto.setProtocollo(messaggioInviato.getProtocollo());
-//								JpaController.callUpdate(emf, messaggioNuovoRicevuto);
-//
+								ricevutaPec.setProtocollo(messaggioInviato.getProtocollo());
+								ricevutaPec.markAsUpdated(0);
+								JpaController.callUpdate(emf, ricevutaPec);
+
 //								// TODO: Guardare che non sia gia' stata fatta
 //								// una
 //								// notifica in precedenza !!!
 //								// if
 //								// (Configurazione.get(emf).isEnableNotifyStatus())
 //								// {
-//								logger.info("creaNotificaCambioStatoAdUtente " + STATO_ACCETTAZIONE);
-//								NotificaBL.creaNotificaCambioStatoAdUtente(emf, null, utente.getIdUtente(), STATO_ACCETTAZIONE, messaggioNuovoRicevuto, messaggioInviato);
+//								logger.info("creaNotificaCambioStatoAdUtente " + OGGETTO_ACCETTAZIONE);
+//								NotificaBL.creaNotificaCambioStatoAdUtente(emf, null, utente.getIdUtente(), OGGETTO_ACCETTAZIONE, messaggioNuovoRicevuto, messaggioInviato);
 //								// }
-//							}
-//
-//							messaggioCambioStato = true;
-//							break;
-//
-//						} else if (oggettoRicevuto.startsWith(STATO_CONSEGNA)) {
-//							if (!messaggioInviato.isConsegnato()) {
-//								messaggioInviato.setConsegnato(true);
-//								messaggioInviato.setConsegnatoIdMessaggio(messaggioNuovoRicevuto.getId());
-//
-//								JpaController.callUpdate(emf, messaggioInviato);
-//
+							}
+
+							messaggioCambioStato = true;
+							break;
+
+						} else if (RICEVUTA_CONSEGNA.equals(ricevuta)) {
+							if (!messaggioInviato.isConsegnato()) {
+								messaggioInviato.setConsegnato(true);
+								messaggioInviato.setConsegnatoIdMessaggio(ricevutaPec.getId());
+								messaggioInviato.markAsUpdated(0);
+								JpaController.callUpdate(emf, messaggioInviato);
+
 //								String newPath = ArchivioEmlBL.spostaEml("CONSEGNA", messaggioInviato, messaggioNuovoRicevuto);
 //								if (StringUtils.isNotBlank(newPath)) {
 //									messaggioNuovoRicevuto.setEmlFile(newPath);
 //								}
-//								messaggioNuovoRicevuto.setProtocollo(messaggioInviato.getProtocollo());
-//								JpaController.callUpdate(emf, messaggioNuovoRicevuto);
-//
+								ricevutaPec.setProtocollo(messaggioInviato.getProtocollo());
+								ricevutaPec.markAsUpdated(0);
+								JpaController.callUpdate(emf, ricevutaPec);
+
 //								// if
 //								// (Configurazione.get(emf).isEnableNotifyStatus())
 //								// {
-//								logger.info("creaNotificaCambioStatoAdUtente " + STATO_CONSEGNA);
-//								NotificaBL.creaNotificaCambioStatoAdUtente(emf, null, utente.getIdUtente(), STATO_CONSEGNA, messaggioNuovoRicevuto, messaggioInviato);
+//								logger.info("creaNotificaCambioStatoAdUtente " + OGGETTO_CONSEGNA);
+//								NotificaBL.creaNotificaCambioStatoAdUtente(emf, null, utente.getIdUtente(), OGGETTO_CONSEGNA, messaggioNuovoRicevuto, messaggioInviato);
 //								// }
-//							}
-//							messaggioCambioStato = true;
-//							break;
-//
-//						} else if (oggettoRicevuto.startsWith(STATO_ANOMALIA_MESSAGGIO)) {
-//							if (!messaggioInviato.isAnomalia()) {
-//								messaggioInviato.setAnomalia(true);
-//								messaggioInviato.setAnomaliaIdMessaggio(messaggioNuovoRicevuto.getId());
-//
-//								JpaController.callUpdate(emf, messaggioInviato);
-//
+							}
+							messaggioCambioStato = true;
+							break;
+
+						} else if (oggettoRicevuto.startsWith(OGGETTO_ANOMALIA_MESSAGGIO)) {
+							if (!messaggioInviato.isAnomalia()) {
+								messaggioInviato.setAnomalia(true);
+								messaggioInviato.setAnomaliaIdMessaggio(ricevutaPec.getId());
+								messaggioInviato.markAsUpdated(0);
+								JpaController.callUpdate(emf, messaggioInviato);
+
 //								String newPath = ArchivioEmlBL.spostaEml("ANOMALIA", messaggioInviato, messaggioNuovoRicevuto);
 //								if (StringUtils.isNotBlank(newPath)) {
 //									messaggioNuovoRicevuto.setEmlFile(newPath);
 //								}
-//								messaggioNuovoRicevuto.setProtocollo(messaggioInviato.getProtocollo());
-//								JpaController.callUpdate(emf, messaggioNuovoRicevuto);
-//
+								ricevutaPec.setProtocollo(messaggioInviato.getProtocollo());
+								ricevutaPec.markAsUpdated(0);
+								JpaController.callUpdate(emf, ricevutaPec);
+
 //								// if
 //								// (Configurazione.get(emf).isEnableNotifyStatus())
 //								// {
-//								logger.info("creaNotificaCambioStatoAdUtente " + STATO_ANOMALIA_MESSAGGIO);
-//								NotificaBL.creaNotificaCambioStatoAdUtente(emf, null, utente.getIdUtente(), STATO_ANOMALIA_MESSAGGIO, messaggioNuovoRicevuto, messaggioInviato);
+//								logger.info("creaNotificaCambioStatoAdUtente " + OGGETTO_ANOMALIA_MESSAGGIO);
+//								NotificaBL.creaNotificaCambioStatoAdUtente(emf, null, utente.getIdUtente(), OGGETTO_ANOMALIA_MESSAGGIO, messaggioNuovoRicevuto, messaggioInviato);
 //								// }
-//							}
-//							messaggioCambioStato = true;
-//							break;
-//
-//						}
-//
-//					}
-//				} else {
-//					logger.warn("Oggetto o Protocollo non valorizzati in questo messaggio con id=" + messaggioInviato.getId());
-//				}
+							}
+							messaggioCambioStato = true;
+							break;
+
+						}
+
+					}
+				} else {
+					logger.warn("Oggetto o Protocollo non valorizzati in questo messaggio con id=" + messaggioInviato.getId());
+				}
+			}
+
+//			if (!messaggioCambioStato) {
+//				logger.info("creaNotificaRicezioneAiResponsabili");
+//				NotificaBL.creaNotificaRicezioneAiResponsabili(emf, null, utente.getIdUtente(), messaggioNuovoRicevuto);
 //			}
+
+			ricevutaPec.setProcessato(true);
+			ricevutaPec.markAsUpdated(0);
+			JpaController.callUpdate(emf, ricevutaPec);
+
+			i++;
+		}
+
+		logger.info(i + " messaggi ricevute verificati");
+
+//		/*
+//		 * Verifico se per dei messaggi inviati devo salvare una notifica di
+//		 * Obsolescenza
+//		 */
+//		/* Ricarico la lista al termine dei controlli precedenti */
+//		messaggiInviati = JpaController.callFind(emf, Messaggio.class, filtroInviati);
+//		i = 0;
+//		for (Messaggio messaggioInviato : messaggiInviati) {
+//			logger.info("creaNotificaRicezioneAiResponsabili");
 //
-////			if (!messaggioCambioStato) {
-////				logger.info("creaNotificaRicezioneAiResponsabili");
-////				NotificaBL.creaNotificaRicezioneAiResponsabili(emf, null, utente.getIdUtente(), messaggioNuovoRicevuto);
-////			}
+//			DateTime messageDate = new DateTime(messaggioInviato.getDataInvio());
+//			DateTime now = new DateTime();
+//			Minutes age = Minutes.minutesBetween(messageDate, now);
 //
-//			messaggioNuovoRicevuto.setProcessato(true);
-//			JpaController.callUpdate(emf, messaggioNuovoRicevuto);
+//			int maxAge = Configurazione.get(emf).getMessageWaitFeedbackInMinutes();
+//			if (maxAge > 0 && age.getMinutes() >= maxAge) {
+//				NotificaBL.creaNotificaObsoletoAiResponsabili(emf, null, utente.getIdUtente(), messaggioInviato);
+//				NotificaBL.creaNotificaObsoletoAlMittente(emf, null, utente.getIdUtente(), messaggioInviato);
 //
-//			i++;
+//				i++;
+//			}
 //		}
 //
-//		logger.info(i + " messaggi ricevuti verificati");
-//
-////		/*
-////		 * Verifico se per dei messaggi inviati devo salvare una notifica di
-////		 * Obsolescenza
-////		 */
-////		/* Ricarico la lista al termine dei controlli precedenti */
-////		messaggiInviati = JpaController.callFind(emf, Messaggio.class, filtroInviati);
-////		i = 0;
-////		for (Messaggio messaggioInviato : messaggiInviati) {
-////			logger.info("creaNotificaRicezioneAiResponsabili");
-////
-////			DateTime messageDate = new DateTime(messaggioInviato.getDataInvio());
-////			DateTime now = new DateTime();
-////			Minutes age = Minutes.minutesBetween(messageDate, now);
-////
-////			int maxAge = Configurazione.get(emf).getMessageWaitFeedbackInMinutes();
-////			if (maxAge > 0 && age.getMinutes() >= maxAge) {
-////				NotificaBL.creaNotificaObsoletoAiResponsabili(emf, null, utente.getIdUtente(), messaggioInviato);
-////				NotificaBL.creaNotificaObsoletoAlMittente(emf, null, utente.getIdUtente(), messaggioInviato);
-////
-////				i++;
-////			}
-////		}
-////
-////		logger.info(i + " messaggi inviati obsoleti verificati ");
-//
-//		res = true;
-//
-//		return res;
-//	}	
+//		logger.info(i + " messaggi inviati obsoleti verificati ");
+
+		res = true;
+
+		return res;
+	}	
 }
