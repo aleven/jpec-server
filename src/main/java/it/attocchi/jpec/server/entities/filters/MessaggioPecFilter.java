@@ -37,6 +37,9 @@ public class MessaggioPecFilter extends JPAEntityFilter<MessaggioPec> {
 	}
 
 	private boolean escludiConsegnati;
+	private boolean conStatoDaAggiornare;
+	private boolean conMessageID;
+	private boolean soloRicevuteConRiferimento;
 
 	public boolean isEscludiConsegnati() {
 		return escludiConsegnati;
@@ -44,6 +47,30 @@ public class MessaggioPecFilter extends JPAEntityFilter<MessaggioPec> {
 
 	public void setEscludiConsegnati(boolean escludiConsegnati) {
 		this.escludiConsegnati = escludiConsegnati;
+	}
+
+	public boolean isConStatoDaAggiornare() {
+		return conStatoDaAggiornare;
+	}
+
+	public void setConStatoDaAggiornare(boolean conStatoDaAggiornare) {
+		this.conStatoDaAggiornare = conStatoDaAggiornare;
+	}
+
+	public boolean isConMessageID() {
+		return conMessageID;
+	}
+
+	public void setConMessageID(boolean conMessageID) {
+		this.conMessageID = conMessageID;
+	}
+
+	public boolean isSoloRicevuteConRiferimento() {
+		return soloRicevuteConRiferimento;
+	}
+
+	public void setSoloRicevuteConRiferimento(boolean soloRicevuteConRiferimento) {
+		this.soloRicevuteConRiferimento = soloRicevuteConRiferimento;
 	}
 
 	private String oggetto;
@@ -165,6 +192,25 @@ public class MessaggioPecFilter extends JPAEntityFilter<MessaggioPec> {
 		if (escludiConsegnati) {
 			predicateList.add(criteriaBuilder.isFalse(root.get(MessaggioPec_.consegnato)));
 		}
+
+		if (conStatoDaAggiornare) {
+			Predicate p1 = criteriaBuilder.isFalse(root.get(MessaggioPec_.accettato));
+			Predicate p2 = criteriaBuilder.isFalse(root.get(MessaggioPec_.consegnato));
+			Predicate p3 = criteriaBuilder.isFalse(root.get(MessaggioPec_.anomalia));
+			predicateList.add(criteriaBuilder.or(p1, p2, p3));
+		}
+		if (conMessageID) {
+			Predicate p1 = criteriaBuilder.isNotNull(root.get(MessaggioPec_.messageID));
+			Predicate p2 = criteriaBuilder.notEqual(root.get(MessaggioPec_.messageID), "");
+			predicateList.add(criteriaBuilder.and(p1, p2));
+		}
+		if (soloRicevuteConRiferimento) {
+			Predicate p1 = criteriaBuilder.isNotNull(root.get(MessaggioPec_.xRicevuta));
+			Predicate p2 = criteriaBuilder.notEqual(root.get(MessaggioPec_.xRicevuta), "");
+			Predicate p3 = criteriaBuilder.isNotNull(root.get(MessaggioPec_.xRiferimentoMessageID));
+			Predicate p4 = criteriaBuilder.notEqual(root.get(MessaggioPec_.xRiferimentoMessageID), "");			
+			predicateList.add(criteriaBuilder.and(p1, p2));
+		}		
 
 		if (StringUtils.isNotEmpty(oggetto)) {
 			predicateList.add(criteriaBuilder.equal(root.get(MessaggioPec_.oggetto), oggetto));
