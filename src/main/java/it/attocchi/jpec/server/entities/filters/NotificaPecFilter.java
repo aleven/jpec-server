@@ -3,7 +3,7 @@ package it.attocchi.jpec.server.entities.filters;
 import it.attocchi.jpa2.JPAEntityFilter;
 import it.attocchi.jpa2.entities.EntityMarks_;
 import it.attocchi.jpec.server.entities.NotificaPec;
-import it.attocchi.jpec.server.entities.Notifica_;
+import it.attocchi.jpec.server.entities.NotificaPec_;
 
 import java.util.List;
 
@@ -78,27 +78,27 @@ public class NotificaPecFilter extends JPAEntityFilter<NotificaPec> {
 	public void buildWhere(EntityManagerFactory emf, List<Predicate> predicateList, CriteriaQuery<NotificaPec> criteriaQuery, CriteriaBuilder criteriaBuilder, Root<NotificaPec> root) {
 
 		if (daInviare) {
-			predicateList.add(criteriaBuilder.equal(root.get(Notifica_.inviato), !daInviare));
+			predicateList.add(criteriaBuilder.equal(root.get(NotificaPec_.inviato), !daInviare));
 		}
 
 		if (StringUtils.isNotBlank(oggetto)) {
-			predicateList.add(criteriaBuilder.equal(root.get(Notifica_.oggetto), oggetto));
+			predicateList.add(criteriaBuilder.equal(root.get(NotificaPec_.oggetto), oggetto));
 		}
 
 		if (StringUtils.isNotBlank(protocollo)) {
-			predicateList.add(criteriaBuilder.equal(root.get(Notifica_.protocollo), protocollo));
+			predicateList.add(criteriaBuilder.equal(root.get(NotificaPec_.protocollo), protocollo));
 		}
 
 		if (StringUtils.isNotBlank(destinatari)) {
-			predicateList.add(criteriaBuilder.equal(root.get(Notifica_.destinatari), destinatari));
+			predicateList.add(criteriaBuilder.equal(root.get(NotificaPec_.destinatari), destinatari));
 		}
 
 		if (idMessaggioPadre > 0) {
-			predicateList.add(criteriaBuilder.equal(root.get(Notifica_.idMessaggioPadre), idMessaggioPadre));
+			predicateList.add(criteriaBuilder.equal(root.get(NotificaPec_.idMessaggioPadre), idMessaggioPadre));
 		}
 
 		if (StringUtils.isNotBlank(tipo)) {
-			predicateList.add(criteriaBuilder.equal(root.get(Notifica_.tipo), tipo));
+			predicateList.add(criteriaBuilder.equal(root.get(NotificaPec_.tipo), tipo));
 		}
 
 	}
@@ -106,9 +106,9 @@ public class NotificaPecFilter extends JPAEntityFilter<NotificaPec> {
 	@Override
 	public void buildSort(List<Order> orderList, CriteriaQuery<NotificaPec> criteriaQuery, CriteriaBuilder criteriaBuilder, Root<NotificaPec> root) {
 
-		// criteriaQuery.orderBy(criteriaBuilder.asc(root.get(Notifica_.username)));
+		// criteriaQuery.orderBy(criteriaBuilder.asc(root.get(NotificaPec_.username)));
 		// criteriaQuery.orderBy(criteriaBuilder.desc("entityMarks.dataCreazione"));
-		orderList.add(criteriaBuilder.desc(root.get(Notifica_.entityMarks).get(EntityMarks_.dataCreazione)));
+		orderList.add(criteriaBuilder.desc(root.get(NotificaPec_.entityMarks).get(EntityMarks_.dataCreazione)));
 
 		// Person.address is an embedded attribute
 
