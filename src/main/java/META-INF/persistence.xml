@@ -5,8 +5,11 @@
 		<non-jta-data-source>java:/comp/env/jdbc/JPecDB</non-jta-data-source>
 		
 		<!-- Entities -->				
-		<class>it.attocchi.jpec.server.entities.MessaggioPec</class>
+		<class>it.attocchi.jpec.server.entities.AllegatoPec</class>
 		<class>it.attocchi.jpec.server.entities.ConfigurazionePec</class>
+		<class>it.attocchi.jpec.server.entities.MessaggioPec</class>
+		<class>it.attocchi.jpec.server.entities.NotificaPec</class>
+		<class>it.attocchi.jpec.server.entities.RegolaPec</class>
 		<!-- Embedded -->
 		<class>it.attocchi.jpa2.entities.EntityMarks</class>
 		
