@@ -250,8 +250,7 @@ public class MessaggioPecBL {
 											logger.info("messaggio protocollato: {}", esitoProtocollo);
 										} else {
 											logger.error("si e' verificato un errore in fase di protocollazione: {}", esitoProtocollo.errore);
-											// TODO: invia notifica ERRORE
-											// PROTOCOLLO
+											// TODO: invia notifica ERRORE PROTOCOLLO
 											erroreInProtocollo = true;
 										}
 									} else {
