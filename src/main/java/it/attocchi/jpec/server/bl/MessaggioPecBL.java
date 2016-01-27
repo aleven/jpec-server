@@ -51,7 +51,7 @@ public class MessaggioPecBL {
 	public static final String HEADER_X_RIFERIMENTO_MESSAGE_ID = "X-Riferimento-Message-ID";
 
 	// public static final String OGGETTO_ACCETTAZIONE = "ACCETTAZIONE:";
-	// public static final String OGGETTO_CONSEGNA = "CONSEGNA:";
+ 	public static final String OGGETTO_CONSEGNA = "CONSEGNA:";
 	public static final String OGGETTO_ANOMALIA_MESSAGGIO = "ANOMALIA MESSAGGIO:";
 	public static final String OGGETTO_POSTA_CERTIFICATA = "POSTA CERTIFICATA:";
 
