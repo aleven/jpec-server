@@ -1,5 +1,6 @@
 package it.attocchi.jpec.server.api.rest;
 
+import it.attocchi.jpa2.JpaController;
 import it.attocchi.jpec.server.api.rest.data.NuovoMessaggioRequest;
 import it.attocchi.jpec.server.api.rest.data.NuovoMessaggioResponse;
 import it.attocchi.jpec.server.bl.MessaggioPecBL;
@@ -14,6 +15,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Link;
 import javax.ws.rs.core.MediaType;
@@ -33,11 +35,15 @@ public class ResourceMessaggi extends RestBaseJpa2 {
 	@GET
 	@Path("/{id}/")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getMessaggio() {
+	public Response getMessaggio(@PathParam("id") long idMessaggio) {
 		Response response = null;
 		try {
 			logger.debug("{}", restServletContext.getContextPath());
-			response = Response.ok(new Date().toString(), MediaType.TEXT_PLAIN).build();
+
+			MessaggioPec messaggio = JpaController.callFindById(getContextEmf(), MessaggioPec.class, idMessaggio);
+
+			response = Response.ok(new Gson().toJson(messaggio)).build();
+
 		} catch (Exception ex) {
 			logger.error("doRicevi", ex);
 			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).type(MediaType.TEXT_PLAIN).build();
