@@ -6,7 +6,6 @@ import it.attocchi.jpec.server.entities.NotificaPec;
 import it.attocchi.jpec.server.entities.filters.NotificaPecFilter;
 import it.attocchi.mail.utils.MailSender;
 import it.attocchi.mail.utils.items.MailHeader;
-import it.attocchi.test.jpa2.entities.Utente;
 import it.attocchi.utils.DateUtilsLT;
 import it.attocchi.utils.ListUtils;
 

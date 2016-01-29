@@ -1,21 +1,11 @@
 package it.attocchi.jpec.server.entities;
 
-import it.attocchi.jpa2.JpaController;
 import it.attocchi.jpa2.entities.AbstractEntityWithIdString;
-import it.attocchi.jpec.server.bl.ConfigurazionePecEnum;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.Id;
 import javax.persistence.Table;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Entity
 @Table(schema = "", name = "pec03_config")

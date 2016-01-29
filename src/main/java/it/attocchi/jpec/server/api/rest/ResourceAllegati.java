@@ -1,7 +1,6 @@
 package it.attocchi.jpec.server.api.rest;
 
 import it.attocchi.jpec.server.api.rest.data.UploadAllegatoRequest;
-import it.attocchi.jpec.server.api.rest.data.NuovoMessaggioResponse;
 import it.attocchi.jpec.server.api.rest.data.UploadAllegatoResponse;
 import it.attocchi.jpec.server.bl.MessaggioPecBL;
 import it.attocchi.jpec.server.entities.AllegatoPec;
@@ -11,7 +10,6 @@ import it.webappcommon.rest.RestBaseJpa2;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;

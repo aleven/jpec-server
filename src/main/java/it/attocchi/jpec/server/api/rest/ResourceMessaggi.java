@@ -9,7 +9,6 @@ import it.attocchi.jpec.server.exceptions.PecException;
 import it.webappcommon.rest.RestBaseJpa2;
 
 import java.net.URI;
-import java.util.Date;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;

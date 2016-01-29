@@ -2,7 +2,6 @@ package it.attocchi.jpec.server.servlet;
 
 import it.attocchi.jpa2.IJpaListernes;
 import it.attocchi.jpec.server.bl.ConfigurazioneBL;
-import it.attocchi.jpec.server.entities.ConfigurazionePec;
 
 import javax.persistence.EntityManagerFactory;
 import javax.servlet.ServletContextEvent;
