@@ -28,7 +28,8 @@ public class NotificaPecBL {
 		CAMBIO_STATO,
 		NUOVO_INVIO,
 		OBSOLETO,
-		RICEZIONE
+		RICEZIONE,
+		ERRORE
 	}
 
 	protected static final Logger logger = Logger.getLogger(NotificaPecBL.class.getName());
@@ -76,7 +77,8 @@ public class NotificaPecBL {
 
 		// String testo =
 		// StringUtils.defaultIfEmpty(messaggioCorrispondente.getMessaggio(),
-		// ConfigurazioneBL.getValueString(emf, chiave, mailboxRequested)NotificaCambioStatoMessaggio());
+		// ConfigurazioneBL.getValueString(emf, chiave,
+		// mailboxRequested)NotificaCambioStatoMessaggio());
 		String testo = StringUtils.defaultIfEmpty(messaggioStato.getMessaggio(), ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_NOTIFICA_CAMBIOSTATO_MESSAGGIO, mailbox));
 
 		if (ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_ENABLE_NOTITY_STATUS, mailbox)) {
@@ -116,6 +118,26 @@ public class NotificaPecBL {
 		salva(emf, transactionController, idUtente, messaggio.getId(), TipoNotifica.RICEZIONE, destinatari, oggetto, testo, protocollo, messaggio.getEmlFile());
 	}
 
+	public static void creaNotificaErroreAiResponsabili(EntityManagerFactory emf, JpaController transactionController, long idUtente, MessaggioPec messaggio, String mailbox, String dettaglioErrore, String emlDaAllegare) throws Exception {
+
+		String destinatari = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_NOTIFICA_INVIO_DESTINATARI, mailbox);
+		String oggettoNotifica = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_NOTIFICA_ERRORE_OGGETTO, mailbox);
+		String prefisso = TipoNotifica.ERRORE.name();
+
+		String oggettoMessaggio = messaggio.getOggetto();
+		if (StringUtils.isBlank(oggettoNotifica)) {
+			oggettoNotifica = String.format("%s: %s", prefisso, oggettoMessaggio);
+		}
+
+		String protocolloOMessageId = (StringUtils.isBlank(messaggio.getProtocollo())) ? messaggio.getMessageID() : messaggio.getProtocollo();
+		String testoNotifica = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_NOTIFICA_ERRORE_MESSAGGIO, mailbox);
+		if (StringUtils.isNotBlank(dettaglioErrore)) {
+			testoNotifica = StringUtils.isBlank(testoNotifica) ? dettaglioErrore : testoNotifica + "\n\n" + dettaglioErrore;
+		}
+
+		salva(emf, transactionController, idUtente, messaggio.getId(), TipoNotifica.ERRORE, destinatari, oggettoNotifica, testoNotifica, protocolloOMessageId, emlDaAllegare);
+	}
+
 	public static void creaNotificaObsoletoAiResponsabili(EntityManagerFactory emf, JpaController transactionController, long idUtente, MessaggioPec messaggio, String mailbox) throws Exception {
 
 		String destinatari = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_NOTIFICA_INVIO_DESTINATARI, mailbox);
@@ -130,7 +152,8 @@ public class NotificaPecBL {
 		String protocollo = messaggio.getProtocollo();
 
 		// String testo = StringUtils.defaultIfEmpty(messaggio.getMessaggio(),
-		// ConfigurazioneBL.getValueString(emf, chiave, mailboxRequested)NotificaObsoletoMessaggio());
+		// ConfigurazioneBL.getValueString(emf, chiave,
+		// mailboxRequested)NotificaObsoletoMessaggio());
 		String testo = StringUtils.defaultIfEmpty(null, ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_NOTIFICA_OBSOLETO_MESSAGGIO, mailbox));
 
 		if (!verificaNotificaGiaCreata(emf, transactionController, messaggio.getId(), TipoNotifica.OBSOLETO, destinatari)) {
@@ -142,7 +165,7 @@ public class NotificaPecBL {
 	}
 
 	public static void creaNotificaObsoletoAlMittente(EntityManagerFactory emf, JpaController transactionController, long idUtente, MessaggioPec messaggio, String mailbox) throws Exception {
-		
+
 		String destinatari = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_NOTIFICA_CAMBIOSTATO_DESTINATARI, mailbox);
 		if (StringUtils.isBlank(destinatari)) {
 			destinatari = messaggio.getEmailMittente();
@@ -159,7 +182,8 @@ public class NotificaPecBL {
 		String protocollo = messaggio.getProtocollo();
 
 		// String testo = StringUtils.defaultIfEmpty(messaggio.getMessaggio(),
-		// ConfigurazioneBL.getValueString(emf, chiave, mailboxRequested)NotificaObsoletoMessaggio());
+		// ConfigurazioneBL.getValueString(emf, chiave,
+		// mailboxRequested)NotificaObsoletoMessaggio());
 		String testo = StringUtils.defaultIfEmpty(null, ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_NOTIFICA_OBSOLETO_MESSAGGIO, mailbox));
 
 		if (!verificaNotificaGiaCreata(emf, transactionController, messaggio.getId(), TipoNotifica.OBSOLETO, destinatari)) {
@@ -184,13 +208,14 @@ public class NotificaPecBL {
 		notifica.setAllegati(allegati);
 		notifica.setProtocollo(protocollo);
 
-		if (transactionController == null)
+		if (transactionController == null) {
 			JpaController.callInsert(emf, notifica);
-		else
+		} else {
 			transactionController.insert(notifica);
+		}
 	}
 
-	public static void inviaNotifiche(EntityManagerFactory emf, String currentUser, boolean useCurrentUserAsSender, String mailbox) throws Exception {
+	public static synchronized void inviaNotifiche(EntityManagerFactory emf, String currentUser, boolean useCurrentUserAsSender, String mailbox) throws Exception {
 		// boolean res = false;
 		List<NotificaPec> notificheDaInviare = notificheDaInviare(emf, currentUser);
 		for (NotificaPec notifica : notificheDaInviare) {
@@ -310,7 +335,7 @@ public class NotificaPecBL {
 		return res;
 	}
 
-	public static void inviaNotifica(EntityManagerFactory emf, NotificaPec notifica, String currentUser, boolean useCurrentUserAsSender, String mailbox) throws Exception {
+	public static synchronized void inviaNotifica(EntityManagerFactory emf, NotificaPec notifica, String currentUser, boolean useCurrentUserAsSender, String mailbox) throws Exception {
 
 		ConfigurazioneBL.resetCurrent();
 
@@ -320,6 +345,10 @@ public class NotificaPecBL {
 			int smtpPort = ConfigurazioneBL.getValueInt(emf, ConfigurazionePecEnum.PEC_NOTIFICHE_SMTP_PORT, mailbox);
 			String senderEmail = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_NOTIFICHE_SENDER_EMAIL, mailbox);
 			String senderName = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_NOTIFICHE_SENDER_NAME, mailbox);
+			boolean enableSSL = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_NOTIFICHE_SMTP_SSL, mailbox);
+			boolean enableSSLNoCertCheck = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_NOTIFICHE_SMTP_SSLNOCHECK, mailbox);
+			String smtpUsername = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_NOTIFICHE_SMTP_USERNAME, mailbox);
+			String smtpPassword = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_NOTIFICHE_SMTP_PASSWORD, mailbox);
 
 			if (currentUser != null && useCurrentUserAsSender) {
 				senderEmail = StringUtils.defaultIfBlank(currentUser, senderEmail);
@@ -332,18 +361,23 @@ public class NotificaPecBL {
 			// Configurazione.getCurrent(emf).getSmtpPasswordNotifiche();
 
 			// String destinatari =
-			// ConfigurazioneBL.getValueString(emf, chiave, mailboxRequested)NotificaInvioDestinatari();
+			// ConfigurazioneBL.getValueString(emf, chiave,
+			// mailboxRequested)NotificaInvioDestinatari();
 			String destinatari = notifica.getDestinatari();
 
 			List<MailHeader> customHeaders = new ArrayList<MailHeader>();
-//			customHeaders.add(new MailHeader(MessaggioPecBL.HEADER_X_HYDRO_PROTOCOL, notifica.getProtocollo()));
+			// customHeaders.add(new
+			// MailHeader(MessaggioPecBL.HEADER_X_HYDRO_PROTOCOL,
+			// notifica.getProtocollo()));
 
 			// String oggetto =
 			// Configurazione.getCurrent(emf).getNotificaInvioOggetto();
 			// String corpo =
 			// Configurazione.getCurrent(emf).getNotificaInvio();
 
-			MailSender m = MailSender.createMailSender(smtpServer, smtpPort, senderEmail, senderName);
+			// MailSender m = MailSender.createMailSender(smtpServer, smtpPort,
+			// senderEmail, senderName);
+			MailSender m = MailSender.createMailSender(smtpServer, smtpPort, senderEmail, senderName, enableSSL, enableSSLNoCertCheck, smtpUsername, smtpPassword);
 
 			// Allegati
 			List<EmailAttachment> allegati = new ArrayList<EmailAttachment>();
