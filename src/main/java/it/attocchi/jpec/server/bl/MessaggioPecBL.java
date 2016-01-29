@@ -197,11 +197,9 @@ public class MessaggioPecBL {
 							MessaggioPec messaggioEsistente = JpaController.callFindFirst(emf, MessaggioPec.class, filtro);
 							if (messaggioEsistente == null) {
 								// boolean saved = false;
-								String pathFile = "";
+								String messaggioPecEmlFile = "";
 								if (enableEmlStore) {
-									// pathFile =
-									// ArchivioEmlBL.salvaEmlRicevuto(emlStoreFolder,
-									// emlInStoreFolder, server, mail);
+									messaggioPecEmlFile = ArchivioEmlBL.salvaEmlRicevuto(emlStoreFolder, emlInStoreFolder, server, mail);
 								}
 
 								/* Importiamo il MessaggioPec */
@@ -249,9 +247,15 @@ public class MessaggioPecBL {
 											messaggioPec.setProtocollo(esitoProtocollo.protocollo);
 											logger.info("messaggio protocollato: {}", esitoProtocollo);
 										} else {
-											logger.error("si e' verificato un errore in fase di protocollazione: {}", esitoProtocollo.errore);
-											// TODO: invia notifica ERRORE PROTOCOLLO
+											String messaggio = String.format("si e' verificato un errore in fase di protocollazione: {}", esitoProtocollo.errore);
+											logger.error(messaggio);
 											erroreInProtocollo = true;
+											if (StringUtils.isBlank(messaggioPecEmlFile)) {
+												// se non ho salvato eml per impostazione, lo salvo per poterlo inviare come allegato nella notifica
+												messaggioPecEmlFile = ArchivioEmlBL.salvaEmlRicevuto(emlStoreFolder, emlInStoreFolder, server, mail);
+											}
+											logger.info("creo notifica errore protocollo");
+											NotificaPecBL.creaNotificaErroreAiResponsabili(emf, null, 0, messaggioPec, mailboxName, messaggio, messaggioPecEmlFile);
 										}
 									} else {
 										logger.warn("nessuna implementazione protocollo configurata");
@@ -271,7 +275,7 @@ public class MessaggioPecBL {
 										// if
 										// (mail.getSubject().startsWith(OGGETTO_POSTA_CERTIFICATA))
 										// {
-										File path = new File(pathFile);
+										File path = new File(messaggioPecEmlFile);
 										path = new File(path.getParentFile(), FilenameUtils.removeExtension(path.getName()));
 										if (!path.exists())
 											path.mkdirs();
@@ -287,8 +291,9 @@ public class MessaggioPecBL {
 										// }
 									}
 
-									if (StringUtils.isNotBlank(pathFile)) {
-										messaggioPec.setEmlFile(pathFile);
+									if (StringUtils.isNotBlank(messaggioPecEmlFile)) {
+										// potrei aver salvato eml per impostazione o per necessita della notifica di errore
+										messaggioPec.setEmlFile(messaggioPecEmlFile);
 									}
 									messaggioPec.markAsCreated(0);
 									JpaController.callInsert(emf, messaggioPec);
