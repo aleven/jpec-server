@@ -45,8 +45,7 @@ public class ProtocolloHelper {
 	}
 
 	public synchronized ProtocolloEsito eseguiOLD(EntityManagerFactory emf, String protocolloImpl, Message messaggioEmail, Properties configurazioneMailbox) {
-		ProtocolloEsito res = new ProtocolloEsito();
-		res.stato = ProtocolloEsitoStato.ERRORE;
+		ProtocolloEsito res = ProtocolloEsito.errore("");
 
 		if (StringUtils.isNotBlank(protocolloImpl)) {
 			try {
@@ -63,7 +62,7 @@ public class ProtocolloHelper {
 				}
 			} catch (Exception ex) {
 				logger.debug("errore creazione istanza classe protocollo {}", protocolloImpl);
-				res.errore = ex.getMessage();
+				res = ProtocolloEsito.errore(ex.getMessage());
 			}
 		} else {
 			logger.debug("nessuna classe specificata per la generazione di un protocollo");
@@ -73,15 +72,14 @@ public class ProtocolloHelper {
 	}
 
 	public static synchronized ProtocolloEsito esegui(ProtocolloGenerico istanzaProtocollo) {
-		ProtocolloEsito res = new ProtocolloEsito();
-		res.stato = ProtocolloEsitoStato.ERRORE;
+		ProtocolloEsito res = ProtocolloEsito.errore("");
 
 		if (istanzaProtocollo != null) {
 			try {
 				res = istanzaProtocollo.esegui();
 			} catch (Exception ex) {
 				logger.debug("errore creazione istanza classe protocollo {}", istanzaProtocollo.getClass().getName());
-				res.errore = ex.getMessage();
+				res = ProtocolloEsito.errore(ex.getMessage());
 			}
 		} else {
 			logger.debug("nessuna classe specificata per la generazione di un protocollo");

@@ -26,7 +26,7 @@ public class ProtocolloTest extends AbstractProtocollo {
 	public ProtocolloEsito esegui() {
 		logger.debug(this.getClass().getName());
 		String protocolloRisposta = String.valueOf(getTest() +  new Date().getTime());
-		ProtocolloEsito res = new ProtocolloEsito(protocolloRisposta);
+		ProtocolloEsito res = ProtocolloEsito.ok(protocolloRisposta);
 		return res;
 	}
 	

@@ -7,15 +7,23 @@ public class ProtocolloEsito {
 		ERRORE
 	}
 
-	public ProtocolloEsito() {
+	private ProtocolloEsito() {
 		this.stato = ProtocolloEsitoStato.ERRORE;
 	}
 
-	public ProtocolloEsito(String protocollo) {
-		this.stato = ProtocolloEsitoStato.OK;
-		this.protocollo = protocollo;
+	public static ProtocolloEsito ok(String protocollo) {
+		ProtocolloEsito esitoErrore = new ProtocolloEsito();
+		esitoErrore.stato = ProtocolloEsitoStato.OK;
+		esitoErrore.protocollo = protocollo;
+		return esitoErrore;
 	}
-
+	
+	public static ProtocolloEsito errore(String messaggio) {
+		ProtocolloEsito esitoErrore = new ProtocolloEsito();
+		esitoErrore.errore = messaggio;
+		return esitoErrore;
+	}
+	
 	public ProtocolloEsitoStato stato;
 	public String protocollo;
 	public String errore;
