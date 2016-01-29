@@ -148,24 +148,25 @@ public class ConfigurazioneBL {
 	 */
 	public static String getValueString(EntityManagerFactory emf, ConfigurazionePecEnum chiave, String mailboxRequested) {
 		String res = null;
-
-		if (StringUtils.isBlank(mailboxRequested)) {
-			res = getValueStringDB(emf, chiave);
-		} else {
-			boolean isDBMailbox = mailboxRequested.equals(getValueStringDB(emf, ConfigurazionePecEnum.PEC_MAILBOX_NAME));
-			if (isDBMailbox) {
-				res = loadFromDB(emf).get(chiave.name()).getValore();
-			} else {
-				Map<String, Properties> configuredMailbox = loadFromFiles(emf);
-				for (String mailboxName : configuredMailbox.keySet()) {
-					if (mailboxRequested.equals(mailboxName)) {
-						Properties p = configuredMailbox.get(mailboxName);
-						res = p.getProperty(chiave.name());
-						break;
+		/* DEFAULT SETTING da DB */
+		res = getValueStringDB(emf, chiave);
+		/*
+		 * se specificato carico l'impostazione specifica della mailbox (o
+		 * overridata dalla mailbox rispetto a quella di default)
+		 */
+		if (StringUtils.isNotBlank(mailboxRequested)) {
+			Map<String, Properties> configuredMailbox = loadFromFiles(emf);
+			for (String mailboxName : configuredMailbox.keySet()) {
+				if (mailboxRequested.equals(mailboxName)) {
+					Properties p = configuredMailbox.get(mailboxName);
+					String mailboxRes = p.getProperty(chiave.name());
+					if (StringUtils.isNotBlank(mailboxRes))
+					{
+						res = mailboxRes;
 					}
+					break;
 				}
 			}
-
 		}
 		return res;
 
@@ -236,6 +237,29 @@ public class ConfigurazioneBL {
 			someUpdated = true;
 		}
 
+		String emlFolder = getValueStringDB(emf, ConfigurazionePecEnum.PEC_EML_STORE_FOLDER);
+		if (StringUtils.isBlank(emlFolder) && StringUtils.isNotBlank(contextRealPath)) {
+			String eml = Paths.get(contextRealPath, "WEB-INF", "eml").toString();
+			logger.info("inizializzazione cartella salvataggio eml {}", eml);
+			saveValueString(emf, ConfigurazionePecEnum.PEC_EML_STORE_FOLDER, eml);
+			someUpdated = true;
+		}
+
+		String in = getValueStringDB(emf, ConfigurazionePecEnum.PEC_FOLDER_IN);
+		if (StringUtils.isBlank(in)) {
+			String defaultValue = "IN";
+			logger.info("inizializzazione cartella salvataggio eml {}", defaultValue);
+			saveValueString(emf, ConfigurazionePecEnum.PEC_FOLDER_IN, defaultValue);
+			someUpdated = true;
+		}
+		String out = getValueStringDB(emf, ConfigurazionePecEnum.PEC_FOLDER_IN);
+		if (StringUtils.isBlank(out)) {
+			String defaultValue = "OUT";
+			logger.info("inizializzazione cartella salvataggio eml {}", defaultValue);
+			saveValueString(emf, ConfigurazionePecEnum.PEC_FOLDER_IN, defaultValue);
+			someUpdated = true;
+		}
+
 		if (someUpdated) {
 			resetCurrent();
 			init(emf);
@@ -244,11 +268,27 @@ public class ConfigurazioneBL {
 		/* verifica accesso cartelle */
 		mailboxFolder = getValueStringDB(emf, ConfigurazionePecEnum.PEC_MAILBOXES_FOLDER);
 		allegatiFolder = getValueStringDB(emf, ConfigurazionePecEnum.PEC_ATTACH_STORE_FOLDER);
+		emlFolder = getValueStringDB(emf, ConfigurazionePecEnum.PEC_EML_STORE_FOLDER);
 
 		checkFolder(mailboxFolder, true, true, false);
 		checkFolder(allegatiFolder, true, true, true);
+		checkFolder(emlFolder, true, true, true);
 	}
 
+	/**
+	 * Procedura per verificare se cartella esiste, e se accesso in lettura o
+	 * scruttura
+	 * 
+	 * @param folder
+	 *            cartella da verificare
+	 * @param autoCreate
+	 *            auto creazione
+	 * @param testRead
+	 *            test lettura
+	 * @param testWrite
+	 *            test scrittura
+	 * @throws PecException
+	 */
 	private static void checkFolder(String folder, boolean autoCreate, boolean testRead, boolean testWrite) throws PecException {
 		Path p = Paths.get(folder);
 		if (autoCreate && !p.toFile().exists()) {
