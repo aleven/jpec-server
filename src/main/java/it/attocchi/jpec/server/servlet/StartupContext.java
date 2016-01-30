@@ -30,6 +30,9 @@ public class StartupContext implements ServletContextListener {
 			
 		} catch (Exception ex) {
 			logger.error("Error in contextInitialized", ex);
+			if (ex.getCause() != null) {
+				logger.error("Error in contextInitialized Cause", ex.getCause());
+			}
 		}
 	}
 
