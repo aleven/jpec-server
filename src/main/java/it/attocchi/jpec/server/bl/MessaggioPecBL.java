@@ -247,7 +247,7 @@ public class MessaggioPecBL {
 											messaggioPec.setProtocollo(esitoProtocollo.protocollo);
 											logger.info("messaggio protocollato: {}", esitoProtocollo);
 										} else {
-											String messaggio = String.format("si e' verificato un errore in fase di protocollazione: {}", esitoProtocollo.errore);
+											String messaggio = String.format("si e' verificato un errore in fase di protocollazione:\n%s", esitoProtocollo.errore);
 											logger.error(messaggio);
 											erroreInProtocollo = true;
 											if (StringUtils.isBlank(messaggioPecEmlFile)) {
