@@ -38,14 +38,22 @@ public class ServiceAzioni extends RestBaseJpa2 {
 			List<String> messaggiInviati = MessaggioPecBL.inviaMessaggiInCoda(getContextEmf(), "REST.ANONYMOUS");
 			sb.append(Crono.stopAndLog("invia"));
 			sb.append("\n");
+			
 			Crono.start("importa");
 			MessaggioPecBL.importaNuoviMessaggi(getContextEmf(), "REST.ANONYMOUS");
 			sb.append(Crono.stopAndLog("importa"));
 			sb.append("\n");
+			
 			Crono.start("aggiorna");
 			MessaggioPecBL.aggiornaStatoMessaggi(getContextEmf(), "REST.ANONYMOUS");
 			sb.append(Crono.stopAndLog("aggiorna"));
 			sb.append("\n");
+			
+			Crono.start("notifiche");
+			NotificaPecBL.inviaNotifiche(getContextEmf(), "REST.ANONYMOUS", false, null);
+			sb.append(Crono.stopAndLog("notifiche"));
+			sb.append("\n");
+			
 			sb.append(new Date().toString());
 			
 			response = Response.ok(sb.toString(), MediaType.TEXT_PLAIN).build();
