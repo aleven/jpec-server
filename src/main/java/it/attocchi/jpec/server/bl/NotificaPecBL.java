@@ -419,7 +419,7 @@ public class NotificaPecBL {
 		} else {
 			logger.warn("isEnableNotifySend false");
 			notifica.setInviato(true);
-			notifica.setErrore("DISABILITATO isEnableNotifySend");
+			notifica.setErrore("INVIO DISABILITATO isEnableNotifySend");
 			JpaController.callUpdate(emf, notifica);
 		}
 		// return res;
