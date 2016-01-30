@@ -12,8 +12,8 @@
 		<class>it.attocchi.jpec.server.entities.RegolaPec</class>
 		<!-- Embedded -->
 		<class>it.attocchi.jpa2.entities.EntityMarks</class>
-		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		
+		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<validation-mode>NONE</validation-mode>
 		<properties>
  
