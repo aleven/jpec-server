@@ -1,6 +1,7 @@
 package it.attocchi.jpec.server.api.rest;
 
 import it.attocchi.jpec.server.bl.MessaggioPecBL;
+import it.attocchi.jpec.server.bl.NotificaPecBL;
 import it.attocchi.jpec.server.exceptions.PecException;
 import it.attocchi.utils.Crono;
 import it.webappcommon.rest.RestBaseJpa2;
@@ -86,6 +87,22 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		}
 		return response;
 	}
+	
+	@GET
+	@Path("/invianotifiche")
+	// @Produces(MediaType.TEXT_PLAIN)
+	public Response doInviaNotifiche() {
+		Response response = null;
+		try {
+			logger.debug("{}", restServletContext.getContextPath());
+			NotificaPecBL.inviaNotifiche(getContextEmf(), "REST.ANONYMOUS", false, "");
+			response = Response.ok(new Date().toString(), MediaType.TEXT_PLAIN).build();
+		} catch (Exception ex) {
+			logger.error("INTERNAL_SERVER_ERROR", ex);
+			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).type(MediaType.TEXT_PLAIN).build();
+		}
+		return response;
+	}	
 	
 	@PUT
 	@Path("/invia")
