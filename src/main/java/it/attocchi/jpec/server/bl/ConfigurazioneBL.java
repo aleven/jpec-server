@@ -160,8 +160,7 @@ public class ConfigurazioneBL {
 				if (mailboxRequested.equals(mailboxName)) {
 					Properties p = configuredMailbox.get(mailboxName);
 					String mailboxRes = p.getProperty(chiave.name());
-					if (StringUtils.isNotBlank(mailboxRes))
-					{
+					if (StringUtils.isNotBlank(mailboxRes)) {
 						res = mailboxRes;
 					}
 					break;
@@ -290,18 +289,18 @@ public class ConfigurazioneBL {
 	 * @throws PecException
 	 */
 	private static void checkFolder(String folder, boolean autoCreate, boolean testRead, boolean testWrite) throws PecException {
-		Path p = Paths.get(folder);
-		if (autoCreate && !p.toFile().exists()) {
-			p.toFile().mkdirs();
-			logger.warn("creato la cartella {}", p.toString());
+		File f = new File(folder);
+		if (autoCreate && !f.exists()) {
+			f.mkdirs();
+			logger.warn("creato la cartella {}", f.toString());
 		}
 
-		if (testRead && !p.toFile().canRead()) {
-			throw new PecException("Impossibile leggere dalla cartella " + p.toString());
+		if (testRead && !f.canRead()) {
+			throw new PecException("Impossibile leggere dalla cartella " + f.toString());
 		}
 
-		if (testWrite && !p.toFile().canWrite()) {
-			throw new PecException("Impossibile scrivere sulla cartella " + p.toString());
+		if (testWrite && !f.canWrite()) {
+			throw new PecException("Impossibile scrivere sulla cartella " + f.toString());
 		}
 	}
 
