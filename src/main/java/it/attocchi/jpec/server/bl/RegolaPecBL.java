@@ -3,10 +3,13 @@ package it.attocchi.jpec.server.bl;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import it.attocchi.jpa2.JpaController;
+import it.attocchi.jpec.server.entities.MessaggioPec;
 import it.attocchi.jpec.server.entities.RegolaPec;
 import it.attocchi.jpec.server.entities.filters.RegolaPecFilter;
+import it.attocchi.jpec.server.protocollo.ProtocolloGenerico;
 import it.attocchi.jpec.server.regole.RegolaPecHelper;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +24,7 @@ public class RegolaPecBL {
 
 	protected static final Logger logger = LoggerFactory.getLogger(RegolaPecBL.class);
 
-	public static List<RegolaPec> regole(EntityManagerFactory emf, RegolaPecEventoEnum evento) throws Exception {
+	public static synchronized List<RegolaPec> regole(EntityManagerFactory emf, RegolaPecEventoEnum evento) throws Exception {
 		RegolaPecFilter filtro = new RegolaPecFilter();
 		filtro.setEvento(evento);
 
@@ -34,7 +37,7 @@ public class RegolaPecBL {
 		return res;
 	}
 
-	public static boolean applicaRegole(EntityManagerFactory emf, RegolaPecEventoEnum evento, Message email, Map<String, Object> regolaContext) throws Exception {
+	public static synchronized boolean applicaRegole(EntityManagerFactory emf, RegolaPecEventoEnum evento, Message email, Map<String, Object> regolaContext) throws Exception {
 		List<RegolaPec> regoleDaApplicare = regole(emf, evento);
 		boolean tutteLeRegoleVerificate = false;
 		if (regoleDaApplicare != null && regoleDaApplicare.size() > 0) {
@@ -46,7 +49,7 @@ public class RegolaPecBL {
 		return tutteLeRegoleVerificate;
 	}
 
-	public static boolean applicaRegole(EntityManagerFactory emf, List<RegolaPec> regoleDaApplicare, Message email, Map<String, Object> regolaContext) throws Exception {
+	public static synchronized boolean applicaRegole(EntityManagerFactory emf, List<RegolaPec> regoleDaApplicare, Message email, Map<String, Object> regolaContext) throws Exception {
 		// default true
 		boolean tutteLeRegoleVerificate = true;
 		if (regoleDaApplicare != null && regoleDaApplicare.size() > 0) {
@@ -104,5 +107,12 @@ public class RegolaPecBL {
 			logger.warn("nessuna regola da applicare");
 		}
 		return tutteLeRegoleVerificate;
+	}
+		
+	public static synchronized boolean applicaRegoleProtocollo(EntityManagerFactory emf, List<RegolaPec> regoleDaApplicare, Message email, MessaggioPec pec, ProtocolloGenerico istanzaProtocollo) throws Exception {
+		Map<String, Object> regolaContext = new HashMap<String, Object>();
+		regolaContext.put("protocollo", istanzaProtocollo);
+		
+		return applicaRegole(emf, regoleDaApplicare, email, regolaContext);
 	}
 }
