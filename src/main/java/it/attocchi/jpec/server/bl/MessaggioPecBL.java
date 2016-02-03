@@ -236,9 +236,9 @@ public class MessaggioPecBL {
 								boolean erroreInProtocollo = false;
 								List<RegolaPec> regoleProtocolla = RegolaPecBL.regole(emf, RegolaPecEventoEnum.PROTOCOLLA);
 
-								ProtocolloGenerico istanzaProtocollo = ProtocolloBL.creaIstanzaProtocollo(emf, mail, mailboxName);
+								ProtocolloGenerico istanzaProtocollo = ProtocolloBL.creaIstanzaProtocollo(emf, mail, messaggioPec, mailboxName);
 								
-								boolean regoleProtocollaConvalidate = RegolaPecBL.applicaRegoleProtocollo(emf, regoleProtocolla, mail, istanzaProtocollo);
+								boolean regoleProtocollaConvalidate = RegolaPecBL.applicaRegoleProtocollo(emf, regoleProtocolla, mail, messaggioPec, istanzaProtocollo);
 								if (regoleProtocollaConvalidate) {
 									if (istanzaProtocollo != null) {
 										ProtocolloEsito esitoProtocollo = ProtocolloBL.eseguiIstanza(istanzaProtocollo);
