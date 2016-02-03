@@ -13,7 +13,6 @@ import it.attocchi.jpec.server.exceptions.PecException;
 import it.attocchi.jpec.server.protocollo.ProtocolloEsito;
 import it.attocchi.jpec.server.protocollo.ProtocolloEsito.ProtocolloEsitoStato;
 import it.attocchi.jpec.server.protocollo.ProtocolloGenerico;
-import it.attocchi.jpec.server.protocollo.ProtocolloHelper;
 import it.attocchi.mail.parts.EmailBody;
 import it.attocchi.mail.utils.MailConnection;
 import it.attocchi.mail.utils.MailSender;
@@ -27,10 +26,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
 import javax.mail.Header;
 import javax.mail.Message;
@@ -46,15 +42,17 @@ import org.slf4j.LoggerFactory;
 public class MessaggioPecBL {
 
 	public static final String HEADER_MESSAGE_ID = "Message-ID";
+	public static final String HEADER_X_TRASPORTO = "X-Trasporto";
 	public static final String HEADER_X_RICEVUTA = "X-Ricevuta";
 	public static final String HEADER_X_TIPO_RICEVUTA = "X-TipoRicevuta";
 	public static final String HEADER_X_RIFERIMENTO_MESSAGE_ID = "X-Riferimento-Message-ID";
 
 	// public static final String OGGETTO_ACCETTAZIONE = "ACCETTAZIONE:";
- 	public static final String OGGETTO_CONSEGNA = "CONSEGNA:";
+	public static final String OGGETTO_CONSEGNA = "CONSEGNA:";
 	public static final String OGGETTO_ANOMALIA_MESSAGGIO = "ANOMALIA MESSAGGIO:";
 	public static final String OGGETTO_POSTA_CERTIFICATA = "POSTA CERTIFICATA:";
 
+	public static final String BUSTA_TRASPORTO = "posta-certificata";
 	public static final String RICEVUTA_ACCETTAZIONE = "accettazione";
 	public static final String RICEVUTA_CONSEGNA = "avvenuta-consegna";
 	public static final String RICEVUTA_ANOMALIA_MESSAGGIO = "ANOMALIA MESSAGGIO:";
@@ -144,6 +142,7 @@ public class MessaggioPecBL {
 						if (regoleImportaConvalidate) {
 
 							String headerMessageId = "";
+							String headerXTrasporto = "";
 							String headerXRicevuta = "";
 							String headerXTipoRicevuta = "";
 							String headerXRiferimentoMessageId = "";
@@ -156,7 +155,9 @@ public class MessaggioPecBL {
 									Header h = (Header) headers.nextElement();
 									logger.debug(" " + h.getName() + ":" + h.getValue());
 									String headerName = h.getName();
-									if (HEADER_MESSAGE_ID.equalsIgnoreCase(headerName)) {
+									if (HEADER_X_TRASPORTO.equalsIgnoreCase(headerName)) {
+										headerXTrasporto = h.getValue();
+									} else if (HEADER_MESSAGE_ID.equalsIgnoreCase(headerName)) {
 										headerMessageId = h.getValue();
 									} else if (HEADER_X_RICEVUTA.equalsIgnoreCase(headerName)) {
 										headerXRicevuta = h.getValue();
@@ -217,8 +218,16 @@ public class MessaggioPecBL {
 
 								EmailBody body = MailUtils.getBody(mail);
 								messaggioPec.setMessaggio(body.getBody());
-
-								messaggioPec.setEmailMittente(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllSenders(mail)));
+								
+								messaggioPec.setNomeMittente(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllSenders(mail)));
+								if (BUSTA_TRASPORTO.equals(headerXTrasporto)) {
+									/* nel caso delle pec il mittente originale viene inserito come repy-to */
+									messaggioPec.setEmailMittente(MailUtils.getReplyToAddress(mail));
+								} else {
+									/* in tutti gli altri casi, posta normale o ricevute il mittente */
+									messaggioPec.setEmailMittente(MailUtils.getSenderAddress(mail));
+								}
+								
 								messaggioPec.setDestinatari(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllRecipents(mail)));
 
 								/* 
@@ -227,22 +236,12 @@ public class MessaggioPecBL {
 								boolean erroreInProtocollo = false;
 								List<RegolaPec> regoleProtocolla = RegolaPecBL.regole(emf, RegolaPecEventoEnum.PROTOCOLLA);
 
-								String protocolloImplGenerico = ConfigurazioneBL.getValueStringDB(emf, ConfigurazionePecEnum.PEC_PROTOCOLLO_IMPL);
-								String protocolloImplMailbox = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_PROTOCOLLO_IMPL, mailboxName);
-								String protocolloImpl = (StringUtils.isNotBlank(protocolloImplMailbox)) ? protocolloImplMailbox : protocolloImplGenerico;
-								ProtocolloGenerico istanzaProtocollo = null;
-								if (StringUtils.isNotBlank(protocolloImpl)) {
-									Properties configurazioneMailbox = ConfigurazioneBL.getConfigurazione(mailboxName);
-									logger.debug("implementazione protocolo: {}", protocolloImpl);
-									istanzaProtocollo = ProtocolloHelper.creaIstanzaProtocollo(emf, protocolloImpl, mail, configurazioneMailbox);
-								}
+								ProtocolloGenerico istanzaProtocollo = ProtocolloBL.creaIstanzaProtocollo(emf, mail, mailboxName);
 								
-								Map<String, Object> regolaContext = new HashMap<String, Object>();
-								regolaContext.put("protocollo", istanzaProtocollo);
-								boolean regoleProtocollaConvalidate = RegolaPecBL.applicaRegole(emf, regoleProtocolla, mail, regolaContext);
+								boolean regoleProtocollaConvalidate = RegolaPecBL.applicaRegoleProtocollo(emf, regoleProtocolla, mail, istanzaProtocollo);
 								if (regoleProtocollaConvalidate) {
 									if (istanzaProtocollo != null) {
-										ProtocolloEsito esitoProtocollo = ProtocolloHelper.esegui(istanzaProtocollo);
+										ProtocolloEsito esitoProtocollo = ProtocolloBL.eseguiIstanza(istanzaProtocollo);
 										if (esitoProtocollo.stato == ProtocolloEsitoStato.OK) {
 											messaggioPec.setProtocollo(esitoProtocollo.protocollo);
 											logger.info("messaggio protocollato: {}", esitoProtocollo);
@@ -277,8 +276,9 @@ public class MessaggioPecBL {
 										// {
 										File path = new File(messaggioPecEmlFile);
 										path = new File(path.getParentFile(), FilenameUtils.removeExtension(path.getName()));
-										if (!path.exists())
+										if (!path.exists()) {
 											path.mkdirs();
+										}
 										File postacertFile = new File(path, postacertExtract);
 										PecParser pecParser = new PecParser(postacertExtract, true, postacertFile);
 										pecParser.dumpPart(mail);
