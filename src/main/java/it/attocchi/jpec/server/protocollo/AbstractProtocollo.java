@@ -14,5 +14,4 @@ public abstract class AbstractProtocollo implements ProtocolloGenerico {
 	public ProtocolloContext getContext() {
 		return context;
 	}
-
 }

@@ -1,5 +1,6 @@
 package it.attocchi.jpec.server.protocollo;
 
+import it.attocchi.jpec.server.entities.MessaggioPec;
 import it.attocchi.jpec.server.entities.RegolaPec;
 
 import java.util.Properties;
@@ -12,17 +13,19 @@ import org.slf4j.LoggerFactory;
 
 public class ProtocolloContext {
 
-	protected final Logger logger = LoggerFactory.getLogger(ProtocolloHelper.class);
+	protected final Logger logger = LoggerFactory.getLogger(ProtocolloContext.class);
 
 	private EntityManagerFactory emf;
-	private Message messaggioEmail;
+	private Message email;
+	private MessaggioPec pec;
 	private RegolaPec regola;
 	private Properties configurazioneMailbox;
 
-	public ProtocolloContext(EntityManagerFactory emf, Message messaggioEmail, Properties configurazioneMailbox) {
+	public ProtocolloContext(EntityManagerFactory emf, Message email, MessaggioPec pec, Properties configurazioneMailbox) {
 		super();
 		this.emf = emf;
-		this.messaggioEmail = messaggioEmail;
+		this.email = email;
+		this.pec = pec;
 		this.configurazioneMailbox = configurazioneMailbox;
 	}
 
@@ -30,32 +33,19 @@ public class ProtocolloContext {
 		return emf;
 	}
 
-	public void setEmf(EntityManagerFactory emf) {
-		this.emf = emf;
-	}
-
 	public Message getMessaggioEmail() {
-		return messaggioEmail;
-	}
-
-	public void setMessaggioEmail(Message messaggioEmail) {
-		this.messaggioEmail = messaggioEmail;
+		return email;
 	}
 
 	public RegolaPec getRegola() {
 		return regola;
 	}
 
-	public void setRegola(RegolaPec regola) {
-		this.regola = regola;
-	}
-
 	public Properties getConfigurazioneMailbox() {
 		return configurazioneMailbox;
 	}
 
-	public void setConfigurazioneMailbox(Properties configurazioneMailbox) {
-		this.configurazioneMailbox = configurazioneMailbox;
+	public MessaggioPec getPec() {
+		return pec;
 	}
-
 }
