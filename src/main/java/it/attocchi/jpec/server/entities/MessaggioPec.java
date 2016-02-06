@@ -183,6 +183,9 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 	@Column(name = "pec01_mailbox")
 	private String mailbox;
 
+	@Column(name = "pec01_url_documentale")
+	private String urlDocumentale;
+
 	public long getId() {
 		return id;
 	}
@@ -610,4 +613,13 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 	public void setErroreInvio(String erroreInvio) {
 		this.erroreInvio = erroreInvio;
 	}
+
+	public String getUrlDocumentale() {
+		return urlDocumentale;
+	}
+
+	public void setUrlDocumentale(String urlDocumentale) {
+		this.urlDocumentale = urlDocumentale;
+	}
+
 }
