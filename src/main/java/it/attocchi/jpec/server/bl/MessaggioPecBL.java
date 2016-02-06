@@ -79,6 +79,7 @@ public class MessaggioPecBL {
 				logger.info("verifica mailbox {}", mailboxName);
 
 				String popServer = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER, mailboxName);
+				String folderName = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER_IMAP_FOLDER, mailboxName);
 				int popPort = ConfigurazioneBL.getValueInt(emf, ConfigurazionePecEnum.PEC_SERVER_PORT, mailboxName);
 				String popUsername = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER_USERNAME, mailboxName);
 				String popPassword = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER_PASSWORD, mailboxName);
@@ -90,6 +91,7 @@ public class MessaggioPecBL {
 				String emlInStoreFolder = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_FOLDER_IN, mailboxName);
 
 				boolean deleteMessageFromServer = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_SERVER_DELETE_MESSAGE, mailboxName);
+				boolean markAsReadFromServer = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_SERVER_MARKREAD_MESSAGE, mailboxName);
 
 				logger.info("verifica messaggi da " + popServer + ":" + popPort);
 
@@ -99,7 +101,7 @@ public class MessaggioPecBL {
 
 					server.setEnableSSLNoCertCheck(enablePopSSLNoCertCheck);
 					server.setEnableDeleteMessageFromServer(deleteMessageFromServer);
-
+					
 					String serverMode = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_SERVER_MODE, mailboxName);
 					if ("IMAP".equals(serverMode.toUpperCase())) {
 						if (enablePopSSL) {
@@ -121,6 +123,18 @@ public class MessaggioPecBL {
 						throw new Exception("Impostare una modalita di connessione valida con il server (IMAP, POP3)");
 					}
 
+					List<javax.mail.Folder> serverFolders = server.getFolders();
+					for (javax.mail.Folder f : serverFolders) {
+						logger.info("{}:{}", f.getName(), f.getFullName());
+					}
+					
+					// impostare la folder dopo apertura connessione
+					if (StringUtils.isNoneBlank(folderName)) {
+						server.setCurrentFolder(folderName);
+					}
+					// per abilitare scrittura read/unread
+					server.enableFolderWrite();
+					
 					// List<String> listaMessageID =
 					// JpaController.callFindProjection(emf, MessaggioPec.class,
 					// String.class, MessaggioPec_.messageID, null);
@@ -218,39 +232,50 @@ public class MessaggioPecBL {
 
 								EmailBody body = MailUtils.getBody(mail);
 								messaggioPec.setMessaggio(body.getBody());
-								
+
 								messaggioPec.setNomeMittente(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllSenders(mail)));
 								if (BUSTA_TRASPORTO.equals(headerXTrasporto)) {
-									/* nel caso delle pec il mittente originale viene inserito come repy-to */
+									/*
+									 * nel caso delle pec il mittente originale
+									 * viene inserito come repy-to
+									 */
 									messaggioPec.setEmailMittente(MailUtils.getReplyToAddress(mail));
 								} else {
-									/* in tutti gli altri casi, posta normale o ricevute il mittente */
+									/*
+									 * in tutti gli altri casi, posta normale o
+									 * ricevute il mittente
+									 */
 									messaggioPec.setEmailMittente(MailUtils.getSenderAddress(mail));
 								}
-								
+
 								messaggioPec.setDestinatari(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllRecipents(mail)));
 
-								/* 
-								 * PROTOCOLLA 
+								/*
+								 * PROTOCOLLA
 								 */
 								boolean erroreInProtocollo = false;
 								List<RegolaPec> regoleProtocolla = RegolaPecBL.regole(emf, RegolaPecEventoEnum.PROTOCOLLA);
 
 								ProtocolloGenerico istanzaProtocollo = ProtocolloBL.creaIstanzaProtocollo(emf, mail, messaggioPec, mailboxName);
-								
+
 								boolean regoleProtocollaConvalidate = RegolaPecBL.applicaRegoleProtocollo(emf, regoleProtocolla, mail, messaggioPec, istanzaProtocollo);
 								if (regoleProtocollaConvalidate) {
 									if (istanzaProtocollo != null) {
 										ProtocolloEsito esitoProtocollo = ProtocolloBL.eseguiIstanza(istanzaProtocollo);
 										if (esitoProtocollo.stato == ProtocolloEsitoStato.OK) {
 											messaggioPec.setProtocollo(esitoProtocollo.protocollo);
+											messaggioPec.setUrlDocumentale(esitoProtocollo.urlDocumentale);
 											logger.info("messaggio protocollato: {}", esitoProtocollo);
+											
 										} else {
-											String messaggio = String.format("si e' verificato un errore in fase di protocollazione:\n%s", esitoProtocollo.errore);
+											String messaggio = String.format("si e' verificato un errore in fase di protocollazione: %s \n\n %s", esitoProtocollo.errore, esitoProtocollo.eccezione);
 											logger.error(messaggio);
 											erroreInProtocollo = true;
 											if (StringUtils.isBlank(messaggioPecEmlFile)) {
-												// se non ho salvato eml per impostazione, lo salvo per poterlo inviare come allegato nella notifica
+												// se non ho salvato eml per
+												// impostazione, lo salvo per
+												// poterlo inviare come allegato
+												// nella notifica
 												messaggioPecEmlFile = ArchivioEmlBL.salvaEmlRicevuto(emlStoreFolder, emlInStoreFolder, server, mail);
 											}
 											logger.info("creo notifica errore protocollo");
@@ -292,7 +317,9 @@ public class MessaggioPecBL {
 									}
 
 									if (StringUtils.isNotBlank(messaggioPecEmlFile)) {
-										// potrei aver salvato eml per impostazione o per necessita della notifica di errore
+										// potrei aver salvato eml per
+										// impostazione o per necessita della
+										// notifica di errore
 										messaggioPec.setEmlFile(messaggioPecEmlFile);
 									}
 									messaggioPec.markAsCreated(0);
@@ -307,12 +334,22 @@ public class MessaggioPecBL {
 										server.markMessageDeleted(mail);
 									}
 
+									if (markAsReadFromServer) {
+										server.markMessageAsRead(mail);
+									}
+
 									i++;
 								} else {
 									logger.warn("si e' verificato un errore in fase di protocollo ed il messaggio {}@{} non e' stato importato", headerMessageId, messaggioPec.getMailbox());
+									if (markAsReadFromServer) {
+										server.markMessageAsUnRead(mail);
+									}
 								}
 							} else {
 								logger.warn("messaggio {} gia' importato per mailbox {}", headerMessageId, messaggioEsistente.getMailbox());
+								if (markAsReadFromServer) {
+									server.markMessageAsRead(mail);
+								}
 							}
 						} else {
 							logger.warn("regole di importazione per il messaggio non sono state superate");
