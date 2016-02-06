@@ -251,11 +251,11 @@ public class ConfigurazioneBL {
 			saveValueString(emf, ConfigurazionePecEnum.PEC_FOLDER_IN, defaultValue);
 			someUpdated = true;
 		}
-		String out = getValueStringDB(emf, ConfigurazionePecEnum.PEC_FOLDER_IN);
+		String out = getValueStringDB(emf, ConfigurazionePecEnum.PEC_FOLDER_OUT);
 		if (StringUtils.isBlank(out)) {
 			String defaultValue = "OUT";
 			logger.info("inizializzazione cartella salvataggio eml {}", defaultValue);
-			saveValueString(emf, ConfigurazionePecEnum.PEC_FOLDER_IN, defaultValue);
+			saveValueString(emf, ConfigurazionePecEnum.PEC_FOLDER_OUT, defaultValue);
 			someUpdated = true;
 		}
 
@@ -295,13 +295,13 @@ public class ConfigurazioneBL {
 			logger.warn("creato la cartella {}", f.toString());
 		}
 
-		if (testRead && !f.canRead()) {
-			throw new PecException("Impossibile leggere dalla cartella " + f.toString());
-		}
-
-		if (testWrite && !f.canWrite()) {
-			throw new PecException("Impossibile scrivere sulla cartella " + f.toString());
-		}
+//		if (testRead && !f.canRead()) {
+//			throw new PecException("Impossibile leggere dalla cartella " + f.toString());
+//		}
+//
+//		if (testWrite && !f.canWrite()) {
+//			throw new PecException("Impossibile scrivere sulla cartella " + f.toString());
+//		}
 	}
 
 	public static List<String> getAllMailboxes(EntityManagerFactory emf) {
