@@ -86,14 +86,14 @@ public class ProtocolloBL {
 	// }
 
 	public static synchronized ProtocolloEsito eseguiIstanza(ProtocolloGenerico istanzaProtocollo) {
-		ProtocolloEsito res = ProtocolloEsito.errore("");
+		ProtocolloEsito res = ProtocolloEsito.errore("", null);
 
 		if (istanzaProtocollo != null) {
 			try {
 				res = istanzaProtocollo.esegui();
 			} catch (Exception ex) {
 				logger.debug("errore creazione istanza classe protocollo {}", istanzaProtocollo.getClass().getName());
-				res = ProtocolloEsito.errore(ex.getMessage());
+				res = ProtocolloEsito.errore(ex.getMessage(), ex);
 			}
 		} else {
 			logger.debug("nessuna classe specificata per la generazione di un protocollo");

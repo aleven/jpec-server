@@ -1,5 +1,6 @@
 package it.attocchi.jpec.server.protocollo;
 
+
 public class ProtocolloEsito {
 	
 	public enum ProtocolloEsitoStato {
@@ -11,22 +12,26 @@ public class ProtocolloEsito {
 		this.stato = ProtocolloEsitoStato.ERRORE;
 	}
 
-	public static ProtocolloEsito ok(String protocollo) {
-		ProtocolloEsito esitoErrore = new ProtocolloEsito();
-		esitoErrore.stato = ProtocolloEsitoStato.OK;
-		esitoErrore.protocollo = protocollo;
-		return esitoErrore;
+	public static ProtocolloEsito ok(String protocollo, String urlDocumentale) {
+		ProtocolloEsito esitoOk = new ProtocolloEsito();
+		esitoOk.stato = ProtocolloEsitoStato.OK;
+		esitoOk.protocollo = protocollo;
+		esitoOk.urlDocumentale = urlDocumentale;
+		return esitoOk;
 	}
 	
-	public static ProtocolloEsito errore(String messaggio) {
+	public static ProtocolloEsito errore(String messaggio, Throwable ex) {
 		ProtocolloEsito esitoErrore = new ProtocolloEsito();
 		esitoErrore.errore = messaggio;
+		esitoErrore.eccezione = ex;
 		return esitoErrore;
 	}
 	
 	public ProtocolloEsitoStato stato;
 	public String protocollo;
+	public String urlDocumentale;
 	public String errore;
+	public Throwable eccezione;
 	
 	@Override
 	public String toString() {

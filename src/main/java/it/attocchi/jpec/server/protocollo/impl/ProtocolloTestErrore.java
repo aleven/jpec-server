@@ -28,7 +28,7 @@ public class ProtocolloTestErrore extends AbstractProtocollo {
 		logger.debug(this.getClass().getName());
 		
 		String messaggioErrore = String.valueOf("ERRORE" +  new Date().getTime());
-		ProtocolloEsito res = ProtocolloEsito.errore(messaggioErrore);		
+		ProtocolloEsito res = ProtocolloEsito.errore(messaggioErrore, new Exception(messaggioErrore));		
 		
 		return res;
 	}
