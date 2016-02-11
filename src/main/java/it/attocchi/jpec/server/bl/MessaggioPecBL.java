@@ -92,7 +92,8 @@ public class MessaggioPecBL {
 
 				boolean deleteMessageFromServer = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_SERVER_DELETE_MESSAGE, mailboxName);
 				boolean markAsReadFromServer = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_SERVER_MARKREAD_MESSAGE, mailboxName);
-
+				boolean onlyUnread = ConfigurazioneBL.getValueBoolean(emf, ConfigurazionePecEnum.PEC_SERVER_ONLY_UNREAD, mailboxName);
+				
 				logger.info("verifica messaggi da " + popServer + ":" + popPort);
 
 				MailConnection server = null;
@@ -123,17 +124,18 @@ public class MessaggioPecBL {
 						throw new Exception("Impostare una modalita di connessione valida con il server (IMAP, POP3)");
 					}
 
-					List<javax.mail.Folder> serverFolders = server.getFolders();
-					for (javax.mail.Folder f : serverFolders) {
-						logger.info("{}:{}", f.getName(), f.getFullName());
-					}
-					
 					// impostare la folder dopo apertura connessione
 					if (StringUtils.isNoneBlank(folderName)) {
+						List<javax.mail.Folder> serverFolders = server.getFolders();
+						for (javax.mail.Folder f : serverFolders) {
+							logger.info("{}:{}", f.getName(), f.getFullName());
+						}
 						server.setCurrentFolder(folderName);
 					}
-					// per abilitare scrittura read/unread
-					server.enableFolderWrite();
+					if (markAsReadFromServer) {
+						// per abilitare scrittura read/unread
+						server.enableFolderWrite();
+					}
 					
 					// List<String> listaMessageID =
 					// JpaController.callFindProjection(emf, MessaggioPec.class,
@@ -145,8 +147,12 @@ public class MessaggioPecBL {
 
 					List<RegolaPec> regoleImporta = RegolaPecBL.regole(emf, RegolaPecEventoEnum.IMPORTA);
 
-					List<Message> mails = server.getMessages();
-
+					List<Message> mails = new ArrayList<Message>();
+					if (onlyUnread) {
+						mails = server.getMessagesUnread();
+					} else {
+						mails = server.getMessages();
+					}
 					logger.info(mails.size() + " messaggi nel server");
 					logger.info("inizio verifica messaggi gia' importati...");
 					int i = 0;
