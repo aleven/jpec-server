@@ -35,6 +35,7 @@ import javax.persistence.EntityManagerFactory;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.mail.EmailAttachment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -274,7 +275,7 @@ public class MessaggioPecBL {
 											logger.info("messaggio protocollato: {}", esitoProtocollo);
 											
 										} else {
-											String messaggio = String.format("si e' verificato un errore in fase di protocollazione: %s \n\n %s", esitoProtocollo.errore, esitoProtocollo.eccezione);
+											String messaggio = String.format("si e' verificato un errore in fase di protocollazione: %s\n\n%s\n\n%s", esitoProtocollo.errore, ExceptionUtils.getStackTrace(esitoProtocollo.eccezione), esitoProtocollo.getBufferedLog());
 											logger.error(messaggio);
 											erroreInProtocollo = true;
 											if (StringUtils.isBlank(messaggioPecEmlFile)) {
