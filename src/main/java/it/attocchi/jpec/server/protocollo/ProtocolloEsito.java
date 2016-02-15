@@ -1,5 +1,8 @@
 package it.attocchi.jpec.server.protocollo;
 
+import org.slf4j.Logger;
+import org.slf4j.helpers.MessageFormatter;
+
 
 public class ProtocolloEsito {
 	
@@ -38,5 +41,16 @@ public class ProtocolloEsito {
 		return "ProtocolloEsito [stato=" + stato + ", protocollo=" + protocollo + ", errore=" + errore + "]";
 	}
 	
+	StringBuffer sb = new StringBuffer();
 	
+	public void logAndBuffer(Logger logger, String message, Object... argArray) {
+		sb.append(MessageFormatter.format(message, argArray));
+		sb.append(System.getProperty("line.separator"));
+		// aggiungi al log 
+		logger.info(message, argArray);
+	}
+	
+	public String getBufferedLog() {
+		return sb.toString();
+	}
 }
