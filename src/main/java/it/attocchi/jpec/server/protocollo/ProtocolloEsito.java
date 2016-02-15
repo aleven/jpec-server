@@ -44,7 +44,7 @@ public class ProtocolloEsito {
 	StringBuffer sb = new StringBuffer();
 	
 	public void logAndBuffer(Logger logger, String message, Object... argArray) {
-		sb.append(MessageFormatter.format(message, argArray));
+		sb.append(MessageFormatter.format(message, argArray).getMessage());
 		sb.append(System.getProperty("line.separator"));
 		// aggiungi al log 
 		logger.info(message, argArray);
