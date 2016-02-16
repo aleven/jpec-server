@@ -41,7 +41,7 @@ public class ProtocolloEsito {
 		return "ProtocolloEsito [stato=" + stato + ", protocollo=" + protocollo + ", errore=" + errore + "]";
 	}
 	
-	StringBuffer sb = new StringBuffer();
+	private StringBuffer sb = new StringBuffer();
 	
 	public void logAndBuffer(Logger logger, String message, Object... argArray) {
 		sb.append(MessageFormatter.format(message, argArray).getMessage());
