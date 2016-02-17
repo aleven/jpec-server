@@ -29,7 +29,8 @@ public class RegolaPecFilter extends JPAEntityFilter<RegolaPec> {
 	@Override
 	public void buildWhere(EntityManagerFactory emf, List<Predicate> predicateList, CriteriaQuery<RegolaPec> criteriaQuery, CriteriaBuilder criteriaBuilder, Root<RegolaPec> root) {
 		if (evento != null) {
-			predicateList.add(criteriaBuilder.equal(root.get(RegolaPec_.evento), evento.name()));
+			// predicateList.add(criteriaBuilder.equal(root.get(RegolaPec_.evento), evento.name()));
+			predicateList.add(criteriaBuilder.equal(root.get(RegolaPec_.evento), evento));
 		}
 	}
 
