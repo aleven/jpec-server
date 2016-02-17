@@ -75,7 +75,10 @@ public class MessaggioPecBL {
 		ConfigurazioneBL.resetCurrent();
 
 		if (ConfigurazioneBL.getValueBooleanDB(emf, ConfigurazionePecEnum.PEC_ENABLE_EMAIL_CHECK)) {
-
+			
+			List<RegolaPec> regoleImporta = RegolaPecBL.regole(emf, RegolaPecEventoEnum.IMPORTA_MESSAGGIO);
+			List<RegolaPec> regoleProtocolla = RegolaPecBL.regole(emf, RegolaPecEventoEnum.PROTOCOLLA_MESSAGGIO);
+			
 			for (String mailboxName : ConfigurazioneBL.getAllMailboxes(emf)) {
 				logger.info("verifica mailbox {}", mailboxName);
 
@@ -144,9 +147,7 @@ public class MessaggioPecBL {
 
 					// if (deleteMessageFromServer) {
 					// server.setDeleteMessageFromServer(true);
-					// }
-
-					List<RegolaPec> regoleImporta = RegolaPecBL.regole(emf, RegolaPecEventoEnum.IMPORTA);
+					// }			
 
 					List<Message> mails = new ArrayList<Message>();
 					if (onlyUnread) {
@@ -157,6 +158,7 @@ public class MessaggioPecBL {
 					logger.info(mails.size() + " messaggi nel server");
 					logger.info("inizio verifica messaggi gia' importati...");
 					int i = 0;
+					
 					for (Message mail : mails) {
 						// MailMessage m = MailMessage.create(mail);
 						boolean regoleImportaConvalidate = RegolaPecBL.applicaRegole(emf, regoleImporta, mail, null);
@@ -174,7 +176,7 @@ public class MessaggioPecBL {
 								Enumeration headers = mail.getAllHeaders();
 								while (headers.hasMoreElements()) {
 									Header h = (Header) headers.nextElement();
-									logger.debug(" " + h.getName() + ":" + h.getValue());
+									// logger.debug(" " + h.getName() + ":" + h.getValue());
 									String headerName = h.getName();
 									if (HEADER_X_TRASPORTO.equalsIgnoreCase(headerName)) {
 										headerXTrasporto = h.getValue();
@@ -261,7 +263,6 @@ public class MessaggioPecBL {
 								 * PROTOCOLLA
 								 */
 								boolean erroreInProtocollo = false;
-								List<RegolaPec> regoleProtocolla = RegolaPecBL.regole(emf, RegolaPecEventoEnum.PROTOCOLLA);
 
 								ProtocolloGenerico istanzaProtocollo = ProtocolloBL.creaIstanzaProtocollo(emf, mail, messaggioPec, mailboxName);
 
