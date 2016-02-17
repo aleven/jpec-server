@@ -53,55 +53,61 @@ public class RegolaPecBL {
 		// default true
 		boolean tutteLeRegoleVerificate = true;
 		if (regoleDaApplicare != null && regoleDaApplicare.size() > 0) {
+						
 			for (RegolaPec regola : regoleDaApplicare) {
-				logger.debug("verifica della regola: {}", regola.getNome());
+
+				Binding binding = new Binding();
+				binding.setVariable("email", email);
+				binding.setVariable("helper", new RegolaPecHelper(regola, email));
+				if (regolaContext != null && !regolaContext.isEmpty()) {
+					for (String key : regolaContext.keySet()) {
+						binding.setVariable(key, regolaContext.get(key));
+					}
+				}
+				// String grrovyBody = groovyCode.trim();
+				// if (!grrovyBody.startsWith("{")) {
+				// groovyCode = "{" + grrovyBody + "}(email, helper)";
+				// } else {
+				// groovyCode = "" + grrovyBody + "(email, helper)";
+				// }
+				GroovyShell shell = new GroovyShell(binding);
+				
+				logger.debug("regola: \"{}\"", regola.getNome());
 				String criterioGroovy = regola.getCriterio();
+				boolean criterioRegolaVerificato = false;
 				if (StringUtils.isNotBlank(criterioGroovy)) {
-					logger.debug("valutazione del criterio: {}", criterioGroovy);
-					Binding binding = new Binding();
-					binding.setVariable("email", email);
-					binding.setVariable("helper", new RegolaPecHelper(regola, email));
-					if (regolaContext != null && !regolaContext.isEmpty()) {
-						for (String key : regolaContext.keySet()) {
-							binding.setVariable(key, regolaContext.get(key));
-						}
-					}
-
-					// String grrovyBody = groovyCode.trim();
-					// if (!grrovyBody.startsWith("{")) {
-					// groovyCode = "{" + grrovyBody + "}(email, helper)";
-					// } else {
-					// groovyCode = "" + grrovyBody + "(email, helper)";
-					// }
-
-					GroovyShell shell = new GroovyShell(binding);
-					Object criterioResult = false;
+					logger.debug("criterio: \"{}\"", criterioGroovy);
+					Object criterioGroovyResult = null;
 					try {
-						criterioResult = shell.evaluate(criterioGroovy);
+						criterioGroovyResult = shell.evaluate(criterioGroovy);
 					} catch (Exception ex) {
-						logger.error("errore valutazione criterio groovy.");
-						logger.error("dettagli", ex);
+						logger.error("errore valutazione script groovy.", ex);
 					}
-
-					if (criterioResult != null && criterioResult instanceof Boolean) {
-						boolean criterioRes = (Boolean) criterioResult;
-						logger.debug("risultato esecuzione criterio: {}", criterioRes);
-						
-						if (criterioRes) {
-							String azioneGroovy = regola.getAzione();
-							logger.debug("valutazione dell'azione: {}", azioneGroovy);
-							if (StringUtils.isNotBlank(azioneGroovy)) {
-								Object azioneResult = shell.evaluate(azioneGroovy);
-							}
-						}
-						tutteLeRegoleVerificate = tutteLeRegoleVerificate && criterioRes;
-						
+					if (criterioGroovyResult != null && criterioGroovyResult instanceof Boolean) {
+						criterioRegolaVerificato = (Boolean) criterioGroovyResult;
+						logger.debug("risultato: {}", criterioRegolaVerificato);
 					} else {
-						logger.error("impossibile verificare come risultato boolean il criterio applicato");
+						logger.error("impossibile verificare come risultato boolean il criterio groovy applicato");
+						criterioRegolaVerificato = false;
 					}
 				} else {
-					logger.warn("attenzione la regola non contiene criteri da valutare");
+					logger.warn("la regola non contiene criteri groovy da valutare");
+					criterioRegolaVerificato = true;
 				}
+				
+				/* se i criteri sono verificati (o vuoti) applico le azioni e poi istanzio la classe da eseguire */
+				if (criterioRegolaVerificato) {
+					String azioneGroovy = regola.getAzione();
+					if (StringUtils.isNotBlank(azioneGroovy)) {
+						logger.debug("azione: \"{}\"", azioneGroovy);
+						try {
+							Object azioneResult = shell.evaluate(azioneGroovy);
+						} catch (Exception ex) {
+							logger.error("errore valutazione criterio groovy.", ex);
+						}						
+					}
+				}
+				tutteLeRegoleVerificate = tutteLeRegoleVerificate && criterioRegolaVerificato;				
 			}
 		} else {
 			logger.warn("nessuna regola da applicare");
