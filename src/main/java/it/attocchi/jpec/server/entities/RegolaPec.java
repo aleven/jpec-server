@@ -55,7 +55,6 @@ public class RegolaPec extends AbstractEntityMarksWithIdLong<RegolaPec> {
 	private String azione;
 
 	@Column(name = "pec06_classe")
-	@Lob
 	private String classe;
 
 	@Column(name = "pec06_ordine")
