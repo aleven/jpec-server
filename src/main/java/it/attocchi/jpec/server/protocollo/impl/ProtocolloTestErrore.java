@@ -1,6 +1,6 @@
 package it.attocchi.jpec.server.protocollo.impl;
 
-import it.attocchi.jpec.server.protocollo.AbstractProtocollo;
+import it.attocchi.jpec.server.protocollo.AbstractAzione;
 import it.attocchi.jpec.server.protocollo.AzioneEsito;
 
 import java.util.Date;
@@ -8,7 +8,7 @@ import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ProtocolloTestErrore extends AbstractProtocollo {
+public class ProtocolloTestErrore extends AbstractAzione {
 
 	protected final Logger logger = LoggerFactory.getLogger(ProtocolloTestErrore.class);
 
