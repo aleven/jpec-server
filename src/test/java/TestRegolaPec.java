@@ -1,6 +1,8 @@
 import it.attocchi.jpec.server.bl.RegolaPecBL;
 import it.attocchi.jpec.server.bl.RegolaPecEventoEnum;
 import it.attocchi.jpec.server.entities.RegolaPec;
+import it.attocchi.jpec.server.protocollo.AzioneEsito;
+import it.attocchi.jpec.server.protocollo.AzioneEsito.AzioneEsitoStato;
 
 import java.util.List;
 
@@ -26,9 +28,9 @@ public class TestRegolaPec {
 			EntityManagerFactory emf = Persistence.createEntityManagerFactory("jpec-server-pu_TEST");
 
 			List<RegolaPec> regoleImporta = RegolaPecBL.regole(emf, RegolaPecEventoEnum.IMPORTA_MESSAGGIO);
-			boolean regoleImportaConvalidate = RegolaPecBL.applicaRegole(emf, regoleImporta, null, null);
+			AzioneEsito regoleImportaConvalidate = RegolaPecBL.applicaRegole(emf, regoleImporta, null, null, null);
 
-			Assert.assertTrue(regoleImportaConvalidate);
+			Assert.assertTrue(regoleImportaConvalidate.stato == AzioneEsitoStato.OK);
 			
 			emf.close();
 		} catch (Exception ex) {

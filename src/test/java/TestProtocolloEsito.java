@@ -1,4 +1,4 @@
-import it.attocchi.jpec.server.protocollo.ProtocolloEsito;
+import it.attocchi.jpec.server.protocollo.AzioneEsito;
 
 import java.util.Date;
 
@@ -6,9 +6,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TestNotificaInvia {
+public class TestProtocolloEsito {
 
-	protected final Logger logger = LoggerFactory.getLogger(TestNotificaInvia.class);
+	protected final Logger logger = LoggerFactory.getLogger(TestProtocolloEsito.class);
 
 	@Test
 	public void test() throws Exception {
@@ -16,7 +16,7 @@ public class TestNotificaInvia {
 		logger.info(this.getClass().getName());
 
 		try {
-			ProtocolloEsito e = ProtocolloEsito.errore("a", null);
+			AzioneEsito e = AzioneEsito.errore("a", null);
 			
 			e.logAndBuffer(logger, "test buffer1 {}", new Date());
 			e.logAndBuffer(logger, "test buffer2 {}", new Date());
