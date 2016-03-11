@@ -6,9 +6,10 @@ import it.attocchi.jpa2.JpaController;
 import it.attocchi.jpec.server.entities.MessaggioPec;
 import it.attocchi.jpec.server.entities.RegolaPec;
 import it.attocchi.jpec.server.entities.filters.RegolaPecFilter;
+import it.attocchi.jpec.server.protocollo.AzioneContext;
 import it.attocchi.jpec.server.protocollo.AzioneEsito;
-import it.attocchi.jpec.server.protocollo.AzioneGenerica;
 import it.attocchi.jpec.server.protocollo.AzioneEsito.AzioneEsitoStato;
+import it.attocchi.jpec.server.protocollo.AzioneGenerica;
 import it.attocchi.jpec.server.regole.RegolaPecHelper;
 
 import java.util.HashMap;
@@ -39,11 +40,12 @@ public class RegolaPecBL {
 		return res;
 	}
 
-	public static synchronized AzioneEsito applicaRegole(EntityManagerFactory emf, RegolaPecEventoEnum evento, Message email, MessaggioPec messaggioPec, String mailboxName) throws Exception {
+	public static synchronized AzioneEsito applicaRegole(EntityManagerFactory emf, RegolaPecEventoEnum evento, AzioneContext contesto) throws Exception {
 		List<RegolaPec> regoleDaApplicare = regole(emf, evento);
 		AzioneEsito tutteLeRegoleVerificate = AzioneEsito.errore("", null);
 		if (regoleDaApplicare != null && regoleDaApplicare.size() > 0) {
-			tutteLeRegoleVerificate = applicaRegole(emf, regoleDaApplicare, email, messaggioPec, mailboxName);
+			// tutteLeRegoleVerificate = applicaRegole(emf, regoleDaApplicare, email, messaggioPec, mailboxName);
+			tutteLeRegoleVerificate = applicaRegole(emf, regoleDaApplicare, contesto);
 		} else {
 			logger.warn("nessuna regola configurata per evento {}", evento);
 			tutteLeRegoleVerificate = AzioneEsito.ok("", "");
@@ -51,7 +53,8 @@ public class RegolaPecBL {
 		return tutteLeRegoleVerificate;
 	}
 
-	public static synchronized AzioneEsito applicaRegole(EntityManagerFactory emf, List<RegolaPec> regoleDaApplicare, Message email, MessaggioPec messaggioPec, String mailboxName) throws Exception {
+	// Message email, MessaggioPec messaggioPec, String mailboxName
+	public static synchronized AzioneEsito applicaRegole(EntityManagerFactory emf, List<RegolaPec> regoleDaApplicare, AzioneContext contesto) throws Exception {
 		// default true
 		AzioneEsito res = AzioneEsito.errore("", null);
 		// boolean tutteLeRegoleVerificate = true;
@@ -64,15 +67,16 @@ public class RegolaPecBL {
 				String classe = regola.getClasse();
 				AzioneGenerica istanzaAzione = null;
 				if (StringUtils.isNotBlank(classe)) {
-					istanzaAzione = AzioneBL.creaIstanzaAzione(emf, email, messaggioPec, mailboxName, classe);
+					// istanzaAzione = AzioneBL.creaIstanzaAzione(emf, email, messaggioPec, mailboxName, classe);
+					istanzaAzione = AzioneBL.creaIstanzaAzione(emf, classe, contesto);
 					regolaContext.put("azione", istanzaAzione);
 				} else {
 					logger.warn("nessuna implementazione configurata per questa regola");
 				}
 
 				Binding binding = new Binding();
-				binding.setVariable("email", email);
-				binding.setVariable("helper", new RegolaPecHelper(regola, email));
+				binding.setVariable("email", contesto.getEmail());
+				binding.setVariable("helper", new RegolaPecHelper(regola, contesto.getEmail()));
 				if (regolaContext != null && !regolaContext.isEmpty()) {
 					for (String key : regolaContext.keySet()) {
 						binding.setVariable(key, regolaContext.get(key));

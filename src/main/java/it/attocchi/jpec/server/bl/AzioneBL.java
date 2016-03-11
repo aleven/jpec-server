@@ -19,7 +19,8 @@ public class AzioneBL {
 
 	protected static final Logger logger = LoggerFactory.getLogger(AzioneBL.class);
 
-	public static synchronized AzioneGenerica creaIstanzaAzione(EntityManagerFactory emf, Message email, MessaggioPec pec, String mailboxName, String classe) {
+	// Message email, MessaggioPec pec, String mailboxName, 
+	public static synchronized AzioneGenerica creaIstanzaAzione(EntityManagerFactory emf, String classe, AzioneContext context) {
 		AzioneGenerica istanzaProtocollo = null;
 		
 //		String protocolloImplGenerico = ConfigurazioneBL.getValueStringDB(emf, ConfigurazionePecEnum.PEC_PROTOCOLLO_IMPL);
@@ -28,7 +29,7 @@ public class AzioneBL {
 		String azioneImpl = classe;
 
 		if (StringUtils.isNotBlank(azioneImpl)) {
-			Properties configurazioneMailbox = ConfigurazioneBL.getConfigurazione(mailboxName);
+			Properties configurazioneMailbox = ConfigurazioneBL.getConfigurazione(context.getMailboxName());
 			logger.debug("implementazione classe: {}", azioneImpl);
 			// istanzaProtocollo = ProtocolloBL.creaIstanzaProtocollo(emf, protocolloImpl, messaggioEmail, configurazioneMailbox);
 			try {
@@ -36,7 +37,8 @@ public class AzioneBL {
 				if (protocolloInstance instanceof AzioneGenerica) {
 					istanzaProtocollo = (AzioneGenerica) protocolloInstance;
 
-					AzioneContext context = new AzioneContext(emf, email, pec, configurazioneMailbox);
+					// AzioneContext context = AzioneContext.buildContextMessaggi(emf, email, pec, configurazioneMailbox);
+					context.setConfigurazioneMailbox(configurazioneMailbox);
 					istanzaProtocollo.inizialize(context);
 
 				} else {
