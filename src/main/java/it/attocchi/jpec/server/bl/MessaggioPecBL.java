@@ -10,9 +10,8 @@ import it.attocchi.jpec.server.entities.RegolaPec;
 import it.attocchi.jpec.server.entities.filters.AllegatoPecFilter;
 import it.attocchi.jpec.server.entities.filters.MessaggioPecFilter;
 import it.attocchi.jpec.server.exceptions.PecException;
-import it.attocchi.jpec.server.protocollo.ProtocolloEsito;
-import it.attocchi.jpec.server.protocollo.ProtocolloEsito.ProtocolloEsitoStato;
-import it.attocchi.jpec.server.protocollo.ProtocolloGenerico;
+import it.attocchi.jpec.server.protocollo.AzioneEsito;
+import it.attocchi.jpec.server.protocollo.AzioneEsito.AzioneEsitoStato;
 import it.attocchi.mail.parts.EmailBody;
 import it.attocchi.mail.utils.MailConnection;
 import it.attocchi.mail.utils.MailSender;
@@ -161,8 +160,8 @@ public class MessaggioPecBL {
 					
 					for (Message mail : mails) {
 						// MailMessage m = MailMessage.create(mail);
-						boolean regoleImportaConvalidate = RegolaPecBL.applicaRegole(emf, regoleImporta, mail, null);
-						if (regoleImportaConvalidate) {
+						AzioneEsito regoleImportaConvalidate = RegolaPecBL.applicaRegole(emf, regoleImporta, mail, null, mailboxName);
+						if (regoleImportaConvalidate.stato == AzioneEsitoStato.OK) {
 
 							String headerMessageId = "";
 							String headerXTrasporto = "";
@@ -264,19 +263,20 @@ public class MessaggioPecBL {
 								 */
 								boolean erroreInProtocollo = false;
 
-								ProtocolloGenerico istanzaProtocollo = ProtocolloBL.creaIstanzaProtocollo(emf, mail, messaggioPec, mailboxName);
-
-								boolean regoleProtocollaConvalidate = RegolaPecBL.applicaRegoleProtocollo(emf, regoleProtocolla, mail, messaggioPec, istanzaProtocollo);
-								if (regoleProtocollaConvalidate) {
-									if (istanzaProtocollo != null) {
-										ProtocolloEsito esitoProtocollo = ProtocolloBL.eseguiIstanza(istanzaProtocollo);
-										if (esitoProtocollo.stato == ProtocolloEsitoStato.OK) {
+								// AzioneGenerica istanzaProtocollo = ProtocolloBL.creaIstanzaAzione(emf, mail, messaggioPec, mailboxName);
+								AzioneEsito esitoProtocollo = RegolaPecBL.applicaRegole(emf, regoleProtocolla, mail, messaggioPec, mailboxName);
+//								if (regoleProtocollaConvalidate) {
+//									if (istanzaProtocollo != null) {
+										// AzioneEsito esitoProtocollo = AzioneBL.eseguiIstanza(istanzaProtocollo);
+										if (esitoProtocollo.stato == AzioneEsitoStato.OK) {
 											messaggioPec.setProtocollo(esitoProtocollo.protocollo);
 											messaggioPec.setUrlDocumentale(esitoProtocollo.urlDocumentale);
 											logger.info("messaggio protocollato: {}", esitoProtocollo);
-											
+										} else if (esitoProtocollo.stato == AzioneEsitoStato.NON_APPLICABILE) {
+											logger.warn(esitoProtocollo.errore);
 										} else {
-											String messaggio = String.format("si e' verificato un errore in fase di protocollazione: %s\n\n%s\n\n%s", esitoProtocollo.errore, ExceptionUtils.getStackTrace(esitoProtocollo.eccezione), esitoProtocollo.getBufferedLog());
+											String stack = esitoProtocollo.eccezione != null ? ExceptionUtils.getStackTrace(esitoProtocollo.eccezione) : "";
+											String messaggio = String.format("si e' verificato un errore in fase di protocollazione: %s\n\n%s\n\n%s", esitoProtocollo.errore, stack, esitoProtocollo.getBufferedLog());
 											logger.error(messaggio);
 											erroreInProtocollo = true;
 											if (StringUtils.isBlank(messaggioPecEmlFile)) {
@@ -289,10 +289,10 @@ public class MessaggioPecBL {
 											logger.info("creo notifica errore protocollo");
 											NotificaPecBL.creaNotificaErroreAiResponsabili(emf, null, 0, messaggioPec, mailboxName, messaggio, messaggioPecEmlFile);
 										}
-									} else {
-										logger.warn("nessuna implementazione protocollo configurata");
-									}
-								}
+//									} else {
+//										logger.warn("nessuna implementazione protocollo configurata");
+//									}
+//								}
 
 								if (!erroreInProtocollo) {
 									/*
