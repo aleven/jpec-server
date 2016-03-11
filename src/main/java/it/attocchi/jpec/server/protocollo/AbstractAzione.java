@@ -1,6 +1,6 @@
 package it.attocchi.jpec.server.protocollo;
 
-public abstract class AbstractProtocollo implements AzioneGenerica {
+public abstract class AbstractAzione implements AzioneGenerica {
 
 	private AzioneContext context;
 
