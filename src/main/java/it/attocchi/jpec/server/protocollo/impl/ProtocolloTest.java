@@ -1,7 +1,7 @@
 package it.attocchi.jpec.server.protocollo.impl;
 
 import it.attocchi.jpec.server.protocollo.AbstractProtocollo;
-import it.attocchi.jpec.server.protocollo.ProtocolloEsito;
+import it.attocchi.jpec.server.protocollo.AzioneEsito;
 
 import java.util.Date;
 
@@ -23,11 +23,11 @@ public class ProtocolloTest extends AbstractProtocollo {
 	}
 
 	@Override
-	public ProtocolloEsito esegui() {
+	public AzioneEsito esegui() {
 		logger.debug(this.getClass().getName());
 		
 		String protocolloRisposta = String.valueOf(getTest() +  new Date().getTime());
-		ProtocolloEsito res = ProtocolloEsito.ok(protocolloRisposta, "");
+		AzioneEsito res = AzioneEsito.ok(protocolloRisposta, "");
 		
 		return res;
 	}
