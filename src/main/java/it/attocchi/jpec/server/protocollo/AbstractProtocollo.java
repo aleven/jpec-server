@@ -1,17 +1,17 @@
 package it.attocchi.jpec.server.protocollo;
 
-public abstract class AbstractProtocollo implements ProtocolloGenerico {
+public abstract class AbstractProtocollo implements AzioneGenerica {
 
-	private ProtocolloContext context;
+	private AzioneContext context;
 
 	@Override
-	public ProtocolloGenerico inizialize(ProtocolloContext context) {
+	public AzioneGenerica inizialize(AzioneContext context) {
 		this.context = context;
 		return this;
 	}
 
 	@Override
-	public ProtocolloContext getContext() {
+	public AzioneContext getContext() {
 		return context;
 	}
 }

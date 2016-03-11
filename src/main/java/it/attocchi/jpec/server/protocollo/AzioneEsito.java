@@ -4,33 +4,41 @@ import org.slf4j.Logger;
 import org.slf4j.helpers.MessageFormatter;
 
 
-public class ProtocolloEsito {
+public class AzioneEsito {
 	
-	public enum ProtocolloEsitoStato {
+	public enum AzioneEsitoStato {
 		OK,
+		NON_APPLICABILE,
 		ERRORE
 	}
 
-	private ProtocolloEsito() {
-		this.stato = ProtocolloEsitoStato.ERRORE;
+	private AzioneEsito() {
+		this.stato = AzioneEsitoStato.ERRORE;
 	}
 
-	public static ProtocolloEsito ok(String protocollo, String urlDocumentale) {
-		ProtocolloEsito esitoOk = new ProtocolloEsito();
-		esitoOk.stato = ProtocolloEsitoStato.OK;
+	public static AzioneEsito ok(String protocollo, String urlDocumentale) {
+		AzioneEsito esitoOk = new AzioneEsito();
+		esitoOk.stato = AzioneEsitoStato.OK;
 		esitoOk.protocollo = protocollo;
 		esitoOk.urlDocumentale = urlDocumentale;
 		return esitoOk;
 	}
 	
-	public static ProtocolloEsito errore(String messaggio, Throwable ex) {
-		ProtocolloEsito esitoErrore = new ProtocolloEsito();
+	public static AzioneEsito errore(String messaggio, Throwable ex) {
+		AzioneEsito esitoErrore = new AzioneEsito();
 		esitoErrore.errore = messaggio;
 		esitoErrore.eccezione = ex;
 		return esitoErrore;
 	}
 	
-	public ProtocolloEsitoStato stato;
+	public static AzioneEsito nonApplicabile(String messaggio) {
+		AzioneEsito esito = new AzioneEsito();
+		esito.stato = AzioneEsitoStato.NON_APPLICABILE;
+		esito.errore = messaggio;
+		return esito;
+	}	
+	
+	public AzioneEsitoStato stato;
 	public String protocollo;
 	public String urlDocumentale;
 	public String errore;

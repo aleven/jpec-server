@@ -11,9 +11,9 @@ import javax.persistence.EntityManagerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ProtocolloContext {
+public class AzioneContext {
 
-	protected final Logger logger = LoggerFactory.getLogger(ProtocolloContext.class);
+	protected final Logger logger = LoggerFactory.getLogger(AzioneContext.class);
 
 	private EntityManagerFactory emf;
 	private Message email;
@@ -21,7 +21,7 @@ public class ProtocolloContext {
 	private RegolaPec regola;
 	private Properties configurazioneMailbox;
 
-	public ProtocolloContext(EntityManagerFactory emf, Message email, MessaggioPec pec, Properties configurazioneMailbox) {
+	public AzioneContext(EntityManagerFactory emf, Message email, MessaggioPec pec, Properties configurazioneMailbox) {
 		super();
 		this.emf = emf;
 		this.email = email;
