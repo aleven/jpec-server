@@ -6,7 +6,10 @@ import it.attocchi.jpa2.JpaController;
 import it.attocchi.jpec.server.entities.MessaggioPec;
 import it.attocchi.jpec.server.entities.RegolaPec;
 import it.attocchi.jpec.server.entities.filters.RegolaPecFilter;
-import it.attocchi.jpec.server.protocollo.ProtocolloGenerico;
+import it.attocchi.jpec.server.protocollo.AzioneContext;
+import it.attocchi.jpec.server.protocollo.AzioneEsito;
+import it.attocchi.jpec.server.protocollo.AzioneEsito.AzioneEsitoStato;
+import it.attocchi.jpec.server.protocollo.AzioneGenerica;
 import it.attocchi.jpec.server.regole.RegolaPecHelper;
 
 import java.util.HashMap;
@@ -37,82 +40,120 @@ public class RegolaPecBL {
 		return res;
 	}
 
-	public static synchronized boolean applicaRegole(EntityManagerFactory emf, RegolaPecEventoEnum evento, Message email, Map<String, Object> regolaContext) throws Exception {
+	public static synchronized AzioneEsito applicaRegole(EntityManagerFactory emf, RegolaPecEventoEnum evento, AzioneContext contesto) throws Exception {
 		List<RegolaPec> regoleDaApplicare = regole(emf, evento);
-		boolean tutteLeRegoleVerificate = false;
+		AzioneEsito tutteLeRegoleVerificate = AzioneEsito.errore("", null);
 		if (regoleDaApplicare != null && regoleDaApplicare.size() > 0) {
-			tutteLeRegoleVerificate = applicaRegole(emf, regoleDaApplicare, email, regolaContext);
+			// tutteLeRegoleVerificate = applicaRegole(emf, regoleDaApplicare, email, messaggioPec, mailboxName);
+			tutteLeRegoleVerificate = applicaRegole(emf, regoleDaApplicare, contesto);
 		} else {
 			logger.warn("nessuna regola configurata per evento {}", evento);
-			tutteLeRegoleVerificate = true;
+			tutteLeRegoleVerificate = AzioneEsito.ok("", "");
 		}
 		return tutteLeRegoleVerificate;
 	}
 
-	public static synchronized boolean applicaRegole(EntityManagerFactory emf, List<RegolaPec> regoleDaApplicare, Message email, Map<String, Object> regolaContext) throws Exception {
+	// Message email, MessaggioPec messaggioPec, String mailboxName
+	public static synchronized AzioneEsito applicaRegole(EntityManagerFactory emf, List<RegolaPec> regoleDaApplicare, AzioneContext contesto) throws Exception {
 		// default true
-		boolean tutteLeRegoleVerificate = true;
+		AzioneEsito res = AzioneEsito.errore("", null);
+		// boolean tutteLeRegoleVerificate = true;
+		
 		if (regoleDaApplicare != null && regoleDaApplicare.size() > 0) {
+									
 			for (RegolaPec regola : regoleDaApplicare) {
-				logger.debug("verifica della regola: {}", regola.getNome());
+				
+				Map<String, Object> regolaContext = new HashMap<String, Object>();
+				String classe = regola.getClasse();
+				AzioneGenerica istanzaAzione = null;
+				if (StringUtils.isNotBlank(classe)) {
+					// istanzaAzione = AzioneBL.creaIstanzaAzione(emf, email, messaggioPec, mailboxName, classe);
+					istanzaAzione = AzioneBL.creaIstanzaAzione(emf, classe, contesto);
+					regolaContext.put("azione", istanzaAzione);
+				} else {
+					logger.warn("nessuna implementazione configurata per questa regola");
+				}
+
+				Binding binding = new Binding();
+				binding.setVariable("email", contesto.getEmail());
+				binding.setVariable("helper", new RegolaPecHelper(regola, contesto.getEmail()));
+				if (regolaContext != null && !regolaContext.isEmpty()) {
+					for (String key : regolaContext.keySet()) {
+						binding.setVariable(key, regolaContext.get(key));
+					}
+				}
+				// String grrovyBody = groovyCode.trim();
+				// if (!grrovyBody.startsWith("{")) {
+				// groovyCode = "{" + grrovyBody + "}(email, helper)";
+				// } else {
+				// groovyCode = "" + grrovyBody + "(email, helper)";
+				// }
+				GroovyShell shell = new GroovyShell(binding);
+				
+				logger.debug("regola: \"{}\"", regola.getNome());
 				String criterioGroovy = regola.getCriterio();
+				boolean criterioRegolaSoddisfatto = false;
 				if (StringUtils.isNotBlank(criterioGroovy)) {
-					logger.debug("valutazione del criterio: {}", criterioGroovy);
-					Binding binding = new Binding();
-					binding.setVariable("email", email);
-					binding.setVariable("helper", new RegolaPecHelper(regola, email));
-					if (regolaContext != null && !regolaContext.isEmpty()) {
-						for (String key : regolaContext.keySet()) {
-							binding.setVariable(key, regolaContext.get(key));
-						}
-					}
-
-					// String grrovyBody = groovyCode.trim();
-					// if (!grrovyBody.startsWith("{")) {
-					// groovyCode = "{" + grrovyBody + "}(email, helper)";
-					// } else {
-					// groovyCode = "" + grrovyBody + "(email, helper)";
-					// }
-
-					GroovyShell shell = new GroovyShell(binding);
-					Object criterioResult = false;
+					logger.debug("criterio: \"{}\"", criterioGroovy);
+					Object criterioGroovyResult = null;
 					try {
-						criterioResult = shell.evaluate(criterioGroovy);
+						criterioGroovyResult = shell.evaluate(criterioGroovy);
 					} catch (Exception ex) {
-						logger.error("errore valutazione criterio groovy.");
-						logger.error("dettagli", ex);
+						logger.error("errore valutazione script groovy.", ex);
 					}
-
-					if (criterioResult != null && criterioResult instanceof Boolean) {
-						boolean criterioRes = (Boolean) criterioResult;
-						logger.debug("risultato esecuzione criterio: {}", criterioRes);
-						
-						if (criterioRes) {
-							String azioneGroovy = regola.getAzione();
-							logger.debug("valutazione dell'azione: {}", azioneGroovy);
-							if (StringUtils.isNotBlank(azioneGroovy)) {
-								Object azioneResult = shell.evaluate(azioneGroovy);
-							}
-						}
-						tutteLeRegoleVerificate = tutteLeRegoleVerificate && criterioRes;
-						
+					if (criterioGroovyResult != null && criterioGroovyResult instanceof Boolean) {
+						criterioRegolaSoddisfatto = (Boolean) criterioGroovyResult;
+						logger.debug("risultato: {}", criterioRegolaSoddisfatto);
 					} else {
-						logger.error("impossibile verificare come risultato boolean il criterio applicato");
+						logger.error("impossibile verificare come risultato boolean il criterio groovy applicato");
+						criterioRegolaSoddisfatto = false;
 					}
 				} else {
-					logger.warn("attenzione la regola non contiene criteri da valutare");
+					logger.warn("la regola non contiene criteri groovy da valutare");
+					criterioRegolaSoddisfatto = true;
 				}
+				
+				/* se i criteri sono verificati (o vuoti) applico le azioni e poi istanzio la classe da eseguire */
+				if (criterioRegolaSoddisfatto) {
+					
+					String azioneGroovy = regola.getAzione();
+					if (StringUtils.isNotBlank(azioneGroovy)) {
+						logger.debug("azione: \"{}\"", azioneGroovy);
+						try {
+							Object azioneResult = shell.evaluate(azioneGroovy);
+						} catch (Exception ex) {
+							logger.error("errore valutazione criterio groovy.", ex);
+						}						
+					}
+					
+					if (istanzaAzione != null) {
+						res = AzioneBL.eseguiIstanza(istanzaAzione);
+						if (res.stato != AzioneEsitoStato.OK) {
+							break;
+						}
+					} else {
+						logger.warn("nessuna azione da eseguire");
+						res = AzioneEsito.ok("", "");
+					}
+				} else {
+					res = AzioneEsito.nonApplicabile("criterio di Applicazione Regola Non Soddisfatto");
+				}
+				
+				// tutteLeRegoleVerificate = tutteLeRegoleVerificate && criterioRegolaVerificato;
 			}
+			
 		} else {
 			logger.warn("nessuna regola da applicare");
+			res = AzioneEsito.ok("", "");
 		}
-		return tutteLeRegoleVerificate;
+				
+		return res;
 	}
 		
-	public static synchronized boolean applicaRegoleProtocollo(EntityManagerFactory emf, List<RegolaPec> regoleDaApplicare, Message email, MessaggioPec pec, ProtocolloGenerico istanzaProtocollo) throws Exception {
-		Map<String, Object> regolaContext = new HashMap<String, Object>();
-		regolaContext.put("protocollo", istanzaProtocollo);
-		
-		return applicaRegole(emf, regoleDaApplicare, email, regolaContext);
-	}
+//	public static synchronized boolean applicaRegole(EntityManagerFactory emf, List<RegolaPec> regoleDaApplicare, Message email, MessaggioPec messaggioPec, String mailboxName) throws Exception {
+////		Map<String, Object> regolaContext = new HashMap<String, Object>();
+////		regolaContext.put("protocollo", istanzaProtocollo);
+//		
+//		return applicaRegole(emf, regoleDaApplicare, email, messaggioPec, mailboxName);
+//	}
 }

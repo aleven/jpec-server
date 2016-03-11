@@ -77,7 +77,7 @@ public class RegolaPecHelper {
 			}
 			res = StringUtils.isNoneBlank(headerXRicevuta);
 		} catch (Exception ex) {
-			logger.error("errore isMessaggioDaLeggere", ex);
+			logger.error("errore isMessaggioRicevuta", ex);
 		}
 		return res;
 	}
@@ -107,7 +107,7 @@ public class RegolaPecHelper {
 				}
 			}
 		} catch (Exception ex) {
-			logger.error("errore isMessaggioDaLeggere", ex);
+			logger.error("errore mittenteMatch", ex);
 		}
 		return res;
 	}
@@ -133,7 +133,7 @@ public class RegolaPecHelper {
 				}
 			}
 		} catch (Exception ex) {
-			logger.error("errore isMessaggioDaLeggere", ex);
+			logger.error("errore destinatarioMatch", ex);
 		}
 		return res;
 	}
@@ -159,7 +159,7 @@ public class RegolaPecHelper {
 				}
 			}
 		} catch (Exception ex) {
-			logger.error("errore isMessaggioDaLeggere", ex);
+			logger.error("errore attachmentNameMatch", ex);
 		}
 		return res;
 	}	

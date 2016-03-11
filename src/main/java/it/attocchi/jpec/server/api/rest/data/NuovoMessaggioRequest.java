@@ -10,6 +10,7 @@ public class NuovoMessaggioRequest {
 
 	private String mailbox;
 	private String protocollo;
+	private String urlDocumentale;
 
 	private List<String> destinatari;
 	private List<String> destinatariCC;
@@ -108,4 +109,12 @@ public class NuovoMessaggioRequest {
 			destinatariCCN = new ArrayList<String>();
 		destinatariCCN.add(destinatarioCCN);
 	}
+
+	public String getUrlDocumentale() {
+		return urlDocumentale;
+	}
+
+	public void setUrlDocumentale(String urlDocumentale) {
+		this.urlDocumentale = urlDocumentale;
+	}	
 }
