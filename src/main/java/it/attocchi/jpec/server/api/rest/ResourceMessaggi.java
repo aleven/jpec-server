@@ -39,10 +39,12 @@ public class ResourceMessaggi extends RestBaseJpa2 {
 		try {
 			logger.debug("{}", restServletContext.getContextPath());
 
-			MessaggioPec messaggio = JpaController.callFindById(getContextEmf(), MessaggioPec.class, idMessaggio);
+			// MessaggioPec messaggio =
+			// JpaController.callFindById(getContextEmf(), MessaggioPec.class,
+			// idMessaggio);
+			MessaggioPec messaggio = getMessaggioFromDb(idMessaggio);
 
 			response = Response.ok(new Gson().toJson(messaggio)).build();
-
 		} catch (Exception ex) {
 			logger.error("doRicevi", ex);
 			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).type(MediaType.TEXT_PLAIN).build();
@@ -96,6 +98,34 @@ public class ResourceMessaggi extends RestBaseJpa2 {
 			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).type(MediaType.TEXT_PLAIN).build();
 		}
 		return response;
+	}
+
+	@GET
+	@Path("/{id}/stato")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getStatoMessaggio(@PathParam("id") long idMessaggio) {
+		Response response = null;
+		try {
+			logger.debug("{}", restServletContext.getContextPath());
+
+			MessaggioPec messaggio = getMessaggioFromDb(idMessaggio);
+			String statoDescrizione = "";
+			if (messaggio != null) {
+				statoDescrizione = messaggio.getStatoDescrizione();
+			} else {
+				statoDescrizione = "Messaggio non trovato.";
+			}
+
+			response = Response.ok(new Gson().toJson(statoDescrizione)).build();
+		} catch (Exception ex) {
+			logger.error("doRicevi", ex);
+			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).type(MediaType.TEXT_PLAIN).build();
+		}
+		return response;
+	}
+
+	private MessaggioPec getMessaggioFromDb(long idMessaggio) throws Exception {
+		return JpaController.callFindById(getContextEmf(), MessaggioPec.class, idMessaggio);
 	}
 
 }
