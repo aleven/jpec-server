@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 public class AzioneContext {
 
-	protected final Logger logger = LoggerFactory.getLogger(AzioneContext.class);
+	protected static final Logger logger = LoggerFactory.getLogger(AzioneContext.class);
 
 	private EntityManagerFactory emf;
 	private Message email;
@@ -36,6 +36,11 @@ public class AzioneContext {
 		res.email = email;
 		res.pec = pec;
 		res.mailboxName = mailboxName;
+		logger.debug("buildContextMessaggi");
+		logger.debug("email={}", email);
+		logger.debug("pec={}", pec);
+		logger.debug("configurazioneMailbox={}", mailboxName);
+
 		return res;
 	}
 
@@ -45,6 +50,10 @@ public class AzioneContext {
 		res.email = email;
 		res.pec = pec;
 		res.configurazioneMailbox = configurazioneMailbox;
+		logger.debug("buildContextRicevute");
+		logger.debug("email={}", email);
+		logger.debug("pec={}", pec);
+		logger.debug("configurazioneMailbox={}", configurazioneMailbox);
 		return res;
 	}
 
@@ -53,6 +62,9 @@ public class AzioneContext {
 		res.emf = emf;
 		res.ricevuta = ricevuta;
 		res.messaggioInviato = messaggioInviato;
+		logger.debug("buildContextRicevute");
+		logger.debug("ricevuta={}", ricevuta);
+		logger.debug("messaggioInviato={}", messaggioInviato);
 		return res;
 	}
 
