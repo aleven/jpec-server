@@ -163,7 +163,9 @@ public class MessaggioPecBL {
 
 					for (Message mail : mails) {
 						// MailMessage m = MailMessage.create(mail);
-						// AzioneEsito regoleImportaConvalidate = RegolaPecBL.applicaRegole(emf, regoleImporta, mail, null, mailboxName);
+						// AzioneEsito regoleImportaConvalidate =
+						// RegolaPecBL.applicaRegole(emf, regoleImporta, mail,
+						// null, mailboxName);
 						AzioneEsito regoleImportaConvalidate = RegolaPecBL.applicaRegole(emf, regoleImporta, AzioneContext.buildContextMessaggi(emf, mail, null, mailboxName));
 						if (regoleImportaConvalidate.stato == AzioneEsitoStato.OK) {
 
@@ -271,7 +273,10 @@ public class MessaggioPecBL {
 								// AzioneGenerica istanzaProtocollo =
 								// ProtocolloBL.creaIstanzaAzione(emf, mail,
 								// messaggioPec, mailboxName);
-								// AzioneEsito esitoProtocollo = RegolaPecBL.applicaRegole(emf, regoleProtocolla, mail, messaggioPec, mailboxName);
+								// AzioneEsito esitoProtocollo =
+								// RegolaPecBL.applicaRegole(emf,
+								// regoleProtocolla, mail, messaggioPec,
+								// mailboxName);
 								AzioneEsito esitoProtocollo = RegolaPecBL.applicaRegole(emf, regoleProtocolla, AzioneContext.buildContextMessaggi(emf, mail, messaggioPec, mailboxName));
 								// if (regoleProtocollaConvalidate) {
 								// if (istanzaProtocollo != null) {
@@ -741,26 +746,38 @@ public class MessaggioPecBL {
 		filtroInviati.setConMessageID(true);
 
 		List<MessaggioPec> ricevuteDaProcessare = JpaController.callFind(emf, MessaggioPec.class, filtroRicevute);
+		if (ricevuteDaProcessare.isEmpty()) {
+			logger.info("non ci sono ricevute da processare in questo archivio");
+		}
 		List<MessaggioPec> messaggiInviati = JpaController.callFind(emf, MessaggioPec.class, filtroInviati);
-
+		if (messaggiInviati.isEmpty()) {
+			logger.info("non ci sono messaggi inviati in questo archivio");
+		}
+		
 		// TODO: probabilmente questa procedura va ottimizzata in caso di Tanti
 		// Messaggi
 
 		List<RegolaPec> regoleAggiornaStato = RegolaPecBL.regole(emf, RegolaPecEventoEnum.AGGIORNA_STATO);
+		if (regoleAggiornaStato.isEmpty()) {
+			logger.info("non ci sono regole per evento {}", RegolaPecEventoEnum.AGGIORNA_STATO.name());
+		}
 
 		int i = 0;
 		for (MessaggioPec ricevutaPec : ricevuteDaProcessare) {
-
+			long ricevutaId = ricevutaPec.getId();
+			String ricevutaOggetto = ricevutaPec.getOggetto();
+			String ricevutaTipo = ricevutaPec.getxRicevuta();
+			String ricevutaRiferimentoMessageId = ricevutaPec.getxRiferimentoMessageID();
+			
 			boolean messaggioCambioStato = false;
 			/*
 			 * Verifica LO STATO
 			 */
 			MessaggioPec messaggioDiRiferimento = null;
 			for (MessaggioPec messaggioInviato : messaggiInviati) {
-				String oggettoRicevuto = ricevutaPec.getOggetto();
-				String ricevuta = ricevutaPec.getxRicevuta();
-				String ricevutaRiferimentoMessageId = ricevutaPec.getxRiferimentoMessageID();
-
+				long messaggioInviatoId = messaggioInviato.getId();
+				String messaggioInviatoOggetto = messaggioInviato.getOggetto();
+				String messaggioInviatoMessageId = messaggioInviato.getMessageID();
 				/*
 				 * con il protocollo verifico se e' un messaggio di stato di
 				 * questo messaggio inviato
@@ -770,13 +787,15 @@ public class MessaggioPecBL {
 				// sono in presenza di una ricevuta in ingresso
 				// la ricevuta ha un riferimento ad un messageid
 				// sono in possessio del messaggio che ho inviato
-				if (StringUtils.isNotBlank(ricevuta) && StringUtils.isNotBlank(ricevutaRiferimentoMessageId) && StringUtils.isNotBlank(messaggioInviato.getMessageID())) {
-					if (ricevutaRiferimentoMessageId.equals(messaggioInviato.getMessageID())) {
+				if (StringUtils.isNotBlank(ricevutaTipo) && StringUtils.isNotBlank(ricevutaRiferimentoMessageId) && StringUtils.isNotBlank(messaggioInviatoMessageId)) {
+					if (ricevutaRiferimentoMessageId.equals(messaggioInviatoMessageId)) {
+						logger.info("analisi ricevuta [{}]-{} per messaggio [{}]-{}", ricevutaId, ricevutaTipo, messaggioInviatoId, messaggioInviatoOggetto);
+						
 						messaggioDiRiferimento = messaggioInviato;
 						// if
 						// (oggettoRicevuto.indexOf(messaggioInviato.getProtocollo())
 						// > -1) {
-						if (RICEVUTA_ACCETTAZIONE.equals(ricevuta)) {
+						if (RICEVUTA_ACCETTAZIONE.equals(ricevutaTipo)) {
 							if (!messaggioInviato.isAccettato()) {
 								messaggioInviato.setAccettato(true);
 								messaggioInviato.setAccettatoIdMessaggio(ricevutaPec.getId());
@@ -814,7 +833,7 @@ public class MessaggioPecBL {
 							messaggioCambioStato = true;
 							break;
 
-						} else if (RICEVUTA_CONSEGNA.equals(ricevuta)) {
+						} else if (RICEVUTA_CONSEGNA.equals(ricevutaTipo)) {
 							if (!messaggioInviato.isConsegnato()) {
 								messaggioInviato.setConsegnato(true);
 								messaggioInviato.setConsegnatoIdMessaggio(ricevutaPec.getId());
@@ -845,7 +864,7 @@ public class MessaggioPecBL {
 							messaggioCambioStato = true;
 							break;
 
-						} else if (oggettoRicevuto.startsWith(OGGETTO_ANOMALIA_MESSAGGIO)) {
+						} else if (ricevutaOggetto.startsWith(OGGETTO_ANOMALIA_MESSAGGIO)) {
 							if (!messaggioInviato.isAnomalia()) {
 								messaggioInviato.setAnomalia(true);
 								messaggioInviato.setAnomaliaIdMessaggio(ricevutaPec.getId());
@@ -889,16 +908,23 @@ public class MessaggioPecBL {
 			// utente.getIdUtente(), messaggioNuovoRicevuto);
 			// }
 
-			AzioneContext ctx = AzioneContext.buildContextRicevute(emf, ricevutaPec, messaggioDiRiferimento);
-			AzioneEsito esitoRegole = RegolaPecBL.applicaRegole(emf, regoleAggiornaStato, ctx);
-			
-			if (esitoRegole.stato == AzioneEsitoStato.OK || esitoRegole.stato == AzioneEsitoStato.NON_APPLICABILE) {
-				ricevutaPec.setProcessato(true);
-				ricevutaPec.markAsUpdated(0);
-				JpaController.callUpdate(emf, ricevutaPec);
+			if (!regoleAggiornaStato.isEmpty() && messaggioCambioStato && messaggioDiRiferimento != null) {
+				AzioneContext ctx = AzioneContext.buildContextRicevute(emf, ricevutaPec, messaggioDiRiferimento);
+				AzioneEsito esitoRegole = RegolaPecBL.applicaRegole(emf, regoleAggiornaStato, ctx);
+
+				if (esitoRegole.stato == AzioneEsitoStato.OK || esitoRegole.stato == AzioneEsitoStato.NON_APPLICABILE) {
+					ricevutaPec.setProcessato(true);
+					ricevutaPec.markAsUpdated(0);
+					JpaController.callUpdate(emf, ricevutaPec);
+				} else {
+					ricevutaPec.setErroreInvio(esitoRegole.errore);
+					JpaController.callUpdate(emf, ricevutaPec);
+				}
 			} else {
-				ricevutaPec.setErroreInvio(esitoRegole.errore);
-				JpaController.callUpdate(emf, ricevutaPec);
+				logger.warn("non vengono applicate regole di cambio stato");
+				logger.info("regoleAggiornaStato={}", regoleAggiornaStato.isEmpty());
+				logger.info("messaggioCambioStato={}", messaggioCambioStato);
+				logger.info("messaggioDiRiferimento={}", messaggioDiRiferimento);
 			}
 
 			i++;
