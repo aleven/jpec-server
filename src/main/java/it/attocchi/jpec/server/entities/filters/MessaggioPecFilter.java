@@ -279,18 +279,10 @@ public class MessaggioPecFilter extends JPAEntityFilter<MessaggioPec> {
 
 	@Override
 	public void buildSort(List<Order> orderList, CriteriaQuery<MessaggioPec> criteriaQuery, CriteriaBuilder criteriaBuilder, Root<MessaggioPec> root) {
-
-		// criteriaQuery.orderBy(criteriaBuilder.asc(root.get(MessaggioPec_.username)));
-		// criteriaQuery.orderBy(criteriaBuilder.desc("entityMarks.dataCreazione"));
 		orderList.add(criteriaBuilder.desc(root.get(MessaggioPec_.entityMarks).get(EntityMarks_.dataCreazione)));
-
-		// Person.address is an embedded attribute
-
-		// Join<Messaggio, EntityMarks> entityMarks = root.join("entityMarks");
-		// // Fetch<Messaggio, EntityMarks> entityMarks2 =
-		// root.fetch("entityMarks");
-		// criteriaQuery.orderBy(criteriaBuilder.desc(entityMarks.get("dataCreazione")));
-
+		/* ordinamento importante per RICEVUTE e come vengono processate, se hanno la stessa data creazione */
+		orderList.add(criteriaBuilder.desc(root.get(MessaggioPec_.dataRicezione)));
+		orderList.add(criteriaBuilder.desc(root.get(MessaggioPec_.id)));
 	}
 
 }
