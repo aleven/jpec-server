@@ -56,7 +56,7 @@ public class MessaggioPecBL {
 	public static final String BUSTA_TRASPORTO = "posta-certificata";
 	public static final String RICEVUTA_ACCETTAZIONE = "accettazione";
 	public static final String RICEVUTA_CONSEGNA = "avvenuta-consegna";
-	public static final String RICEVUTA_ANOMALIA_MESSAGGIO = "ANOMALIA MESSAGGIO:";
+	public static final String RICEVUTA_ERRORE_CONSEGNA = "errore-consegna";
 
 	protected static final Logger logger = LoggerFactory.getLogger(MessaggioPecBL.class);
 
@@ -864,7 +864,7 @@ public class MessaggioPecBL {
 							messaggioCambioStato = true;
 							break;
 
-						} else if (ricevutaOggetto.startsWith(OGGETTO_ANOMALIA_MESSAGGIO)) {
+						} else if (RICEVUTA_ERRORE_CONSEGNA.equals(ricevutaTipo)) {
 							if (!messaggioInviato.isAnomalia()) {
 								messaggioInviato.setAnomalia(true);
 								messaggioInviato.setAnomaliaIdMessaggio(ricevutaPec.getId());
