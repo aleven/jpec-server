@@ -17,7 +17,6 @@ import it.attocchi.mail.parts.EmailBody;
 import it.attocchi.mail.utils.MailConnection;
 import it.attocchi.mail.utils.MailSender;
 import it.attocchi.mail.utils.MailUtils;
-import it.attocchi.mail.utils.PecParser;
 import it.attocchi.mail.utils.PecParser2;
 import it.attocchi.mail.utils.items.MailHeader;
 import it.attocchi.utils.ListUtils;
@@ -35,7 +34,6 @@ import javax.persistence.EntityManagerFactory;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.mail.EmailAttachment;
@@ -420,6 +418,12 @@ public class MessaggioPecBL {
 		return res;
 	}
 
+	public static List<MessaggioPec> getMessaggioPecIn(EntityManagerFactory emf) throws Exception {
+		MessaggioPecFilter filtro = new MessaggioPecFilter();
+		filtro.setFolder(Folder.IN);
+		return JpaController.callFind(emf, MessaggioPec.class, filtro);
+	}
+	
 	public static MessaggioPec getMessaggioPec(EntityManagerFactory emf, long idMessaggioPec) throws Exception {
 		MessaggioPec res = null;
 
