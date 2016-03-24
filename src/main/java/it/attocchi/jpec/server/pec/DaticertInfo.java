@@ -32,7 +32,7 @@ public class DaticertInfo {
 	}
 
 	public List<DaticertDestinatario> leggiRicevutaDaXml(String xml) throws Exception {
-		logger.debug("leggiRicevutaDaXml= {}", xml);
+		logger.debug("leggiRicevutaDaXml");
 		List<DaticertDestinatario> destinatari = new ArrayList<DaticertDestinatario>();
 
 		if (StringUtils.isNotBlank(xml)) {
