@@ -51,9 +51,9 @@ public class AllegatoPec extends AbstractEntityMarksWithIdLong<AllegatoPec> {
 
 	@Column(name = "pec02_store_path")
 	private String storePath;
-	
+
 	@Column(name = "pec02_store_url")
-	private String storeUrl;	
+	private String storeUrl;
 
 	@Embedded
 	@AttributeOverrides({ @AttributeOverride(name = "dataCreazione", column = @Column(name = "pec02_dt_creazione")), @AttributeOverride(name = "dataModifica", column = @Column(name = "pec02_ts_modifica")), @AttributeOverride(name = "dataCancellazione", column = @Column(name = "pec02_dt_cancellazione")), @AttributeOverride(name = "utenteCreazioneId", column = @Column(name = "pec02_id_utente_creazione")), @AttributeOverride(name = "utenteModificaId", column = @Column(name = "pec02_id_utente_modifica")), @AttributeOverride(name = "utenteCancellazioneId", column = @Column(name = "pec02_id_utente_cancellazione")) })
