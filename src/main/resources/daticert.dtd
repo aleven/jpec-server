@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Usare l'elemento "postacert" come radice-->
+<!--"tipo" indica la tipologia del messaggio di posta certificata-->
+<!--L'attributo "errore" può avere i seguenti valori-->
+<!--"nessuno" = nessun errore-->
+<!--"no-dest" (con tipo="errore-consegna") = destinatario errato-->
+<!--"no-dominio" (con tipo="errore-consegna") = dominio errato-->
+<!--"virus" (con tipo="errore-consegna") = virus informatico-->
+<!--"virus" (con tipo="non-accettazione") = virus informatico-->
+<!--"altro" = errore generico-->
+<!ELEMENT postacert (intestazione, dati)>
+<!ATTLIST postacert
+ tipo (accettazione |
+ non-accettazione |
+ presa-in-carico |
+ avvenuta-consegna |
+ posta-certificata |
+ errore-consegna |
+ preavviso-errore-consegna |
+ rilevazione-virus) #REQUIRED
+ errore (nessuno |
+ no-dest |
+ no-dominio |
+ virus |
+ altro) "nessuno">
+<!--Intestazione del messaggio originale-->
+<!ELEMENT intestazione (mittente,
+ destinatari+,
+ risposte,
+ oggetto?)>
+<!--Mittente (campo "From") del messaggio originale-->
+<!ELEMENT mittente (#PCDATA)>
+<!--Elenco completo dei destinatari (campi "To" e "Cc")-->
+<!--del messaggio originale-->
+<!--"tipo" indica la tipologia del destinatario-->
+<!ELEMENT destinatari (#PCDATA)>
+<!ATTLIST destinatari
+ tipo (certificato | esterno) "certificato">
+<!--Valore del campo "Reply-To" del messaggio originale-->
+<!ELEMENT risposte (#PCDATA)>
+<!--Valore del campo "Subject" del messaggio originale-->
+<!ELEMENT oggetto (#PCDATA)>
+<!--Dati del messaggio di posta certificata-->
+<!ELEMENT dati (gestore-emittente,
+ data,
+ identificativo,
+ msgid?,
+ ricevuta?,
+ consegna?,
+ ricezione*,
+ errore-esteso?)>
+<!--Stringa descrittiva del gestore che certifica i dati-->
+<!ELEMENT gestore-emittente (#PCDATA)>
+<!--Data/ora di elaborazione del messaggio-->
+<!--"zona" e' la differenza tra ora legale locale ed UTC in-->
+<!--formato "[+|-]hhmm"-->
+<!ELEMENT data (giorno, ora)>
+<!ATTLIST data
+ zona CDATA #REQUIRED>
+<!--Giorno in formato "gg/mm/aaaa"-->
+<!ELEMENT giorno (#PCDATA)>
+<!--Ora locale in formato "hh:mm:ss"-->
+<!ELEMENT ora (#PCDATA)>
+<!--Identificativo univoco del messaggio-->
+<!ELEMENT identificativo (#PCDATA)>
+<!--Message-ID del messaggio originale prima della modifica-->
+<!ELEMENT msgid (#PCDATA)>
+<!--Per le buste di trasporto e le ricevute di consegna-->
+<!--Indica il tipo di ricevuta richiesto dal mittente-->
+<!ELEMENT ricevuta EMPTY>
+<!ATTLIST ricevuta
+ tipo (completa |
+ breve |
+ sintetica ) #REQUIRED>
+<!--Per le ricevute di consegna, gli avvisi di mancata consegna e-->
+<!--di mancata consegna per virus informatico-->
+<!--Destinatario a cui e' stata effettuata/tentata la consegna-->
+<!ELEMENT consegna (#PCDATA)>
+<!--Per le ricevute di presa in carico-->
+<!--Destinatari per i quali e' relativa la ricevuta-->
+<!ELEMENT ricezione (#PCDATA)>
+<!--In caso di errore-->
+<!--Descrizione sintetica errore-->
+<!ELEMENT errore-esteso (#PCDATA)>
