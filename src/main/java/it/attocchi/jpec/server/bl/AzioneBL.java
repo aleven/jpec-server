@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 public class AzioneBL {
 
 	protected static final Logger logger = LoggerFactory.getLogger(AzioneBL.class);
-
+	
 	// Message email, MessaggioPec pec, String mailboxName, 
 	public static synchronized AzioneGenerica creaIstanzaAzione(EntityManagerFactory emf, String classe, AzioneContext context) {
 		AzioneGenerica istanzaProtocollo = null;
