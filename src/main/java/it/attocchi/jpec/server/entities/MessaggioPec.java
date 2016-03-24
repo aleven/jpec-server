@@ -151,6 +151,10 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 	@Column(name = "pec01_postacert_file")
 	private String postacertFile;
 
+	@Column(name = "pec01_postacert_subject")
+	@Lob
+	private String postacertSubject;
+
 	@Column(name = "pec01_postacert_body")
 	@Lob
 	private String postacertBody;
@@ -185,6 +189,10 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 
 	@Column(name = "pec01_url_documentale")
 	private String urlDocumentale;
+
+	@Column(name = "pec01_daticert_xml")
+	@Lob
+	private String daticertxml;
 
 	public long getId() {
 		return id;
@@ -493,6 +501,14 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 		this.postacertFile = postacertFile;
 	}
 
+	public String getPostacertSubject() {
+		return postacertSubject;
+	}
+
+	public void setPostacertSubject(String postacertSubject) {
+		this.postacertSubject = postacertSubject;
+	}
+
 	public String getPostacertBody() {
 		return postacertBody;
 	}
@@ -622,4 +638,11 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 		this.urlDocumentale = urlDocumentale;
 	}
 
+	public String getDaticertxml() {
+		return daticertxml;
+	}
+
+	public void setDaticertxml(String daticertxml) {
+		this.daticertxml = daticertxml;
+	}
 }

@@ -18,6 +18,7 @@ import it.attocchi.mail.utils.MailConnection;
 import it.attocchi.mail.utils.MailSender;
 import it.attocchi.mail.utils.MailUtils;
 import it.attocchi.mail.utils.PecParser;
+import it.attocchi.mail.utils.PecParser2;
 import it.attocchi.mail.utils.items.MailHeader;
 import it.attocchi.utils.ListUtils;
 
@@ -34,6 +35,7 @@ import javax.persistence.EntityManagerFactory;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.mail.EmailAttachment;
@@ -225,7 +227,9 @@ public class MessaggioPecBL {
 							filtro.setMostraArchiviati(true);
 
 							MessaggioPec messaggioEsistente = JpaController.callFindFirst(emf, MessaggioPec.class, filtro);
-							if (messaggioEsistente == null) {
+							boolean messaggioGiaImportato = (messaggioEsistente != null);
+							if (!messaggioGiaImportato) {
+
 								// boolean saved = false;
 								String messaggioPecEmlFile = "";
 								if (enableEmlStore) {
@@ -265,6 +269,17 @@ public class MessaggioPecBL {
 
 								messaggioPec.setDestinatari(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllRecipents(mail)));
 
+								/* aggiunta informazioni daticert e postacert */
+								PecParser2 pecParser2 = new PecParser2();
+								pecParser2.dumpPart(mail);
+
+								messaggioPec.setDaticertxml(pecParser2.getDaticertXml());
+								messaggioPec.setPostacertSubject(pecParser2.getPostacertEmlSubject());
+								EmailBody bodyPostacert = pecParser2.getPostacertEmlBody();
+								if (bodyPostacert != null) {
+									messaggioPec.setPostacertBody(bodyPostacert.getBody());
+									messaggioPec.setPostacertContentType(bodyPostacert.getContentType());
+								}
 								/*
 								 * PROTOCOLLA
 								 */
@@ -327,14 +342,19 @@ public class MessaggioPecBL {
 											path.mkdirs();
 										}
 										File postacertFile = new File(path, postacertExtract);
-										PecParser pecParser = new PecParser(postacertExtract, true, postacertFile);
-										pecParser.dumpPart(mail);
-										EmailBody bodyPostacert = pecParser.getTesto();
-										messaggioPec.setPostacertFile(postacertFile.getPath());
-										if (bodyPostacert != null) {
-											messaggioPec.setPostacertBody(bodyPostacert.getBody());
-											messaggioPec.setPostacertContentType(bodyPostacert.getContentType());
-										}
+										
+										/* utilizzo in precedenza PecParser2, ora mi occupo solo di salvare eventuale file */
+//										PecParser pecParser = new PecParser(postacertExtract, true, postacertFile);
+//										pecParser.dumpPart(mail);
+//										EmailBody bodyPostacert = pecParser.getTesto();
+//										messaggioPec.setPostacertFile(postacertFile.getPath());
+//										if (bodyPostacert != null) {
+//											messaggioPec.setPostacertBody(bodyPostacert.getBody());
+//											messaggioPec.setPostacertContentType(bodyPostacert.getContentType());
+//										}
+										// TODO: salvare DataHandler su file
+										// pecParser2.getPostacertEml()
+										
 										// }
 									}
 
@@ -753,7 +773,7 @@ public class MessaggioPecBL {
 		if (messaggiInviati.isEmpty()) {
 			logger.info("non ci sono messaggi inviati in questo archivio");
 		}
-		
+
 		// TODO: probabilmente questa procedura va ottimizzata in caso di Tanti
 		// Messaggi
 
@@ -768,7 +788,7 @@ public class MessaggioPecBL {
 			String ricevutaOggetto = ricevutaPec.getOggetto();
 			String ricevutaTipo = ricevutaPec.getxRicevuta();
 			String ricevutaRiferimentoMessageId = ricevutaPec.getxRiferimentoMessageID();
-			
+
 			boolean messaggioCambioStato = false;
 			/*
 			 * Verifica LO STATO
@@ -790,7 +810,7 @@ public class MessaggioPecBL {
 				if (StringUtils.isNotBlank(ricevutaTipo) && StringUtils.isNotBlank(ricevutaRiferimentoMessageId) && StringUtils.isNotBlank(messaggioInviatoMessageId)) {
 					if (ricevutaRiferimentoMessageId.equals(messaggioInviatoMessageId)) {
 						logger.info("analisi ricevuta [{}]-{} per messaggio [{}]-{}", ricevutaId, ricevutaTipo, messaggioInviatoId, messaggioInviatoOggetto);
-						
+
 						messaggioDiRiferimento = messaggioInviato;
 						// if
 						// (oggettoRicevuto.indexOf(messaggioInviato.getProtocollo())
