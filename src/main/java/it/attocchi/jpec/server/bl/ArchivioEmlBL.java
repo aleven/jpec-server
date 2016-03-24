@@ -12,13 +12,14 @@ import javax.mail.Message;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ArchivioEmlBL {
 
 	private static final String EML_NAME_PREFIX = "PEC_";
 	
-	protected static final Logger logger = Logger.getLogger(ArchivioEmlBL.class.getName());
+	protected static final Logger logger = LoggerFactory.getLogger(ArchivioEmlBL.class);
 
 	/**
 	 * 
