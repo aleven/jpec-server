@@ -22,6 +22,11 @@ import org.slf4j.LoggerFactory;
 @Path("/azioni")
 public class ServiceAzioni extends RestBaseJpa2 {
 
+	private static final String ERRORI_INVIO_NOTIFICHE = "ERRORI INVIO NOTIFICHE";
+	private static final String ERRORI_AGGIORNA_STATO = "ERRORI AGGIORNA STATO";
+	private static final String ERRORI_MESSAGGI_IMPORTATI = "ERRORI MESSAGGI IMPORTATI";
+	private static final String ERRORI_MESSAGGI_INVIATI = "ERRORI MESSAGGI INVIATI";
+	
 	protected static final Logger logger = LoggerFactory.getLogger(ServiceAzioni.class);
 
 	@GET
@@ -62,10 +67,10 @@ public class ServiceAzioni extends RestBaseJpa2 {
 			} else {
 				/* ERRORI */
 				StringBuffer sbErrori = new StringBuffer();
-				sbErrori.append(generaMessaggio("ERRORI MESSAGGI INVIATI", erroriMessaggiInviati));
-				sbErrori.append(generaMessaggio("ERRORI MESSAGGI IMPORTATI", erroriMessaggiImportati));
-				sbErrori.append(generaMessaggio("ERRORI AGGIORNA STATO", erroriAggiornaStato));
-				sbErrori.append(generaMessaggio("ERRORI INVIO NOTIFICHE", erroriInviaNotifiche));
+				sbErrori.append(generaMessaggio(ERRORI_MESSAGGI_INVIATI, erroriMessaggiInviati));
+				sbErrori.append(generaMessaggio(ERRORI_MESSAGGI_IMPORTATI, erroriMessaggiImportati));
+				sbErrori.append(generaMessaggio(ERRORI_AGGIORNA_STATO, erroriAggiornaStato));
+				sbErrori.append(generaMessaggio(ERRORI_INVIO_NOTIFICHE, erroriInviaNotifiche));
 				throw new PecException(sbErrori.toString());
 			}
 		} catch (Exception ex) {
@@ -95,7 +100,10 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		Response response = null;
 		try {
 			logger.debug("{}", restServletContext.getContextPath());
-			MessaggioPecBL.importaNuoviMessaggi(getContextEmf(), "REST.ANONYMOUS");
+			List<PecException> erroriMessaggiImportati = MessaggioPecBL.importaNuoviMessaggi(getContextEmf(), "REST.ANONYMOUS");
+			if (erroriMessaggiImportati.size() > 0) {
+				throw new PecException(generaMessaggio(ERRORI_MESSAGGI_INVIATI, erroriMessaggiImportati));
+			}
 			response = Response.ok(new Date().toString(), MediaType.TEXT_PLAIN).build();
 		} catch (Exception ex) {
 			logger.error("INTERNAL_SERVER_ERROR", ex);
@@ -111,7 +119,10 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		Response response = null;
 		try {
 			logger.debug("{}", restServletContext.getContextPath());
-			MessaggioPecBL.aggiornaStatoMessaggi(getContextEmf(), "REST.ANONYMOUS");
+			List<PecException> erroriAggiornaStato = MessaggioPecBL.aggiornaStatoMessaggi(getContextEmf(), "REST.ANONYMOUS");
+			if (erroriAggiornaStato.size() > 0) {
+				throw new PecException(generaMessaggio(ERRORI_AGGIORNA_STATO, erroriAggiornaStato));
+			}
 			response = Response.ok(new Date().toString(), MediaType.TEXT_PLAIN).build();
 		} catch (Exception ex) {
 			logger.error("INTERNAL_SERVER_ERROR", ex);
@@ -127,8 +138,12 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		Response response = null;
 		try {
 			logger.debug("{}", restServletContext.getContextPath());
-			NotificaPecBL.inviaNotifiche(getContextEmf(), "REST.ANONYMOUS", false, "");
+			List<PecException> erroriInviaNotifiche = NotificaPecBL.inviaNotifiche(getContextEmf(), "REST.ANONYMOUS", false, "");
+			if (erroriInviaNotifiche.size() > 0) {
+				throw new PecException(generaMessaggio(ERRORI_INVIO_NOTIFICHE, erroriInviaNotifiche));
+			}
 			response = Response.ok(new Date().toString(), MediaType.TEXT_PLAIN).build();
+
 		} catch (Exception ex) {
 			logger.error("INTERNAL_SERVER_ERROR", ex);
 			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).type(MediaType.TEXT_PLAIN).build();
@@ -144,7 +159,7 @@ public class ServiceAzioni extends RestBaseJpa2 {
 			logger.debug("{}", restServletContext.getContextPath());
 			List<PecException> erroriMessaggiInviati = MessaggioPecBL.inviaMessaggiInCoda(getContextEmf(), "REST.ANONYMOUS");
 			if (erroriMessaggiInviati.size() > 0) {
-				throw new PecException("almeno uno dei messaggi da inviare ha generato un errore, controllare il log del server per maggiori dettagli", erroriMessaggiInviati.get(0));
+				throw new PecException(generaMessaggio(ERRORI_MESSAGGI_INVIATI, erroriMessaggiInviati));
 			}
 			response = Response.ok("OK", MediaType.TEXT_PLAIN).build();
 			// } catch (PecException ex) {
