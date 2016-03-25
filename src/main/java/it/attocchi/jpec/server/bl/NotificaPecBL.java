@@ -4,6 +4,7 @@ import it.attocchi.jpa2.JpaController;
 import it.attocchi.jpec.server.entities.MessaggioPec;
 import it.attocchi.jpec.server.entities.NotificaPec;
 import it.attocchi.jpec.server.entities.filters.NotificaPecFilter;
+import it.attocchi.jpec.server.exceptions.PecException;
 import it.attocchi.mail.utils.MailSender;
 import it.attocchi.mail.utils.items.MailHeader;
 import it.attocchi.utils.DateUtilsLT;
@@ -14,7 +15,6 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.mail.SendFailedException;
 import javax.persistence.EntityManagerFactory;
 
 import org.apache.commons.lang3.StringUtils;
@@ -215,15 +215,22 @@ public class NotificaPecBL {
 		}
 	}
 
-	public static synchronized void inviaNotifiche(EntityManagerFactory emf, String currentUser, boolean useCurrentUserAsSender, String mailbox) throws Exception {
+	public static synchronized List<PecException> inviaNotifiche(EntityManagerFactory emf, String currentUser, boolean useCurrentUserAsSender, String mailbox) throws Exception {
+		List<PecException> erroriInviaNotifiche = new ArrayList<PecException>();
+
 		// boolean res = false;
 		List<NotificaPec> notificheDaInviare = notificheDaInviare(emf, currentUser);
 		for (NotificaPec notifica : notificheDaInviare) {
 			// in caso di errore solleva eccezione ed interrompe il ciclo
-			inviaNotifica(emf, notifica, currentUser, useCurrentUserAsSender, mailbox);
+			try {
+				inviaNotifica(emf, notifica, currentUser, useCurrentUserAsSender, mailbox);
+			} catch (PecException ex) {
+				erroriInviaNotifiche.add(ex);
+			}
 		}
 		// res = true;
 		// return res;
+		return erroriInviaNotifiche;
 	}
 
 	private static boolean verificaNotificaGiaCreata(EntityManagerFactory emf, JpaController transactionController, long idMessaggioPadre, TipoNotifica tipo, String destinatari) throws Exception {
@@ -407,20 +414,25 @@ public class NotificaPecBL {
 				JpaController.callUpdate(emf, notifica);
 
 			} catch (Exception ex) {
-				logger.error("Errore Invio Notifica " + notifica, ex);
+				String message = String.format("Errore invio notifica %s", notifica);
+				logger.error(message, ex);
 				notifica.setInviato(false);
 				notifica.setDataInvio(DateUtilsLT.Now());
 				notifica.setErrore(ex.toString());
 				JpaController.callUpdate(emf, notifica);
-				throw new SendFailedException("Errore Invio Notifica", ex);
+
+				throw new PecException(message, ex);
 			}
 
 			// res = true;
 		} else {
-			logger.warn("isEnableNotifySend false");
+			String message = String.format("INVIO DISABILITATO %s", ConfigurazionePecEnum.PEC_ENABLE_NOTITY_SEND);
+			logger.warn(message);
 			notifica.setInviato(true);
-			notifica.setErrore("INVIO DISABILITATO isEnableNotifySend");
+			notifica.setErrore(message);
 			JpaController.callUpdate(emf, notifica);
+
+			throw new PecException(message);
 		}
 		// return res;
 	}

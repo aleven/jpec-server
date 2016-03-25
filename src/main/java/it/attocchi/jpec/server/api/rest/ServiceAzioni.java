@@ -31,37 +31,61 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		Response response = null;
 		try {
 			logger.debug("{}", restServletContext.getContextPath());
-			
+
 			StringBuffer sb = new StringBuffer();
-			
+
 			Crono.start("invia");
-			List<String> messaggiInviati = MessaggioPecBL.inviaMessaggiInCoda(getContextEmf(), "REST.ANONYMOUS");
+			List<PecException> erroriMessaggiInviati = MessaggioPecBL.inviaMessaggiInCoda(getContextEmf(), "REST.ANONYMOUS");
 			sb.append(Crono.stopAndLog("invia"));
 			sb.append("\n");
-			
+
 			Crono.start("importa");
-			MessaggioPecBL.importaNuoviMessaggi(getContextEmf(), "REST.ANONYMOUS");
+			List<PecException> erroriMessaggiImportati = MessaggioPecBL.importaNuoviMessaggi(getContextEmf(), "REST.ANONYMOUS");
 			sb.append(Crono.stopAndLog("importa"));
 			sb.append("\n");
-			
+
 			Crono.start("aggiorna");
-			MessaggioPecBL.aggiornaStatoMessaggi(getContextEmf(), "REST.ANONYMOUS");
+			List<PecException> erroriAggiornaStato = MessaggioPecBL.aggiornaStatoMessaggi(getContextEmf(), "REST.ANONYMOUS");
 			sb.append(Crono.stopAndLog("aggiorna"));
 			sb.append("\n");
-			
+
 			Crono.start("notifiche");
-			NotificaPecBL.inviaNotifiche(getContextEmf(), "REST.ANONYMOUS", false, null);
+			List<PecException> erroriInviaNotifiche = NotificaPecBL.inviaNotifiche(getContextEmf(), "REST.ANONYMOUS", false, null);
 			sb.append(Crono.stopAndLog("notifiche"));
 			sb.append("\n");
-			
+
 			sb.append(new Date().toString());
-			
-			response = Response.ok(sb.toString(), MediaType.TEXT_PLAIN).build();
+
+			if (erroriMessaggiInviati.isEmpty() && erroriMessaggiImportati.isEmpty() && erroriAggiornaStato.isEmpty() && erroriInviaNotifiche.isEmpty()) {
+				/* OK */
+				response = Response.ok(sb.toString(), MediaType.TEXT_PLAIN).build();
+			} else {
+				/* ERRORI */
+				StringBuffer sbErrori = new StringBuffer();
+				sbErrori.append(generaMessaggio("ERRORI MESSAGGI INVIATI", erroriMessaggiInviati));
+				sbErrori.append(generaMessaggio("ERRORI MESSAGGI IMPORTATI", erroriMessaggiImportati));
+				sbErrori.append(generaMessaggio("ERRORI AGGIORNA STATO", erroriAggiornaStato));
+				sbErrori.append(generaMessaggio("ERRORI INVIO NOTIFICHE", erroriInviaNotifiche));
+				throw new PecException(sbErrori.toString());
+			}
 		} catch (Exception ex) {
 			logger.error("INTERNAL_SERVER_ERROR", ex);
 			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).type(MediaType.TEXT_PLAIN).build();
 		}
 		return response;
+	}
+
+	private String generaMessaggio(String type, List<PecException> erroriMessaggiInviati) {
+		int erroreCount = 0;
+		StringBuffer sbErrori = new StringBuffer();
+		if (!erroriMessaggiInviati.isEmpty()) {
+			sbErrori.append("" + type + ":" + "\n");
+			for (PecException ex : erroriMessaggiInviati) {
+				erroreCount++;
+				sbErrori.append("" + erroreCount + ") " + ex.getMessage() + "\n");
+			}
+		}
+		return sbErrori.toString();
 	}
 
 	@GET
@@ -95,7 +119,7 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		}
 		return response;
 	}
-	
+
 	@GET
 	@Path("/invianotifiche")
 	// @Produces(MediaType.TEXT_PLAIN)
@@ -110,19 +134,23 @@ public class ServiceAzioni extends RestBaseJpa2 {
 			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).type(MediaType.TEXT_PLAIN).build();
 		}
 		return response;
-	}	
-	
+	}
+
 	@PUT
 	@Path("/invia")
 	public Response doInvia() {
 		Response response = null;
 		try {
 			logger.debug("{}", restServletContext.getContextPath());
-			List<String> messaggiInviati = MessaggioPecBL.inviaMessaggiInCoda(getContextEmf(), "REST.ANONYMOUS");
-			response = Response.ok(messaggiInviati, MediaType.TEXT_PLAIN).build();
-		} catch (PecException ex) {
-			logger.error("PRECONDITION_FAILED", ex);
-			response = Response.status(Response.Status.PRECONDITION_FAILED).entity(ex.getMessage()).type(MediaType.TEXT_PLAIN).build();			
+			List<PecException> erroriMessaggiInviati = MessaggioPecBL.inviaMessaggiInCoda(getContextEmf(), "REST.ANONYMOUS");
+			if (erroriMessaggiInviati.size() > 0) {
+				throw new PecException("almeno uno dei messaggi da inviare ha generato un errore, controllare il log del server per maggiori dettagli", erroriMessaggiInviati.get(0));
+			}
+			response = Response.ok("OK", MediaType.TEXT_PLAIN).build();
+			// } catch (PecException ex) {
+			// logger.error("PRECONDITION_FAILED", ex);
+			// response =
+			// Response.status(Response.Status.PRECONDITION_FAILED).entity(ex.getMessage()).type(MediaType.TEXT_PLAIN).build();
 		} catch (Exception ex) {
 			logger.error("INTERNAL_SERVER_ERROR", ex);
 			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).type(MediaType.TEXT_PLAIN).build();
@@ -138,9 +166,10 @@ public class ServiceAzioni extends RestBaseJpa2 {
 			logger.debug("{}/{}", restServletContext.getContextPath(), idMessaggio);
 			String messageID = MessaggioPecBL.inviaMessaggio(getContextEmf(), idMessaggio, "REST.ANONYMOUS");
 			response = Response.ok(messageID, MediaType.TEXT_PLAIN).build();
-		} catch (PecException ex) {
-			logger.error("PRECONDITION_FAILED", ex);
-			response = Response.status(Response.Status.PRECONDITION_FAILED).entity(ex.getMessage()).type(MediaType.TEXT_PLAIN).build();
+			// } catch (PecException ex) {
+			// logger.error("PRECONDITION_FAILED", ex);
+			// response =
+			// Response.status(Response.Status.PRECONDITION_FAILED).entity(ex.getMessage()).type(MediaType.TEXT_PLAIN).build();
 		} catch (Exception ex) {
 			logger.error("INTERNAL_SERVER_ERROR", ex);
 			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).type(MediaType.TEXT_PLAIN).build();

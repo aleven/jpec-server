@@ -22,6 +22,7 @@ import it.attocchi.mail.utils.items.MailHeader;
 import it.attocchi.utils.ListUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
@@ -30,6 +31,7 @@ import java.util.List;
 
 import javax.mail.Header;
 import javax.mail.Message;
+import javax.mail.MessagingException;
 import javax.persistence.EntityManagerFactory;
 
 import org.apache.commons.io.FileUtils;
@@ -37,6 +39,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.mail.EmailAttachment;
+import org.apache.commons.mail.EmailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,8 +71,9 @@ public class MessaggioPecBL {
 	 * @return
 	 * @throws Exception
 	 */
-	public static synchronized boolean importaNuoviMessaggi(EntityManagerFactory emf, String utente) throws Exception {
-		boolean res = false;
+	public static synchronized List<PecException> importaNuoviMessaggi(EntityManagerFactory emf, String utente) throws Exception {
+		List<PecException> errori = new ArrayList<PecException>();
+		// boolean res = false;
 		// List<MailMessage> popEmails = new ArrayList<MailMessage>();
 
 		ConfigurazioneBL.resetCurrent();
@@ -305,6 +309,8 @@ public class MessaggioPecBL {
 									String stack = esitoProtocollo.eccezione != null ? ExceptionUtils.getStackTrace(esitoProtocollo.eccezione) : "";
 									String messaggio = String.format("si e' verificato un errore in fase di protocollazione: %s\n\n%s\n\n%s", esitoProtocollo.errore, stack, esitoProtocollo.getBufferedLog());
 									logger.error(messaggio);
+									errori.add(new PecException(messaggio, esitoProtocollo.eccezione));
+									
 									erroreInProtocollo = true;
 									if (StringUtils.isBlank(messaggioPecEmlFile)) {
 										// se non ho salvato eml per
@@ -315,6 +321,7 @@ public class MessaggioPecBL {
 									}
 									logger.info("creo notifica errore protocollo");
 									NotificaPecBL.creaNotificaErroreAiResponsabili(emf, null, 0, messaggioPec, mailboxName, messaggio, messaggioPecEmlFile);
+																		
 								}
 								// } else {
 								// logger.warn("nessuna implementazione protocollo configurata");
@@ -340,19 +347,26 @@ public class MessaggioPecBL {
 											path.mkdirs();
 										}
 										File postacertFile = new File(path, postacertExtract);
-										
-										/* utilizzo in precedenza PecParser2, ora mi occupo solo di salvare eventuale file */
-//										PecParser pecParser = new PecParser(postacertExtract, true, postacertFile);
-//										pecParser.dumpPart(mail);
-//										EmailBody bodyPostacert = pecParser.getTesto();
-//										messaggioPec.setPostacertFile(postacertFile.getPath());
-//										if (bodyPostacert != null) {
-//											messaggioPec.setPostacertBody(bodyPostacert.getBody());
-//											messaggioPec.setPostacertContentType(bodyPostacert.getContentType());
-//										}
+
+										/*
+										 * utilizzo in precedenza PecParser2,
+										 * ora mi occupo solo di salvare
+										 * eventuale file
+										 */
+										// PecParser pecParser = new
+										// PecParser(postacertExtract, true,
+										// postacertFile);
+										// pecParser.dumpPart(mail);
+										// EmailBody bodyPostacert =
+										// pecParser.getTesto();
+										// messaggioPec.setPostacertFile(postacertFile.getPath());
+										// if (bodyPostacert != null) {
+										// messaggioPec.setPostacertBody(bodyPostacert.getBody());
+										// messaggioPec.setPostacertContentType(bodyPostacert.getContentType());
+										// }
 										// TODO: salvare DataHandler su file
 										// pecParser2.getPostacertEml()
-										
+
 										// }
 									}
 
@@ -403,19 +417,21 @@ public class MessaggioPecBL {
 					// }
 				} catch (Exception ex) {
 					logger.error("errore mailbox " + mailboxName, ex);
+					errori.add(new PecException("Si e' verificato un errore con la mailbox " + mailboxName, ex));
 				} finally {
 					MailConnection.close(server);
 				}
 			}
 
 			// addInfoMessage("Aggiornato");
-			res = true;
+			// res = true;
 
 		} else {
 			logger.warn("check email disabled");
+			errori.add(new PecException("La ricezione delle email e' disabilitata"));
 		}
 
-		return res;
+		return errori;
 	}
 
 	public static List<MessaggioPec> getMessaggioPecIn(EntityManagerFactory emf) throws Exception {
@@ -423,7 +439,7 @@ public class MessaggioPecBL {
 		filtro.setFolder(Folder.IN);
 		return JpaController.callFind(emf, MessaggioPec.class, filtro);
 	}
-	
+
 	public static MessaggioPec getMessaggioPec(EntityManagerFactory emf, long idMessaggioPec) throws Exception {
 		MessaggioPec res = null;
 
@@ -442,8 +458,8 @@ public class MessaggioPecBL {
 		return res;
 	}
 
-	public static synchronized List<String> inviaMessaggiInCoda(EntityManagerFactory emf, String utente) throws Exception {
-		List<String> res = new ArrayList<String>();
+	public static synchronized List<PecException> inviaMessaggiInCoda(EntityManagerFactory emf, String utente) throws Exception {
+		List<PecException> res = new ArrayList<PecException>();
 		MessaggioPecFilter filtro = new MessaggioPecFilter();
 		filtro.setFolder(Folder.OUT);
 		filtro.setSoloNonInviati(true);
@@ -453,11 +469,13 @@ public class MessaggioPecBL {
 				try {
 					String messageId = inviaMessaggio(emf, messaggioDaInviare.getId(), utente);
 					if (StringUtils.isNotBlank(messageId)) {
-						res.add(messageId);
+						// res.add(messageId);
+						logger.info("inviato messaggio con messageId={}", messageId);
 					} else {
 						logger.warn("Il messageId del messaggio inviato e' vuoto");
 					}
 				} catch (PecException ex) {
+					res.add(ex);
 					logger.error("inviaMessaggiInCoda (" + messaggiDaInviare.toString() + ")", ex);
 				}
 			}
@@ -474,7 +492,9 @@ public class MessaggioPecBL {
 		}
 		validateMessaggio(messaggio);
 
-		return inviaEmail(emf, messaggio, allegati, utente);
+		String messageId = inviaEmail(emf, messaggio, allegati, utente);
+
+		return messageId;
 	}
 
 	private static void validateMessaggio(MessaggioPec messaggio) throws PecException {
@@ -557,6 +577,7 @@ public class MessaggioPecBL {
 			}
 			/**/
 
+			Throwable ex = null;
 			String messageID = "";
 			try {
 				if (attachments == null || attachments.size() == 0) {
@@ -573,13 +594,21 @@ public class MessaggioPecBL {
 				messaggio.markAsUpdated(0);
 				JpaController.callUpdate(emf, messaggio);
 				logger.debug("aggiornato stato messaggio {}", messaggio);
-			} catch (Exception ex) {
-				logger.error("errore durante invio email", ex);
-				messaggio.setErroreInvio(ex.getMessage());
-				messaggio.markAsUpdated(0);
-				JpaController.callUpdate(emf, messaggio);
-				logger.debug("aggiornato stato messaggio {}", messaggio);
-				throw ex;
+			} catch (EmailException mailEx) {
+				ex = mailEx;
+			} catch (IOException mailEx) {
+				ex = mailEx;
+			} catch (MessagingException mailEx) {
+				ex = mailEx;
+			} finally {
+				if (ex != null) {
+					logger.error("errore durante invio email", ex);
+					messaggio.setErroreInvio(ex.getMessage());
+					messaggio.markAsUpdated(0);
+					JpaController.callUpdate(emf, messaggio);
+					logger.debug("aggiornato stato messaggio {}", messaggio);
+					throw new PecException("errore durante invio email", ex);
+				}
 			}
 
 			res = messageID;
@@ -667,7 +696,7 @@ public class MessaggioPecBL {
 			// // }
 			// // }
 			//
-			// /* Potremmo non aver inviato l'email perch� disabilitato */
+			// /* Potremmo non aver inviato l'email perche' disabilitato */
 			// if (resInvio) {
 			//
 			// controller.beginTransaction();
@@ -755,8 +784,9 @@ public class MessaggioPecBL {
 
 	}
 
-	public static synchronized boolean aggiornaStatoMessaggi(EntityManagerFactory emf, String utente) throws Exception {
-		boolean res = false;
+	public static synchronized List<PecException> aggiornaStatoMessaggi(EntityManagerFactory emf, String utente) throws Exception {
+		List<PecException> erroriAggiornaStato = new ArrayList<PecException>();
+		// boolean res = false;
 
 		MessaggioPecFilter filtroRicevute = new MessaggioPecFilter();
 		filtroRicevute.setFolder(Folder.IN);
@@ -943,6 +973,9 @@ public class MessaggioPecBL {
 				} else {
 					ricevutaPec.setErroreInvio(esitoRegole.errore);
 					JpaController.callUpdate(emf, ricevutaPec);
+
+					String message = String.format("si e' verificato un errore applicando le regole evento %s al messaggio %s", RegolaPecEventoEnum.AGGIORNA_STATO, ricevutaPec);
+					erroriAggiornaStato.add(new PecException(message, esitoRegole.eccezione));
 				}
 			} else {
 				logger.warn("non vengono applicate regole di cambio stato");
@@ -985,8 +1018,8 @@ public class MessaggioPecBL {
 		//
 		// logger.info(i + " messaggi inviati obsoleti verificati ");
 
-		res = true;
+		// res = true;
 
-		return res;
+		return erroriAggiornaStato;
 	}
 }
