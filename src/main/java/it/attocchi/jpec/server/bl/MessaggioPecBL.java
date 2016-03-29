@@ -305,13 +305,10 @@ public class MessaggioPecBL {
 									logger.info("messaggio protocollato: {}", esitoProtocollo);
 								} else if (esitoProtocollo.stato == AzioneEsitoStato.NON_APPLICABILE) {
 									logger.warn(esitoProtocollo.errore);
-								} else {
-									String stack = esitoProtocollo.eccezione != null ? ExceptionUtils.getStackTrace(esitoProtocollo.eccezione) : "";
-									String messaggio = String.format("si e' verificato un errore in fase di protocollazione: %s\n\n%s\n\n%s", esitoProtocollo.errore, stack, esitoProtocollo.getBufferedLog());
-									logger.error(messaggio);
-									errori.add(new PecException(messaggio, esitoProtocollo.eccezione));
-									
+								} else if (esitoProtocollo.stato == AzioneEsitoStato.NOTIFICA) {
 									erroreInProtocollo = true;
+									String stack = esitoProtocollo.eccezione != null ? ExceptionUtils.getStackTrace(esitoProtocollo.eccezione) : "";
+									String messaggio = String.format("si e' verificato un errore in fase di protocollazione: %s\n\nDettaglio:\n%s\n\nLog:\n%s", esitoProtocollo.errore, stack, esitoProtocollo.getBufferedLog());
 									if (StringUtils.isBlank(messaggioPecEmlFile)) {
 										// se non ho salvato eml per
 										// impostazione, lo salvo per
@@ -321,7 +318,9 @@ public class MessaggioPecBL {
 									}
 									logger.info("creo notifica errore protocollo");
 									NotificaPecBL.creaNotificaErroreAiResponsabili(emf, null, 0, messaggioPec, mailboxName, messaggio, messaggioPecEmlFile);
-																		
+								} else {
+									erroreInProtocollo = true;
+									errori.add(new PecException(esitoProtocollo.errore, esitoProtocollo.eccezione));
 								}
 								// } else {
 								// logger.warn("nessuna implementazione protocollo configurata");
