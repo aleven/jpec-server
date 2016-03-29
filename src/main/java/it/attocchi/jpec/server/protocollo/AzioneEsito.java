@@ -9,6 +9,7 @@ public class AzioneEsito {
 	public enum AzioneEsitoStato {
 		OK,
 		NON_APPLICABILE,
+		NOTIFICA,
 		ERRORE
 	}
 
@@ -22,6 +23,14 @@ public class AzioneEsito {
 		esitoOk.protocollo = protocollo;
 		esitoOk.urlDocumentale = urlDocumentale;
 		return esitoOk;
+	}
+	
+	public static AzioneEsito notifica(String messaggio, Throwable ex) {
+		AzioneEsito esitoErrore = new AzioneEsito();
+		esitoErrore.stato = AzioneEsitoStato.NOTIFICA;
+		esitoErrore.errore = messaggio;
+		esitoErrore.eccezione = ex;
+		return esitoErrore;
 	}
 	
 	public static AzioneEsito errore(String messaggio, Throwable ex) {
