@@ -282,7 +282,7 @@ public class MessaggioPecBL {
 									messaggioPec.setPostacertBody(bodyPostacert.getBody());
 									messaggioPec.setPostacertContentType(bodyPostacert.getContentType());
 								}
-								messaggioPec.setSegnaturaxml(pecParser2.getSegnaturaXml());
+								// messaggioPec.setSegnaturaxml(pecParser2.getSegnaturaXml());
 								
 								/*
 								 * PROTOCOLLA

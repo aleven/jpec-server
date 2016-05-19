@@ -194,9 +194,9 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 	@Lob
 	private String daticertxml;
 	
-	@Column(name = "pec01_segnatura_xml")
-	@Lob
-	private String segnaturaxml;	
+//	@Column(name = "pec01_segnatura_xml")
+//	@Lob
+//	private String segnaturaxml;	
 
 	public long getId() {
 		return id;
@@ -650,11 +650,11 @@ public class MessaggioPec extends AbstractEntityMarksWithIdLong<MessaggioPec> {
 		this.daticertxml = daticertxml;
 	}
 	
-	public String getSegnaturaxml() {
-		return segnaturaxml;
-	}
-	
-	public void setSegnaturaxml(String segnaturaxml) {
-		this.segnaturaxml = segnaturaxml;
-	}
+//	public String getSegnaturaxml() {
+//		return segnaturaxml;
+//	}
+//	
+//	public void setSegnaturaxml(String segnaturaxml) {
+//		this.segnaturaxml = segnaturaxml;
+//	}
 }
