@@ -32,6 +32,7 @@ import java.util.List;
 import javax.mail.Header;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.internet.MimeUtility;
 import javax.persistence.EntityManagerFactory;
 
 import org.apache.commons.io.FileUtils;
@@ -202,7 +203,8 @@ public class MessaggioPecBL {
 								}
 							}
 							logger.debug("getSubject=" + mail.getSubject());
-							logger.debug(" decoded=" + javax.mail.internet.MimeUtility.decodeText(mail.getSubject()));
+							// logger.debug(" decoded=" +
+							// javax.mail.internet.MimeUtility.decodeText(mail.getSubject()));
 
 							// popEmails.add(m);
 
@@ -271,19 +273,36 @@ public class MessaggioPecBL {
 
 								messaggioPec.setDestinatari(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllRecipents(mail)));
 
-								/* aggiunta informazioni daticert e postacert */
+								/*
+								 * aggiunta informazioni daticert.xml e
+								 * postacert.eml
+								 */
 								PecParser2 pecParser2 = new PecParser2();
 								pecParser2.dumpPart(mail);
-
-								messaggioPec.setDaticertxml(pecParser2.getDaticertXml());
-								messaggioPec.setPostacertSubject(pecParser2.getPostacertEmlSubject());
+								String daticertXml = pecParser2.getDaticertXml();
+								if (daticertXml != null) {
+									messaggioPec.setDaticertXml(daticertXml);
+								} else {
+									logger.warn("daticert.xml non ricavato dalla pec");
+								}
+								String postacertEmlSubject = pecParser2.getPostacertEmlSubject();
+								if (postacertEmlSubject != null) {
+									messaggioPec.setPostacertSubject(postacertEmlSubject);
+								} else {
+									logger.warn("oggetto vuoto da postacert.eml");
+									// messaggioPec.setPostacertSubject(messaggioPec.getOggetto());
+								}								
+								if (daticertXml == null || postacertEmlSubject == null) {
+									logger.warn("pecParser2.dumpPart:");
+									logger.warn(pecParser2.getDumpLog().toString());
+								}								
 								EmailBody bodyPostacert = pecParser2.getPostacertEmlBody();
 								if (bodyPostacert != null) {
 									messaggioPec.setPostacertBody(bodyPostacert.getBody());
 									messaggioPec.setPostacertContentType(bodyPostacert.getContentType());
 								}
-								// messaggioPec.setSegnaturaxml(pecParser2.getSegnaturaXml());
-								
+								messaggioPec.setSegnaturaXml(pecParser2.getSegnaturaXml());
+
 								/*
 								 * PROTOCOLLA
 								 */
@@ -787,6 +806,17 @@ public class MessaggioPecBL {
 
 	public static synchronized List<PecException> aggiornaStatoMessaggi(EntityManagerFactory emf, String utente) throws Exception {
 		List<PecException> erroriAggiornaStato = new ArrayList<PecException>();
+
+		List<PecException> erroriRicevute = aggiornaRicevute(emf, utente);
+		erroriAggiornaStato.addAll(erroriRicevute);
+		List<PecException> erroriSegnatura = aggiornaSegnatura(emf, utente);
+		erroriAggiornaStato.addAll(erroriRicevute);
+
+		return erroriAggiornaStato;
+	}
+
+	private static List<PecException> aggiornaRicevute(EntityManagerFactory emf, String utente) throws Exception {
+		List<PecException> erroriAggiornaRicevute = new ArrayList<PecException>();
 		// boolean res = false;
 
 		MessaggioPecFilter filtroRicevute = new MessaggioPecFilter();
@@ -976,7 +1006,7 @@ public class MessaggioPecBL {
 					JpaController.callUpdate(emf, ricevutaPec);
 
 					String message = String.format("si e' verificato un errore applicando le regole evento %s al messaggio %s", RegolaPecEventoEnum.AGGIORNA_STATO, ricevutaPec);
-					erroriAggiornaStato.add(new PecException(message, esitoRegole.eccezione));
+					erroriAggiornaRicevute.add(new PecException(message, esitoRegole.eccezione));
 				}
 			} else {
 				logger.warn("non vengono applicate regole di cambio stato");
@@ -1021,6 +1051,11 @@ public class MessaggioPecBL {
 
 		// res = true;
 
-		return erroriAggiornaStato;
+		return erroriAggiornaRicevute;
+	}
+
+	private static List<PecException> aggiornaSegnatura(EntityManagerFactory emf, String utente) throws Exception {
+		List<PecException> erroriAggiornaSegnatura = new ArrayList<PecException>();
+		return erroriAggiornaSegnatura;
 	}
 }
