@@ -4,7 +4,7 @@
 		<provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 		<!-- <non-jta-data-source>java:/comp/env/jdbc/JPecDB</non-jta-data-source> -->
 		
-		<!-- Entities -->				
+		<!-- jpec-server -->				
 		<class>it.attocchi.jpec.server.entities.AllegatoPec</class>
 		<class>it.attocchi.jpec.server.entities.ConfigurazionePec</class>
 		<class>it.attocchi.jpec.server.entities.MessaggioPec</class>
