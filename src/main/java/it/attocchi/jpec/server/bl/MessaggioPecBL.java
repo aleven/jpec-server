@@ -291,11 +291,11 @@ public class MessaggioPecBL {
 								} else {
 									logger.warn("oggetto vuoto da postacert.eml");
 									// messaggioPec.setPostacertSubject(messaggioPec.getOggetto());
-								}								
+								}
 								if (daticertXml == null || postacertEmlSubject == null) {
 									logger.warn("pecParser2.dumpPart:");
 									logger.warn(pecParser2.getDumpLog().toString());
-								}								
+								}
 								EmailBody bodyPostacert = pecParser2.getPostacertEmlBody();
 								if (bodyPostacert != null) {
 									messaggioPec.setPostacertBody(bodyPostacert.getBody());
@@ -810,7 +810,7 @@ public class MessaggioPecBL {
 		List<PecException> erroriRicevute = aggiornaRicevute(emf, utente);
 		erroriAggiornaStato.addAll(erroriRicevute);
 		List<PecException> erroriSegnatura = aggiornaSegnatura(emf, utente);
-		erroriAggiornaStato.addAll(erroriRicevute);
+		erroriAggiornaStato.addAll(erroriSegnatura);
 
 		return erroriAggiornaStato;
 	}
@@ -830,196 +830,211 @@ public class MessaggioPecBL {
 		filtroInviati.setConStatoDaAggiornare(true);
 		filtroInviati.setConMessageID(true);
 
+		logger.info("query ricevute con riferimento da processare...");
 		List<MessaggioPec> ricevuteDaProcessare = JpaController.callFind(emf, MessaggioPec.class, filtroRicevute);
-		if (ricevuteDaProcessare.isEmpty()) {
-			logger.info("non ci sono ricevute da processare in questo archivio");
-		}
+
+		logger.info("query messaggi inviati...");
 		List<MessaggioPec> messaggiInviati = JpaController.callFind(emf, MessaggioPec.class, filtroInviati);
 		if (messaggiInviati.isEmpty()) {
-			logger.info("non ci sono messaggi inviati in questo archivio");
+			logger.warn("non ci sono messaggi inviati in questo archivio");
 		}
-
 		// TODO: probabilmente questa procedura va ottimizzata in caso di Tanti
 		// Messaggi
 
 		List<RegolaPec> regoleAggiornaStato = RegolaPecBL.regole(emf, RegolaPecEventoEnum.AGGIORNA_STATO);
 		if (regoleAggiornaStato.isEmpty()) {
-			logger.info("non ci sono regole per evento {}", RegolaPecEventoEnum.AGGIORNA_STATO.name());
+			logger.warn("non ci sono regole per evento {}", RegolaPecEventoEnum.AGGIORNA_STATO.name());
+		} else {
+			logger.warn("{} regole caricate per evento {}", regoleAggiornaStato.size(), RegolaPecEventoEnum.AGGIORNA_STATO.name());
 		}
 
-		int i = 0;
-		for (MessaggioPec ricevutaPec : ricevuteDaProcessare) {
-			long ricevutaId = ricevutaPec.getId();
-			String ricevutaOggetto = ricevutaPec.getOggetto();
-			String ricevutaTipo = ricevutaPec.getxRicevuta();
-			String ricevutaRiferimentoMessageId = ricevutaPec.getxRiferimentoMessageID();
+		if (ricevuteDaProcessare.isEmpty()) {
+			logger.warn("non ci sono ricevute da processare in questo archivio");
+		} else {
+			int i = 0;
+			for (MessaggioPec ricevutaPec : ricevuteDaProcessare) {
+				long ricevutaId = ricevutaPec.getId();
+				String ricevutaOggetto = ricevutaPec.getOggetto();
+				String ricevutaTipo = ricevutaPec.getxRicevuta();
+				String ricevutaRiferimentoMessageId = ricevutaPec.getxRiferimentoMessageID();
 
-			boolean messaggioCambioStato = false;
-			/*
-			 * Verifica LO STATO
-			 */
-			MessaggioPec messaggioDiRiferimento = null;
-			for (MessaggioPec messaggioInviato : messaggiInviati) {
-				long messaggioInviatoId = messaggioInviato.getId();
-				String messaggioInviatoOggetto = messaggioInviato.getOggetto();
-				String messaggioInviatoMessageId = messaggioInviato.getMessageID();
+				boolean messaggioCambioStato = false;
 				/*
-				 * con il protocollo verifico se e' un messaggio di stato di
-				 * questo messaggio inviato
+				 * Verifica LO STATO
 				 */
-				// if (StringUtils.isNotBlank(oggettoRicevuto) &&
-				// StringUtils.isNotBlank(messaggioInviato.getProtocollo())) {
-				// sono in presenza di una ricevuta in ingresso
-				// la ricevuta ha un riferimento ad un messageid
-				// sono in possessio del messaggio che ho inviato
-				if (StringUtils.isNotBlank(ricevutaTipo) && StringUtils.isNotBlank(ricevutaRiferimentoMessageId) && StringUtils.isNotBlank(messaggioInviatoMessageId)) {
-					if (ricevutaRiferimentoMessageId.equals(messaggioInviatoMessageId)) {
-						logger.info("analisi ricevuta [{}]-{} per messaggio [{}]-{}", ricevutaId, ricevutaTipo, messaggioInviatoId, messaggioInviatoOggetto);
+				MessaggioPec messaggioDiRiferimento = null;
+				for (MessaggioPec messaggioInviato : messaggiInviati) {
+					long messaggioInviatoId = messaggioInviato.getId();
+					String messaggioInviatoOggetto = messaggioInviato.getOggetto();
+					String messaggioInviatoMessageId = messaggioInviato.getMessageID();
+					/*
+					 * con il protocollo verifico se e' un messaggio di stato di
+					 * questo messaggio inviato
+					 */
+					// if (StringUtils.isNotBlank(oggettoRicevuto) &&
+					// StringUtils.isNotBlank(messaggioInviato.getProtocollo()))
+					// {
+					// sono in presenza di una ricevuta in ingresso
+					// la ricevuta ha un riferimento ad un messageid
+					// sono in possessio del messaggio che ho inviato
+					if (StringUtils.isNotBlank(ricevutaTipo) && StringUtils.isNotBlank(ricevutaRiferimentoMessageId) && StringUtils.isNotBlank(messaggioInviatoMessageId)) {
+						if (ricevutaRiferimentoMessageId.equals(messaggioInviatoMessageId)) {
+							logger.info("analisi ricevuta [{}]-{} per messaggio [{}]-{}", ricevutaId, ricevutaTipo, messaggioInviatoId, messaggioInviatoOggetto);
 
-						messaggioDiRiferimento = messaggioInviato;
-						// if
-						// (oggettoRicevuto.indexOf(messaggioInviato.getProtocollo())
-						// > -1) {
-						if (RICEVUTA_ACCETTAZIONE.equals(ricevutaTipo)) {
-							if (!messaggioInviato.isAccettato()) {
-								messaggioInviato.setAccettato(true);
-								messaggioInviato.setAccettatoIdMessaggio(ricevutaPec.getId());
+							messaggioDiRiferimento = messaggioInviato;
+							// if
+							// (oggettoRicevuto.indexOf(messaggioInviato.getProtocollo())
+							// > -1) {
+							if (RICEVUTA_ACCETTAZIONE.equals(ricevutaTipo)) {
+								if (!messaggioInviato.isAccettato()) {
+									messaggioInviato.setAccettato(true);
+									messaggioInviato.setAccettatoIdMessaggio(ricevutaPec.getId());
 
-								messaggioInviato.markAsUpdated(0);
-								JpaController.callUpdate(emf, messaggioInviato);
+									messaggioInviato.markAsUpdated(0);
+									JpaController.callUpdate(emf, messaggioInviato);
 
-								// String newPath =
-								// ArchivioEmlBL.spostaEml("ACCETTAZIONE",
-								// messaggioInviato, messaggioNuovoRicevuto);
-								// if (StringUtils.isNotBlank(newPath)) {
-								// messaggioNuovoRicevuto.setEmlFile(newPath);
-								// }
-								ricevutaPec.setProtocollo(messaggioInviato.getProtocollo());
-								ricevutaPec.markAsUpdated(0);
-								JpaController.callUpdate(emf, ricevutaPec);
+									// String newPath =
+									// ArchivioEmlBL.spostaEml("ACCETTAZIONE",
+									// messaggioInviato,
+									// messaggioNuovoRicevuto);
+									// if (StringUtils.isNotBlank(newPath))
+									// {
+									// messaggioNuovoRicevuto.setEmlFile(newPath);
+									// }
+									ricevutaPec.setProtocollo(messaggioInviato.getProtocollo());
+									ricevutaPec.markAsUpdated(0);
+									JpaController.callUpdate(emf, ricevutaPec);
 
-								// // TODO: Guardare che non sia gia' stata
-								// fatta
-								// // una
-								// // notifica in precedenza !!!
-								// // if
-								// //
-								// (Configurazione.get(emf).isEnableNotifyStatus())
-								// // {
-								// logger.info("creaNotificaCambioStatoAdUtente "
-								// + OGGETTO_ACCETTAZIONE);
-								// NotificaBL.creaNotificaCambioStatoAdUtente(emf,
-								// null, utente.getIdUtente(),
-								// OGGETTO_ACCETTAZIONE, messaggioNuovoRicevuto,
-								// messaggioInviato);
-								// // }
+									// // TODO: Guardare che non sia gia'
+									// stata
+									// fatta
+									// // una
+									// // notifica in precedenza !!!
+									// // if
+									// //
+									// (Configurazione.get(emf).isEnableNotifyStatus())
+									// // {
+									// logger.info("creaNotificaCambioStatoAdUtente "
+									// + OGGETTO_ACCETTAZIONE);
+									// NotificaBL.creaNotificaCambioStatoAdUtente(emf,
+									// null, utente.getIdUtente(),
+									// OGGETTO_ACCETTAZIONE,
+									// messaggioNuovoRicevuto,
+									// messaggioInviato);
+									// // }
+								}
+
+								messaggioCambioStato = true;
+								break;
+
+							} else if (RICEVUTA_CONSEGNA.equals(ricevutaTipo)) {
+								if (!messaggioInviato.isConsegnato()) {
+									messaggioInviato.setConsegnato(true);
+									messaggioInviato.setConsegnatoIdMessaggio(ricevutaPec.getId());
+									messaggioInviato.markAsUpdated(0);
+									JpaController.callUpdate(emf, messaggioInviato);
+
+									// String newPath =
+									// ArchivioEmlBL.spostaEml("CONSEGNA",
+									// messaggioInviato,
+									// messaggioNuovoRicevuto);
+									// if (StringUtils.isNotBlank(newPath))
+									// {
+									// messaggioNuovoRicevuto.setEmlFile(newPath);
+									// }
+									ricevutaPec.setProtocollo(messaggioInviato.getProtocollo());
+									ricevutaPec.markAsUpdated(0);
+									JpaController.callUpdate(emf, ricevutaPec);
+
+									// // if
+									// //
+									// (Configurazione.get(emf).isEnableNotifyStatus())
+									// // {
+									// logger.info("creaNotificaCambioStatoAdUtente "
+									// + OGGETTO_CONSEGNA);
+									// NotificaBL.creaNotificaCambioStatoAdUtente(emf,
+									// null, utente.getIdUtente(),
+									// OGGETTO_CONSEGNA,
+									// messaggioNuovoRicevuto,
+									// messaggioInviato);
+									// // }
+								}
+								messaggioCambioStato = true;
+								break;
+
+							} else if (RICEVUTA_ERRORE_CONSEGNA.equals(ricevutaTipo)) {
+								if (!messaggioInviato.isAnomalia()) {
+									messaggioInviato.setAnomalia(true);
+									messaggioInviato.setAnomaliaIdMessaggio(ricevutaPec.getId());
+									messaggioInviato.markAsUpdated(0);
+									JpaController.callUpdate(emf, messaggioInviato);
+
+									// String newPath =
+									// ArchivioEmlBL.spostaEml("ANOMALIA",
+									// messaggioInviato,
+									// messaggioNuovoRicevuto);
+									// if (StringUtils.isNotBlank(newPath))
+									// {
+									// messaggioNuovoRicevuto.setEmlFile(newPath);
+									// }
+									ricevutaPec.setProtocollo(messaggioInviato.getProtocollo());
+									ricevutaPec.markAsUpdated(0);
+									JpaController.callUpdate(emf, ricevutaPec);
+
+									// // if
+									// //
+									// (Configurazione.get(emf).isEnableNotifyStatus())
+									// // {
+									// logger.info("creaNotificaCambioStatoAdUtente "
+									// + OGGETTO_ANOMALIA_MESSAGGIO);
+									// NotificaBL.creaNotificaCambioStatoAdUtente(emf,
+									// null, utente.getIdUtente(),
+									// OGGETTO_ANOMALIA_MESSAGGIO,
+									// messaggioNuovoRicevuto,
+									// messaggioInviato);
+									// // }
+								}
+								messaggioCambioStato = true;
+								break;
 							}
-
-							messaggioCambioStato = true;
-							break;
-
-						} else if (RICEVUTA_CONSEGNA.equals(ricevutaTipo)) {
-							if (!messaggioInviato.isConsegnato()) {
-								messaggioInviato.setConsegnato(true);
-								messaggioInviato.setConsegnatoIdMessaggio(ricevutaPec.getId());
-								messaggioInviato.markAsUpdated(0);
-								JpaController.callUpdate(emf, messaggioInviato);
-
-								// String newPath =
-								// ArchivioEmlBL.spostaEml("CONSEGNA",
-								// messaggioInviato, messaggioNuovoRicevuto);
-								// if (StringUtils.isNotBlank(newPath)) {
-								// messaggioNuovoRicevuto.setEmlFile(newPath);
-								// }
-								ricevutaPec.setProtocollo(messaggioInviato.getProtocollo());
-								ricevutaPec.markAsUpdated(0);
-								JpaController.callUpdate(emf, ricevutaPec);
-
-								// // if
-								// //
-								// (Configurazione.get(emf).isEnableNotifyStatus())
-								// // {
-								// logger.info("creaNotificaCambioStatoAdUtente "
-								// + OGGETTO_CONSEGNA);
-								// NotificaBL.creaNotificaCambioStatoAdUtente(emf,
-								// null, utente.getIdUtente(), OGGETTO_CONSEGNA,
-								// messaggioNuovoRicevuto, messaggioInviato);
-								// // }
-							}
-							messaggioCambioStato = true;
-							break;
-
-						} else if (RICEVUTA_ERRORE_CONSEGNA.equals(ricevutaTipo)) {
-							if (!messaggioInviato.isAnomalia()) {
-								messaggioInviato.setAnomalia(true);
-								messaggioInviato.setAnomaliaIdMessaggio(ricevutaPec.getId());
-								messaggioInviato.markAsUpdated(0);
-								JpaController.callUpdate(emf, messaggioInviato);
-
-								// String newPath =
-								// ArchivioEmlBL.spostaEml("ANOMALIA",
-								// messaggioInviato, messaggioNuovoRicevuto);
-								// if (StringUtils.isNotBlank(newPath)) {
-								// messaggioNuovoRicevuto.setEmlFile(newPath);
-								// }
-								ricevutaPec.setProtocollo(messaggioInviato.getProtocollo());
-								ricevutaPec.markAsUpdated(0);
-								JpaController.callUpdate(emf, ricevutaPec);
-
-								// // if
-								// //
-								// (Configurazione.get(emf).isEnableNotifyStatus())
-								// // {
-								// logger.info("creaNotificaCambioStatoAdUtente "
-								// + OGGETTO_ANOMALIA_MESSAGGIO);
-								// NotificaBL.creaNotificaCambioStatoAdUtente(emf,
-								// null, utente.getIdUtente(),
-								// OGGETTO_ANOMALIA_MESSAGGIO,
-								// messaggioNuovoRicevuto, messaggioInviato);
-								// // }
-							}
-							messaggioCambioStato = true;
-							break;
 						}
+					} else {
+						logger.warn("Oggetto o Protocollo non valorizzati in questo messaggio con id=" + messaggioInviato.getId());
+					}
+				}
+
+				// if (!messaggioCambioStato) {
+				// logger.info("creaNotificaRicezioneAiResponsabili");
+				// NotificaBL.creaNotificaRicezioneAiResponsabili(emf, null,
+				// utente.getIdUtente(), messaggioNuovoRicevuto);
+				// }
+
+				if (!regoleAggiornaStato.isEmpty() && messaggioCambioStato && messaggioDiRiferimento != null) {
+					AzioneContext ctx = AzioneContext.buildContextRicevute(emf, ricevutaPec, messaggioDiRiferimento);
+					AzioneEsito esitoRegole = RegolaPecBL.applicaRegole(emf, regoleAggiornaStato, ctx);
+
+					if (esitoRegole.stato == AzioneEsitoStato.OK || esitoRegole.stato == AzioneEsitoStato.NON_APPLICABILE) {
+						ricevutaPec.setProcessato(true);
+						ricevutaPec.markAsUpdated(0);
+						JpaController.callUpdate(emf, ricevutaPec);
+					} else {
+						ricevutaPec.setErroreInvio(esitoRegole.errore);
+						JpaController.callUpdate(emf, ricevutaPec);
+
+						String message = String.format("si e' verificato un errore applicando le regole evento %s al messaggio %s", RegolaPecEventoEnum.AGGIORNA_STATO, ricevutaPec);
+						erroriAggiornaRicevute.add(new PecException(message, esitoRegole.eccezione));
 					}
 				} else {
-					logger.warn("Oggetto o Protocollo non valorizzati in questo messaggio con id=" + messaggioInviato.getId());
+					logger.warn("non vengono applicate regole di cambio stato");
+					logger.debug("regoleAggiornaStato={}", regoleAggiornaStato.isEmpty());
+					logger.debug("messaggioCambioStato={}", messaggioCambioStato);
+					logger.debug("messaggioDiRiferimento={}", messaggioDiRiferimento);
 				}
+
+				i++;
 			}
-
-			// if (!messaggioCambioStato) {
-			// logger.info("creaNotificaRicezioneAiResponsabili");
-			// NotificaBL.creaNotificaRicezioneAiResponsabili(emf, null,
-			// utente.getIdUtente(), messaggioNuovoRicevuto);
-			// }
-
-			if (!regoleAggiornaStato.isEmpty() && messaggioCambioStato && messaggioDiRiferimento != null) {
-				AzioneContext ctx = AzioneContext.buildContextRicevute(emf, ricevutaPec, messaggioDiRiferimento);
-				AzioneEsito esitoRegole = RegolaPecBL.applicaRegole(emf, regoleAggiornaStato, ctx);
-
-				if (esitoRegole.stato == AzioneEsitoStato.OK || esitoRegole.stato == AzioneEsitoStato.NON_APPLICABILE) {
-					ricevutaPec.setProcessato(true);
-					ricevutaPec.markAsUpdated(0);
-					JpaController.callUpdate(emf, ricevutaPec);
-				} else {
-					ricevutaPec.setErroreInvio(esitoRegole.errore);
-					JpaController.callUpdate(emf, ricevutaPec);
-
-					String message = String.format("si e' verificato un errore applicando le regole evento %s al messaggio %s", RegolaPecEventoEnum.AGGIORNA_STATO, ricevutaPec);
-					erroriAggiornaRicevute.add(new PecException(message, esitoRegole.eccezione));
-				}
-			} else {
-				logger.warn("non vengono applicate regole di cambio stato");
-				logger.info("regoleAggiornaStato={}", regoleAggiornaStato.isEmpty());
-				logger.info("messaggioCambioStato={}", messaggioCambioStato);
-				logger.info("messaggioDiRiferimento={}", messaggioDiRiferimento);
-			}
-
-			i++;
+			logger.info(i + " messaggi ricevute verificati");
 		}
-
-		logger.info(i + " messaggi ricevute verificati");
-
 		// /*
 		// * Verifico se per dei messaggi inviati devo salvare una notifica di
 		// * Obsolescenza
@@ -1056,6 +1071,46 @@ public class MessaggioPecBL {
 
 	private static List<PecException> aggiornaSegnatura(EntityManagerFactory emf, String utente) throws Exception {
 		List<PecException> erroriAggiornaSegnatura = new ArrayList<PecException>();
+
+		MessaggioPecFilter filtroMessaggiNonRicevuteNonProcessati = new MessaggioPecFilter();
+		filtroMessaggiNonRicevuteNonProcessati.setFolder(Folder.IN);
+		filtroMessaggiNonRicevuteNonProcessati.setSoloNonProcessati(true);
+		filtroMessaggiNonRicevuteNonProcessati.setNonRicevute(true);
+
+		logger.info("query messaggi da processare...");
+		List<MessaggioPec> messaggiDaProcessare = JpaController.callFind(emf, MessaggioPec.class, filtroMessaggiNonRicevuteNonProcessati);
+
+		List<RegolaPec> regoleAggiornaSegnatura = RegolaPecBL.regole(emf, RegolaPecEventoEnum.AGGIORNA_SEGNATURA);
+		if (regoleAggiornaSegnatura.isEmpty()) {
+			logger.warn("non ci sono regole per evento {}", RegolaPecEventoEnum.AGGIORNA_SEGNATURA.name());
+		} else {
+			logger.warn("{} regole caricate per evento {}", regoleAggiornaSegnatura.size(), RegolaPecEventoEnum.AGGIORNA_SEGNATURA.name());
+		}
+
+		if (messaggiDaProcessare.isEmpty()) {
+			logger.warn("non ci sono messaggi da processare in questo archivio");
+		} else {
+			int i = 0;
+			for (MessaggioPec messaggioDaProcessare : messaggiDaProcessare) {
+				// creo contesto per le regole
+				AzioneContext ctx = AzioneContext.buildContextMessaggi(emf, null, messaggioDaProcessare, messaggioDaProcessare.getMailbox());
+				AzioneEsito esitoRegole = RegolaPecBL.applicaRegole(emf, regoleAggiornaSegnatura, ctx);
+				// verifico esito e gestisco memorizzazione errori o successo
+				if (esitoRegole.stato == AzioneEsitoStato.OK || esitoRegole.stato == AzioneEsitoStato.NON_APPLICABILE) {
+					messaggioDaProcessare.setProcessato(true);
+					messaggioDaProcessare.markAsUpdated(0);
+					JpaController.callUpdate(emf, messaggioDaProcessare);
+				} else {
+					messaggioDaProcessare.setErroreInvio(esitoRegole.errore);
+					JpaController.callUpdate(emf, messaggioDaProcessare);
+					// accodo questo errore all'elenco
+					String message = String.format("si e' verificato un errore applicando le regole evento %s al messaggio %s", RegolaPecEventoEnum.AGGIORNA_SEGNATURA, messaggioDaProcessare);
+					erroriAggiornaSegnatura.add(new PecException(message, esitoRegole.eccezione));
+				}
+			}
+			logger.info(i + " messaggi processati");
+		}
+
 		return erroriAggiornaSegnatura;
 	}
 }
