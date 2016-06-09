@@ -33,9 +33,9 @@ public class RegolaPecBL {
 
 		List<RegolaPec> res = JpaController.callFind(emf, RegolaPec.class, filtro);
 
-		if (res == null || res.size() == 0) {
-			logger.warn("nessuna regola configurata per evento {}", evento);
-		}
+//		if (res == null || res.size() == 0) {
+//			logger.warn("nessuna regola configurata per evento {}", evento);
+//		}
 
 		return res;
 	}
@@ -143,7 +143,7 @@ public class RegolaPecBL {
 			}
 			
 		} else {
-			logger.warn("nessuna regola da applicare");
+			logger.warn("nessuna regola da applicare specificata");
 			res = AzioneEsito.ok("", "");
 		}
 				
