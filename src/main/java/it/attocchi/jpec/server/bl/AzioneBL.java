@@ -20,8 +20,8 @@ public class AzioneBL {
 	protected static final Logger logger = LoggerFactory.getLogger(AzioneBL.class);
 	
 	// Message email, MessaggioPec pec, String mailboxName, 
-	public static synchronized AzioneGenerica creaIstanzaAzione(EntityManagerFactory emf, String classe, AzioneContext context) {
-		AzioneGenerica istanzaProtocollo = null;
+	public static synchronized AzioneGenerica creaIstanzaAzione(EntityManagerFactory emf, String classe, AzioneContext context) throws PecException {
+		AzioneGenerica istanzaAzione = null;
 		
 //		String protocolloImplGenerico = ConfigurazioneBL.getValueStringDB(emf, ConfigurazionePecEnum.PEC_PROTOCOLLO_IMPL);
 //		String protocolloImplMailbox = ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_PROTOCOLLO_IMPL, mailboxName);
@@ -30,29 +30,31 @@ public class AzioneBL {
 
 		if (StringUtils.isNotBlank(azioneImpl)) {
 			Properties configurazioneMailbox = ConfigurazioneBL.getConfigurazione(context.getMailboxName());
-			logger.debug("implementazione classe: {}", azioneImpl);
+			logger.info("implementazione classe: {}", azioneImpl);
 			// istanzaProtocollo = ProtocolloBL.creaIstanzaProtocollo(emf, protocolloImpl, messaggioEmail, configurazioneMailbox);
 			try {
 				Object protocolloInstance = Class.forName(azioneImpl).newInstance();
 				if (protocolloInstance instanceof AzioneGenerica) {
-					istanzaProtocollo = (AzioneGenerica) protocolloInstance;
+					istanzaAzione = (AzioneGenerica) protocolloInstance;
 
 					// AzioneContext context = AzioneContext.buildContextMessaggi(emf, email, pec, configurazioneMailbox);
 					context.setConfigurazioneMailbox(configurazioneMailbox);
-					istanzaProtocollo.inizialize(context);
+					istanzaAzione.inizialize(context);
 
 				} else {
-					throw new PecException("la classe specificata per l'esecuzione dell'azione non implementa l'interfaccia " + AzioneGenerica.class.getName());
+					throw new PecException("la classe specificata non implementa l'interfaccia " + AzioneGenerica.class.getName());
 				}
 			} catch (Exception ex) {
-				logger.debug("errore creazione istanza classe azione {}", azioneImpl);
 				// res.errore = ex.getMessage();
+				String message = String.format("errore creazione istanza classe azione %s", azioneImpl);
+				logger.error(message);
+				// throw new PecException(message, ex);
 			}
 		} else {
-			logger.debug("nessuna classe specificata per l'esecuzione di una azione");
+			logger.warn("nessuna classe specificata per l'esecuzione di una azione");
 		}
 		
-		return istanzaProtocollo;
+		return istanzaAzione;
 	}
 
 	// public synchronized ProtocolloEsito eseguiOLD(EntityManagerFactory emf,
