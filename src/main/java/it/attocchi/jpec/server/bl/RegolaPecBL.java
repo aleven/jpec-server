@@ -136,7 +136,7 @@ public class RegolaPecBL {
 						res = AzioneEsito.ok("", "");
 					}
 				} else {
-					res = AzioneEsito.nonApplicabile("criterio di Applicazione Regola Non Soddisfatto");
+					res = AzioneEsito.regolaNonApplicabile("criterio di Applicazione Regola Non Soddisfatto");
 				}
 				
 				// tutteLeRegoleVerificate = tutteLeRegoleVerificate && criterioRegolaVerificato;

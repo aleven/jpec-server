@@ -324,7 +324,7 @@ public class MessaggioPecBL {
 									messaggioPec.setProtocollo(esitoProtocollo.protocollo);
 									messaggioPec.setUrlDocumentale(esitoProtocollo.urlDocumentale);
 									logger.info("messaggio protocollato: {}", esitoProtocollo);
-								} else if (esitoProtocollo.stato == AzioneEsitoStato.NON_APPLICABILE) {
+								} else if (esitoProtocollo.stato == AzioneEsitoStato.REGOLA_NON_APPLICABILE) {
 									logger.warn(esitoProtocollo.errore);
 								} else if (esitoProtocollo.stato == AzioneEsitoStato.NOTIFICA) {
 									erroreInProtocollo = true;
@@ -1013,7 +1013,7 @@ public class MessaggioPecBL {
 					AzioneContext ctx = AzioneContext.buildContextRicevute(emf, ricevutaPec, messaggioDiRiferimento);
 					AzioneEsito esitoRegole = RegolaPecBL.applicaRegole(emf, regoleAggiornaStato, ctx);
 
-					if (esitoRegole.stato == AzioneEsitoStato.OK || esitoRegole.stato == AzioneEsitoStato.NON_APPLICABILE) {
+					if (esitoRegole.stato == AzioneEsitoStato.OK || esitoRegole.stato == AzioneEsitoStato.REGOLA_NON_APPLICABILE) {
 						ricevutaPec.setProcessato(true);
 						ricevutaPec.markAsUpdated(0);
 						JpaController.callUpdate(emf, ricevutaPec);
@@ -1092,20 +1092,26 @@ public class MessaggioPecBL {
 		} else {
 			int i = 0;
 			for (MessaggioPec messaggioDaProcessare : messaggiDaProcessare) {
-				// creo contesto per le regole
-				AzioneContext ctx = AzioneContext.buildContextMessaggi(emf, null, messaggioDaProcessare, messaggioDaProcessare.getMailbox());
-				AzioneEsito esitoRegole = RegolaPecBL.applicaRegole(emf, regoleAggiornaSegnatura, ctx);
-				// verifico esito e gestisco memorizzazione errori o successo
-				if (esitoRegole.stato == AzioneEsitoStato.OK || esitoRegole.stato == AzioneEsitoStato.NON_APPLICABILE) {
-					messaggioDaProcessare.setProcessato(true);
-					messaggioDaProcessare.markAsUpdated(0);
-					JpaController.callUpdate(emf, messaggioDaProcessare);
+
+				if (messaggioDaProcessare.getSegnaturaXml() != null && !messaggioDaProcessare.getSegnaturaXml().isEmpty()) {
+					// creo contesto per le regole
+					AzioneContext ctx = AzioneContext.buildContextMessaggi(emf, null, messaggioDaProcessare, messaggioDaProcessare.getMailbox());
+					AzioneEsito esitoRegole = RegolaPecBL.applicaRegole(emf, regoleAggiornaSegnatura, ctx);
+					// verifico esito e gestisco memorizzazione errori o
+					// successo
+					if (esitoRegole.stato == AzioneEsitoStato.OK || esitoRegole.stato == AzioneEsitoStato.REGOLA_NON_APPLICABILE) {
+						messaggioDaProcessare.setProcessato(true);
+						messaggioDaProcessare.markAsUpdated(0);
+						JpaController.callUpdate(emf, messaggioDaProcessare);
+					} else {
+						messaggioDaProcessare.setErroreInvio(esitoRegole.errore);
+						JpaController.callUpdate(emf, messaggioDaProcessare);
+						// accodo questo errore all'elenco
+						String message = String.format("si e' verificato un errore applicando le regole evento %s al messaggio %s", RegolaPecEventoEnum.AGGIORNA_SEGNATURA, messaggioDaProcessare);
+						erroriAggiornaSegnatura.add(new PecException(message, esitoRegole.eccezione));
+					}
 				} else {
-					messaggioDaProcessare.setErroreInvio(esitoRegole.errore);
-					JpaController.callUpdate(emf, messaggioDaProcessare);
-					// accodo questo errore all'elenco
-					String message = String.format("si e' verificato un errore applicando le regole evento %s al messaggio %s", RegolaPecEventoEnum.AGGIORNA_SEGNATURA, messaggioDaProcessare);
-					erroriAggiornaSegnatura.add(new PecException(message, esitoRegole.eccezione));
+					logger.warn("segnatura non presente per questo messaggio {}", messaggiDaProcessare);
 				}
 			}
 			logger.info(i + " messaggi processati");

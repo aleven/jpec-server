@@ -8,7 +8,7 @@ public class AzioneEsito {
 	
 	public enum AzioneEsitoStato {
 		OK,
-		NON_APPLICABILE,
+		REGOLA_NON_APPLICABILE,
 		NOTIFICA,
 		ERRORE
 	}
@@ -40,9 +40,9 @@ public class AzioneEsito {
 		return esitoErrore;
 	}
 	
-	public static AzioneEsito nonApplicabile(String messaggio) {
+	public static AzioneEsito regolaNonApplicabile(String messaggio) {
 		AzioneEsito esito = new AzioneEsito();
-		esito.stato = AzioneEsitoStato.NON_APPLICABILE;
+		esito.stato = AzioneEsitoStato.REGOLA_NON_APPLICABILE;
 		esito.errore = messaggio;
 		return esito;
 	}	
