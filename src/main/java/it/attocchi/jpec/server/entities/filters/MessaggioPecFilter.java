@@ -40,6 +40,7 @@ public class MessaggioPecFilter extends JPAEntityFilter<MessaggioPec> {
 	private boolean conStatoDaAggiornare;
 	private boolean conMessageID;
 	private boolean soloRicevuteConRiferimento;
+	private boolean nonRicevute;
 
 	public boolean isEscludiConsegnati() {
 		return escludiConsegnati;
@@ -73,6 +74,14 @@ public class MessaggioPecFilter extends JPAEntityFilter<MessaggioPec> {
 		this.soloRicevuteConRiferimento = soloRicevuteConRiferimento;
 	}
 
+	public void setNonRicevute(boolean nonRicevute) {
+		this.nonRicevute = nonRicevute;
+	}
+	
+	public boolean isNonRicevute() {
+		return nonRicevute;
+	}
+	
 	private String oggetto;
 	private Date dataRicezione;
 	private String messageID;
@@ -209,9 +218,14 @@ public class MessaggioPecFilter extends JPAEntityFilter<MessaggioPec> {
 			Predicate p2 = criteriaBuilder.notEqual(root.get(MessaggioPec_.xRicevuta), "");
 			Predicate p3 = criteriaBuilder.isNotNull(root.get(MessaggioPec_.xRiferimentoMessageID));
 			Predicate p4 = criteriaBuilder.notEqual(root.get(MessaggioPec_.xRiferimentoMessageID), "");			
-			predicateList.add(criteriaBuilder.and(p1, p2));
-		}		
-
+			predicateList.add(criteriaBuilder.and(p1, p2, p3, p4));
+		}
+		if (nonRicevute) {
+			Predicate p1 = criteriaBuilder.isNull(root.get(MessaggioPec_.xRicevuta));
+			Predicate p2 = criteriaBuilder.equal(root.get(MessaggioPec_.xRicevuta), "");
+			predicateList.add(criteriaBuilder.or(p1, p2));
+		}
+		
 		if (StringUtils.isNotEmpty(oggetto)) {
 			predicateList.add(criteriaBuilder.equal(root.get(MessaggioPec_.oggetto), oggetto));
 		}

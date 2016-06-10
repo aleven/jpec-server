@@ -24,7 +24,7 @@ public class TestDaticertDb {
 
 			List<MessaggioPec> messaggi = MessaggioPecBL.getMessaggioPecIn(emf);
 			for (MessaggioPec pec : messaggi) {
-				List<DaticertDestinatario> res = new DaticertInfo().leggiRicevutaDaXml(pec.getDaticertxml());
+				List<DaticertDestinatario> res = new DaticertInfo().leggiRicevutaDaXml(pec.getDaticertXml());
 				logger.info("{}", res);
 			}
 		} catch (Exception ex) {
