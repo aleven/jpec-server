@@ -1115,7 +1115,7 @@ public class MessaggioPecBL {
 						erroriAggiornaSegnatura.add(new PecException(message, esitoRegole.eccezione));
 					}
 				} else {
-					logger.warn("segnatura non presente per questo messaggio {}", messaggiDaProcessare);
+					logger.warn("segnatura non presente per questo messaggio {}", messaggioDaProcessare);
 				}
 			}
 			logger.info(i + " messaggi processati");
