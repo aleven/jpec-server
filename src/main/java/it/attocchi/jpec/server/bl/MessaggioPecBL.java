@@ -1108,13 +1108,16 @@ public class MessaggioPecBL {
 						messaggioDaProcessare.markAsUpdated(0);
 						JpaController.callUpdate(emf, messaggioDaProcessare);
 					} else {
-						messaggioDaProcessare.setErroreInvio(esitoRegole.errore);
+						messaggioDaProcessare.setProcessato(true);
+						messaggioDaProcessare.setErroreInvio(String.format("%s: %s", esitoRegole.errore, esitoRegole.eccezione.getMessage()));
 						JpaController.callUpdate(emf, messaggioDaProcessare);
 						// accodo questo errore all'elenco
 						String message = String.format("si e' verificato un errore applicando le regole evento %s al messaggio %s", RegolaPecEventoEnum.AGGIORNA_SEGNATURA, messaggioDaProcessare);
 						erroriAggiornaSegnatura.add(new PecException(message, esitoRegole.eccezione));
 					}
 				} else {
+					messaggioDaProcessare.setProcessato(true);
+					JpaController.callUpdate(emf, messaggioDaProcessare);
 					logger.warn("segnatura non presente per questo messaggio {}", messaggioDaProcessare);
 				}
 			}
