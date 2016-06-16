@@ -25,6 +25,12 @@ public class AzioneEsito {
 		return esitoOk;
 	}
 	
+	public static AzioneEsito ok(String protocollo, String urlDocumentale, String nota) {
+		AzioneEsito esitoOk = ok(protocollo, urlDocumentale);
+		esitoOk.errore = nota;
+		return esitoOk;
+	}
+	
 	public static AzioneEsito notifica(String messaggio, Throwable ex) {
 		AzioneEsito esitoErrore = new AzioneEsito();
 		esitoErrore.stato = AzioneEsitoStato.NOTIFICA;
