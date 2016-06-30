@@ -41,4 +41,24 @@ public class TestRegolaHelper {
 		RegolaPecHelper helper = new RegolaPecHelper(regolaTest, mime);
 		Assert.assertFalse(helper.attachmentNameMatch("TEEST.xml"));
 	}
+	
+	@Test
+	public void testRegolaBustaAnomalia() throws Exception {
+		RegolaPec regolaTest = new RegolaPec();
+		regolaTest.setNome("TEST");
+		InputStream is = new FileInputStream("/home/mirco/Desktop/AnomaliaMessaggio.eml");
+		Message mime = new MimeMessage(null, is);
+		RegolaPecHelper helper = new RegolaPecHelper(regolaTest, mime);
+		Assert.assertTrue(helper.isMessaggioBustaAnomalia());
+	}
+	
+	@Test
+	public void testRegolaNonBustaAnomalia() throws Exception {
+		RegolaPec regolaTest = new RegolaPec();
+		regolaTest.setNome("TEST");
+		InputStream is = new FileInputStream("/home/mirco/Desktop/RicevutaEccezione.eml");
+		Message mime = new MimeMessage(null, is);
+		RegolaPecHelper helper = new RegolaPecHelper(regolaTest, mime);
+		Assert.assertFalse(helper.isMessaggioBustaAnomalia());
+	}		
 }
