@@ -3,14 +3,14 @@ package it.attocchi.jpec.server.regole;
 import it.attocchi.jpec.server.bl.MessaggioPecBL;
 import it.attocchi.jpec.server.bl.RegolaPecBL;
 import it.attocchi.jpec.server.entities.RegolaPec;
-import it.attocchi.mail.parts.MailAttachmentUtil;
-import it.attocchi.mail.utils.MailUtils;
+import it.attocchi.mail.utils.PecParser2;
 
 import java.util.Enumeration;
-import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.activation.DataHandler;
 import javax.mail.Address;
 import javax.mail.Flags.Flag;
 import javax.mail.Header;
@@ -81,11 +81,11 @@ public class RegolaPecHelper {
 		}
 		return res;
 	}
-	
+
 	public boolean isNotMessaggioRicevuta() {
 		return !isMessaggioRicevuta();
 	}
-	
+
 	/**
 	 * 
 	 * @param regExp
@@ -111,7 +111,7 @@ public class RegolaPecHelper {
 		}
 		return res;
 	}
-	
+
 	/**
 	 * 
 	 * @param regExp
@@ -137,7 +137,7 @@ public class RegolaPecHelper {
 		}
 		return res;
 	}
-	
+
 	/**
 	 * 
 	 * @param regExp
@@ -147,14 +147,20 @@ public class RegolaPecHelper {
 		boolean res = false;
 		try {
 			logger.debug("criterio attachmentNameMatch applicato da regola {} su messaggio {}", regola, messaggioEmail);
-			List<MailAttachmentUtil> attachments = MailUtils.getAttachments(messaggioEmail);
+			// List<MailAttachmentUtil> attachments =
+			// MailUtils.getAttachments(messaggioEmail);
+			PecParser2 p2 = new PecParser2();
+			p2.dumpPart(messaggioEmail);
+			Map<String, DataHandler> attachments = p2.getAttachments();
 			if (attachments != null) {
-				for (MailAttachmentUtil attachment : attachments) {
-					Pattern pattern = Pattern.compile(regExp);
-					Matcher matcher = pattern.matcher(attachment.getFileName());
-					res = matcher.matches();
-					if (res) {
-						break;
+				for (String attachmentName : attachments.keySet()) {
+					if (StringUtils.isNotBlank(attachmentName)) {
+						Pattern pattern = Pattern.compile(regExp);
+						Matcher matcher = pattern.matcher(attachmentName);
+						res = matcher.matches();
+						if (res) {
+							break;
+						}
 					}
 				}
 			}
@@ -162,5 +168,5 @@ public class RegolaPecHelper {
 			logger.error("errore attachmentNameMatch", ex);
 		}
 		return res;
-	}	
+	}
 }
