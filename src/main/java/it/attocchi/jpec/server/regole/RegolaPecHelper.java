@@ -82,6 +82,29 @@ public class RegolaPecHelper {
 		return res;
 	}
 
+	public boolean isMessaggioBustaAnomalia() {
+		boolean res = false;
+		try {
+			logger.debug("criterio isMessaggioBustaAnomalia applicato da regola {} su messaggio {}", regola, messaggioEmail);
+			String headerXTrasporto = "";
+			if (messaggioEmail.getAllHeaders() != null) {
+				Enumeration headers = messaggioEmail.getAllHeaders();
+				while (headers.hasMoreElements()) {
+					Header h = (Header) headers.nextElement();
+					String headerName = h.getName();
+					if (MessaggioPecBL.HEADER_X_TRASPORTO.equalsIgnoreCase(headerName)) {
+						headerXTrasporto = h.getValue();
+						break;
+					}
+				}
+			}
+			res = MessaggioPecBL.BUSTA_ANOMALIA.equals(headerXTrasporto);
+		} catch (Exception ex) {
+			logger.error("errore isMessaggioRicevuta", ex);
+		}
+		return res;
+	}
+
 	public boolean isNotMessaggioRicevuta() {
 		return !isMessaggioRicevuta();
 	}
