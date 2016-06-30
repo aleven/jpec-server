@@ -58,6 +58,7 @@ public class MessaggioPecBL {
 	public static final String OGGETTO_POSTA_CERTIFICATA = "POSTA CERTIFICATA:";
 
 	public static final String BUSTA_TRASPORTO = "posta-certificata";
+	public static final String BUSTA_ANOMALIA = "errore";
 	public static final String RICEVUTA_ACCETTAZIONE = "accettazione";
 	public static final String RICEVUTA_CONSEGNA = "avvenuta-consegna";
 	public static final String RICEVUTA_ERRORE_CONSEGNA = "errore-consegna";
