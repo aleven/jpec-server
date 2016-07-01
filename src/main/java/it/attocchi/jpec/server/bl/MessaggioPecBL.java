@@ -1084,6 +1084,8 @@ public class MessaggioPecBL {
 		List<RegolaPec> regoleAggiornaSegnatura = RegolaPecBL.regole(emf, RegolaPecEventoEnum.AGGIORNA_SEGNATURA);
 		if (regoleAggiornaSegnatura.isEmpty()) {
 			logger.warn("non ci sono regole per evento {}", RegolaPecEventoEnum.AGGIORNA_SEGNATURA.name());
+			logger.warn("processo di aggiornamento segnature sospeso");
+			return erroriAggiornaSegnatura;
 		} else {
 			logger.warn("{} regole caricate per evento {}", regoleAggiornaSegnatura.size(), RegolaPecEventoEnum.AGGIORNA_SEGNATURA.name());
 		}
