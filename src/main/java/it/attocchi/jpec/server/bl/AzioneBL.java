@@ -47,7 +47,7 @@ public class AzioneBL {
 			} catch (Exception ex) {
 				// res.errore = ex.getMessage();
 				String message = String.format("errore creazione istanza classe azione %s", azioneImpl);
-				logger.error(message);
+				logger.error(message, ex);
 				// throw new PecException(message, ex);
 			}
 		} else {
