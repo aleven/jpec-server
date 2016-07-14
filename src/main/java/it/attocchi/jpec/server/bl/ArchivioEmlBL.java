@@ -72,7 +72,7 @@ public class ArchivioEmlBL {
 
 		String prefix = StringUtils.isNotBlank(tipo) ? tipo + "_" + EML_NAME_PREFIX : EML_NAME_PREFIX;
 
-		return File.createTempFile(prefix, ".eml", storeDir);
+		return Utils.saveFile(prefix, "eml", storeDir);
 	}
 
 	public static String spostaEml(String prefisso, MessaggioPec messaggio, MessaggioPec messaggioStato) throws Exception {

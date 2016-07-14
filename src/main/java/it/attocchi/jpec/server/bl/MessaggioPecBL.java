@@ -770,13 +770,13 @@ public class MessaggioPecBL {
 		File f = null;
 		if (StringUtils.isBlank(folder)) {
 			logger.warn("non e' configurata nessuna cartella per il salvataggio degli allegati, viene utilizzata la cartella predefinita.");
-			f = File.createTempFile(FilenameUtils.getBaseName(allegatoRequest.getFileName()) + "_", "." + FilenameUtils.getExtension(allegatoRequest.getFileName()));
+			f = Utils.saveFile(FilenameUtils.getBaseName(allegatoRequest.getFileName()), FilenameUtils.getExtension(allegatoRequest.getFileName()));
 		} else {
 			File d = new File(folder);
 			if (!d.exists()) {
 				throw new PecException("La cartella configurata per il salvataggio degli allegati non e' accessibile");
 			}
-			f = File.createTempFile(FilenameUtils.getBaseName(allegatoRequest.getFileName()) + "_", "." + FilenameUtils.getExtension(allegatoRequest.getFileName()), d);
+			f = Utils.saveFile(FilenameUtils.getBaseName(allegatoRequest.getFileName()), FilenameUtils.getExtension(allegatoRequest.getFileName()), d);
 		}
 
 		FileUtils.copyInputStreamToFile(file, f);
