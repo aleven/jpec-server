@@ -91,3 +91,21 @@ Opzionali:
 * PEC_NOTIFICHE_SMTP_SSL: indica se il server smtp necessita di connessione ssl
 * PEC_NOTIFICHE_SMTP_SSLNOCHECK: indica se considerare il certificato SSL del server come attendibile (utile in caso di certificati self-signed)
 * PEC_NOTIFICHE_SENDER_NAME: specifica il nome visualizzato del mittente
+
+## Configurazione delle Regole
+Eventi a cui e' possibile agganciare comportamento personalizzato:
+|IMPORTA_MESSAGGIO|handle per la defizione di criteri per importazione dei messaggi|
+|PROTOCOLLA_MESSAGGIO|handle per la  definizione di un comportamento per la protocollazione dei messaggi|
+|AGGIORNA_SEGNATURA|handle per la definizione di un comportamento quando in presenza di una segnatura, esempio risposta automatica|
+
+### Estensione con Plugin Personalizzati
+
+it.attocchi.jpec.server.protocollo.AbstractAzione
+
+### Scripting via Groovy
+
+
+
+
+
+
