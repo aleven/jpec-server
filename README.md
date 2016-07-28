@@ -94,6 +94,8 @@ Opzionali:
 
 ## Configurazione delle Regole
 Eventi a cui e' possibile agganciare comportamento personalizzato:
+| Evento | Descrizione |
+| --- | --- |
 |IMPORTA_MESSAGGIO|handle per la defizione di criteri per importazione dei messaggi|
 |PROTOCOLLA_MESSAGGIO|handle per la  definizione di un comportamento per la protocollazione dei messaggi|
 |AGGIORNA_SEGNATURA|handle per la definizione di un comportamento quando in presenza di una segnatura, esempio risposta automatica|
