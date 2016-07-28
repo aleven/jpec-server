@@ -109,12 +109,8 @@ it.attocchi.jpec.server.protocollo.AbstractAzione
 
 | Variabile Contesto | Descrizione |
 | --- | --- |
-|azione|è la variabile che a runtime (di valutazione script goovy)
-contiene l'istanza della classe specificata nella regola nel campo
-"classe" (e quindi si possono usare tutti i suoi getter e setter)|
-|helper|la variabile che a runtime (di valutazione script
-goovy) contiene l'istanza della classe Helper (it.attocchi.jpec.server.regole.RegolaPecHelper) che ha una serie di
-"metodi utili" pronti all'uso|
+|azione|è la variabile che a runtime (di valutazione script goovy) contiene l'istanza della classe specificata nella regola nel campo "classe" (e quindi si possono usare tutti i suoi getter e setter)|
+|helper|la variabile che a runtime (di valutazione script goovy) contiene l'istanza della classe Helper (it.attocchi.jpec.server.regole.RegolaPecHelper) che ha una serie di "metodi utili" pronti all'uso|
 
 
 
