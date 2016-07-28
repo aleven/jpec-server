@@ -140,6 +140,53 @@ public class RegolaPecHelper {
 	 * @param regExp
 	 * @return
 	 */
+	public boolean subjectMatch(String regExp) {
+		boolean res = false;
+		try {
+			logger.debug("criterio subjectMatch applicato da regola {} su messaggio {}", regola, messaggioEmail);
+			String subject = messaggioEmail.getSubject();
+			if (subject != null) {
+				Pattern pattern = Pattern.compile(regExp);
+				Matcher matcher = pattern.matcher(subject);
+				res = matcher.matches();
+			}
+		} catch (Exception ex) {
+			logger.error("errore subjectMatch", ex);
+		}
+		return res;
+	}
+
+	/**
+	 * 
+	 * @param regExp
+	 * @return
+	 */
+	public boolean replyToMatch(String regExp) {
+		boolean res = false;
+		try {
+			logger.debug("criterio replyToMatch applicato da regola {} su messaggio {}", regola, messaggioEmail);
+			Address[] senders = messaggioEmail.getReplyTo();
+			if (senders != null) {
+				for (Address sender : senders) {
+					Pattern pattern = Pattern.compile(regExp);
+					Matcher matcher = pattern.matcher(sender.toString());
+					res = matcher.matches();
+					if (res) {
+						break;
+					}
+				}
+			}
+		} catch (Exception ex) {
+			logger.error("errore replyToMatch", ex);
+		}
+		return res;
+	}
+
+	/**
+	 * 
+	 * @param regExp
+	 * @return
+	 */
 	public boolean destinatarioMatch(String regExp) {
 		boolean res = false;
 		try {
