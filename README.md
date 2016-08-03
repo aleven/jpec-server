@@ -101,9 +101,17 @@ Eventi a cui e' possibile agganciare comportamento personalizzato:
 |PROTOCOLLA_MESSAGGIO|handle per la  definizione di un comportamento per la protocollazione dei messaggi|
 |AGGIORNA_SEGNATURA|handle per la definizione di un comportamento quando in presenza di una segnatura, esempio risposta automatica|
 
-### Estensione con Plugin Personalizzati
+| Evento | Descrizione |
+| --- | --- |
+|evento|hande a cui agganciare questa regola|
+|nome|nome della regola|
+|ordine|se sono configurate piu regole sullo stesso handle utile per determinare ordine di esecuzione|
+|criterio|script groovy che viene valutato per verificare se la regola è applicabile, se ritorna true viene "eseguita"|
+|azione|script groovy con il quale è possibile interagire con la regola, settando variabili ad esempio nell'istanza di classe|
+|classe|specifica quale classe istanziare per l'applicazione di questa regola|
+|note|note relative alla regola|
 
-it.attocchi.jpec.server.protocollo.AbstractAzione
+
 
 ### Scripting via Groovy
 
@@ -114,6 +122,6 @@ it.attocchi.jpec.server.protocollo.AbstractAzione
 
 l'istanza "helper" di RegolaPecHelper contiene al suo interno due field con riferimento all'istanza di RegolaPec in .regola (la regola che ha creato l'istanza di questo Helper) e di Message in .messaggioEmail (il messaggio email che sta per essere valuato)
 
+### Estensione con Plugin Personalizzati
 
-
-
+it.attocchi.jpec.server.protocollo.AbstractAzione
