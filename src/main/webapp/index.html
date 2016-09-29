@@ -21,13 +21,13 @@
 <body>
 	<div class="container">
 		<div class="row">
-			<div class="col-md-6 col-md-offset-3">
+			<div class="col-md-6 col-md-offset-3 col-xs-12">
 				<div id="result" class="alert alert-success" role="alert"></div>
 				<div id="error" class="alert alert-danger" role="alert"></div>
 			</div>
 		</div>	
 		<div class="row">
-			<div class="col-md-6 col-md-offset-3">
+			<div class="col-md-6 col-md-offset-3 col-xs-12">
 				<form id="mailboxForm">
 					<div class="form-group">
 						<label for="mailbox">Casella PEC</label>
@@ -41,7 +41,7 @@
 					</div>
 					<!-- <button type="button" id="btnRicevi" class="btn btn-default" accesskey="R" data-loading-text="Ricezione..." autocomplete="off"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> Ricevi</button> -->
 					<!-- <button type="button" id="btnInvia" class="btn btn-default" accesskey="I" data-loading-text="Invio..." autocomplete="off"><span class="glyphicon glyphicon-send" aria-hidden="true"></span> Invia</button> -->
-					<button type="button" id="btnInviaRicevi" class="btn btn-primary" accesskey="E" data-loading-text="Invio e Ricezione..." autocomplete="off"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Invia e Ricevi</button>
+					<button type="submit" id="btnInviaRicevi" class="btn btn-primary" accesskey="E" data-loading-text="Invio e Ricezione..." autocomplete="off"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Invia e Ricevi</button>
 				</form>
 			</div>
 		</div>
@@ -116,11 +116,13 @@
   			  		});
 	    	});
 	    	/* gestione azione invia e ricevi */
-	    	$("#btnInviaRicevi").click(function() {
+	    	$("#btnInviaRicevi").click(function(event) {
+	    		event.preventDefault();
 	    		$("#btnRicevi").attr("disabled", true);
 	    		$("#btnInvia").attr("disabled", true);
 	    		// $("#btnInviaRicevi").attr("disabled", true);
 	    		var $btn = $(this).button('loading');
+	    		
 	    		
 	    		$( "#result" ).empty().hide();
 	    		$( "#error" ).empty().hide();	    		
