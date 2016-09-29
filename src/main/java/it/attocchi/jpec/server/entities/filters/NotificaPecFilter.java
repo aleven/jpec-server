@@ -22,6 +22,7 @@ public class NotificaPecFilter extends JPAEntityFilter<NotificaPec> {
 	private String oggetto;
 	private String protocollo;
 	private String destinatari;
+	private String mailbox;
 
 	public boolean isDaInviare() {
 		return daInviare;
@@ -74,6 +75,14 @@ public class NotificaPecFilter extends JPAEntityFilter<NotificaPec> {
 		this.idMessaggioPadre = idMessaggioPadre;
 	}
 
+	public String getMailbox() {
+		return mailbox;
+	}
+
+	public void setMailbox(String mailbox) {
+		this.mailbox = mailbox;
+	}
+
 	@Override
 	public void buildWhere(EntityManagerFactory emf, List<Predicate> predicateList, CriteriaQuery<NotificaPec> criteriaQuery, CriteriaBuilder criteriaBuilder, Root<NotificaPec> root) {
 
@@ -101,6 +110,9 @@ public class NotificaPecFilter extends JPAEntityFilter<NotificaPec> {
 			predicateList.add(criteriaBuilder.equal(root.get(NotificaPec_.tipo), tipo));
 		}
 
+		if (StringUtils.isNotBlank(mailbox)) {
+			predicateList.add(criteriaBuilder.equal(root.get(NotificaPec_.mailbox), mailbox));
+		}		
 	}
 
 	@Override
