@@ -105,7 +105,7 @@ public class ConfigurazioneBL {
 		if (mailboxes == null) {
 			String mailboxesPath = getValueStringDB(emf, ConfigurazionePecEnum.PEC_MAILBOXES_FOLDER);
 			if (StringUtils.isNotBlank(mailboxesPath)) {
-				logger.info("verifica configurazione mailbox_*.properties in {}", mailboxesPath);
+				logger.info("verifica esistenza configurazioni mailbox_*.properties in {}", mailboxesPath);
 				File mailboxesDir = new File(mailboxesPath);
 				File[] files = mailboxesDir.listFiles();
 				if (files != null) {
