@@ -16,7 +16,22 @@
       <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
-        
+<style>
+.glyphicon-refresh-animate {
+    -animation: spin .7s infinite linear;
+    -webkit-animation: spin2 .7s infinite linear;
+}
+
+@-webkit-keyframes spin2 {
+    from { -webkit-transform: rotate(0deg);}
+    to { -webkit-transform: rotate(360deg);}
+}
+
+@keyframes spin {
+    from { transform: scale(1) rotate(0deg);}
+    to { transform: scale(1) rotate(360deg);}
+}
+</style>
 </head>
 <body>
 	<div class="container">
@@ -39,9 +54,11 @@
 						<label for="password">Password</label>
 						<input type="password" id="password" name="password" class="form-control" placeholder="inserisci la password della casella" autocomplete="off"/>
 					</div>
-					<!-- <button type="button" id="btnRicevi" class="btn btn-default" accesskey="R" data-loading-text="Ricezione..." autocomplete="off"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> Ricevi</button> -->
-					<!-- <button type="button" id="btnInvia" class="btn btn-default" accesskey="I" data-loading-text="Invio..." autocomplete="off"><span class="glyphicon glyphicon-send" aria-hidden="true"></span> Invia</button> -->
-					<button type="submit" id="btnInviaRicevi" class="btn btn-primary" accesskey="E" data-loading-text="Invio e Ricezione..." autocomplete="off"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Invia e Ricevi</button>
+					<!-- <button type="button" id="btnRicevi" class="btn btn-default" accesskey="R" data-loading-text="Ricezione in corso..." autocomplete="off"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> Ricevi</button> -->
+					<!-- <button type="button" id="btnInvia" class="btn btn-default" accesskey="I" data-loading-text="Invio in corso..." autocomplete="off"><span class="glyphicon glyphicon-send" aria-hidden="true"></span> Invia</button> -->
+					<button type="submit" id="btnInviaRicevi" class="btn btn-primary" accesskey="E" autocomplete="off"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Invia e Ricevi</button>
+					<!-- data-loading-text="Invio e Ricezione in corso..."  -->
+					<!-- <span id="doing" class="glyphicon glyphicon-refresh glyphicon-refresh-animate" aria-hidden="true"></span> -->
 				</form>
 			</div>
 		</div>
@@ -59,6 +76,8 @@
     		$("#mailbox").empty();
     		$("#result").hide();
     		$("#error").hide();
+    		// $("#doing").hide();
+    		
     		/* caricamento mailboxes su combo */
     		$("<option/>").val("").text("Seleziona una casella PEC fra quelle disponibili...").attr('selected','selected').attr('disabled','disabled').appendTo("#mailbox");
     		$.post( "api/azioni/mailboxes", function( data ) {
@@ -67,12 +86,16 @@
 				    $("<option/>").val(option).text(option).appendTo("#mailbox");
 				});
    			});
-	    	/* gestione azione ricevi */	    	
+	    	/* gestione azione ricevi */
+	    	/*
 	    	$("#btnRicevi").click(function() {
-	    		// $("#btnRicevi").attr("disabled", true);
-	    		$("#btnInvia").attr("disabled", true);
-	    		$("#btnInviaRicevi").attr("disabled", true);
-	    		var $btn = $(this).button('loading');
+	    		$("#icon").toggleClass("glyphicon-refresh-animate");
+				// $("#btnRicevi").attr("disabled", true);
+	    		// $("#btnInvia").attr("disabled", true);
+	    		// $("#btnInviaRicevi").attr("disabled", true);
+	    		$("#mailboxForm :input").attr("disabled", true);
+	    		// var $btn = $(this).button('loading');
+	    		// $("#doing").show();
 	    		
 	    		$( "#result" ).empty().hide();
 	    		$( "#error" ).empty().hide();
@@ -84,14 +107,19 @@
 	    				console.log(data);
 	    				$( "#error" ).empty().show().append( data.responseText );
     			  	}).always(function() {
-    		    		$btn.button('reset');
-    		    		// $("#btnRicevi").removeAttr("disabled");
-    		    		$("#btnInvia").removeAttr("disabled");
-    		    		$("#btnInviaRicevi").removeAttr("disabled");
+    		    		// $btn.button('reset');
+    		    		// $("#doing").hide();
+    		    		$("#btnRicevi > span").toggle("glyphicon-refresh-animate");
+						//$("#btnRicevi").removeAttr("disabled");
+    		    		//$("#btnInvia").removeAttr("disabled");
+    		    		//$("#btnInviaRicevi").removeAttr("disabled");
+    		    		$("#mailboxForm :input").removeAttr("disabled");
     		    		$("#password").val('');
     			  	});
 	    	});
+	    	*/
 	    	/* gestione azione invia */
+	    	/*
 	    	$("#btnInvia").click(function() {
 	    		$("#btnRicevi").attr("disabled", true);
 	    		// $("#btnInvia").attr("disabled", true);
@@ -115,29 +143,40 @@
     		    		$("#password").val('');
   			  		});
 	    	});
+	    	*/
 	    	/* gestione azione invia e ricevi */
 	    	$("#btnInviaRicevi").click(function(event) {
-	    		event.preventDefault();
-	    		$("#btnRicevi").attr("disabled", true);
-	    		$("#btnInvia").attr("disabled", true);
-	    		// $("#btnInviaRicevi").attr("disabled", true);
-	    		var $btn = $(this).button('loading');
-	    		
+	    		event.preventDefault();	    		
 	    		
 	    		$( "#result" ).empty().hide();
 	    		$( "#error" ).empty().hide();	    		
 				var data = $( "#mailboxForm" ).serialize();
 	    		console.log(data);
+	    		
+	    		$("#btnInviaRicevi>span").toggleClass("glyphicon-refresh-animate");
+	    		//$("#btnRicevi").attr("disabled", true);
+	    		//$("#btnInvia").attr("disabled", true);
+				$("#mailbox").attr("disabled", true);
+  		    	$("#password").attr("readonly", true);
+	    		$("#btnInviaRicevi").attr("disabled", true);
+	    		// $("#mailboxForm :input").attr("disabled", true);
+	    		//var $btn = $(this).button('loading');
+	    		
 	    		$.post( "api/azioni/inviaericevi", data, function(data) {
 	    			$( "#result" ).empty().show().append("Invio e Ricezione completati.");
 	    			}).fail(function(data) {
 	    				console.log(data);
 	    				$( "#error" ).empty().show().append( data.responseText );
     			  	}).always(function() {
-    		    		$btn.button('reset');
-						$("#btnRicevi").removeAttr("disabled");
-						$("#btnInvia").removeAttr("disabled");
-    		    		// $("#btnInviaRicevi").removeAttr("disabled");
+    			  		$("#btnInviaRicevi>span").toggleClass("glyphicon-refresh-animate");
+    			  		// $("#icon").toggleClass("glyphicon-refresh-animate");
+    		    		//$btn.button('reset');
+						//$("#btnRicevi").removeAttr("disabled");
+						//$("#btnInvia").removeAttr("disabled");
+						$("#mailbox").removeAttr("disabled");
+    		    		$("#password").removeAttr("readonly");
+						$("#btnInviaRicevi").removeAttr("disabled");
+    		    		// $("#mailboxForm :input").removeAttr("disabled");
     		    		$("#password").val('');
   			  		});
 	    	});	    	
