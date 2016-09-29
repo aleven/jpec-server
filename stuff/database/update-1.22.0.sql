@@ -1,0 +1,1 @@
+ALTER TABLE jpec.pec05_notifiche ADD COLUMN pec05_mailbox varchar(255);
