@@ -55,7 +55,7 @@ public class ServiceAzioni extends RestBaseJpa2 {
 			sb.append("\n");
 
 			Crono.start("aggiorna");
-			List<PecException> erroriAggiornaStato = MessaggioPecBL.aggiornaStatoMessaggi(getContextEmf(), "REST.ANONYMOUS");
+			List<PecException> erroriAggiornaStato = MessaggioPecBL.aggiornaStatoMessaggi(getContextEmf(), "REST.ANONYMOUS", null);
 			sb.append(Crono.stopAndLog("aggiorna"));
 			sb.append("\n");
 
@@ -107,12 +107,12 @@ public class ServiceAzioni extends RestBaseJpa2 {
 			sb.append("\n");
 
 			Crono.start("aggiorna");
-			List<PecException> erroriAggiornaStato = MessaggioPecBL.aggiornaStatoMessaggi(getContextEmf(), "REST.ANONYMOUS");
+			List<PecException> erroriAggiornaStato = MessaggioPecBL.aggiornaStatoMessaggi(getContextEmf(), "REST.ANONYMOUS", mailbox);
 			sb.append(Crono.stopAndLog("aggiorna"));
 			sb.append("\n");
 
 			Crono.start("notifiche");
-			List<PecException> erroriInviaNotifiche = NotificaPecBL.inviaNotifiche(getContextEmf(), "REST.ANONYMOUS", false, null);
+			List<PecException> erroriInviaNotifiche = NotificaPecBL.inviaNotifiche(getContextEmf(), "REST.ANONYMOUS", false, mailbox);
 			sb.append(Crono.stopAndLog("notifiche"));
 			sb.append("\n");
 
@@ -197,7 +197,7 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		Response response = null;
 		try {
 			logger.debug("{}", restServletContext.getContextPath());
-			List<PecException> erroriAggiornaStato = MessaggioPecBL.aggiornaStatoMessaggi(getContextEmf(), "REST.ANONYMOUS");
+			List<PecException> erroriAggiornaStato = MessaggioPecBL.aggiornaStatoMessaggi(getContextEmf(), "REST.ANONYMOUS", null);
 			if (erroriAggiornaStato.size() > 0) {
 				throw new PecException(generaMessaggio(ERRORI_AGGIORNA_STATO, erroriAggiornaStato));
 			}
