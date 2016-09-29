@@ -6,34 +6,120 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>jpec-server</title>
 <link rel="icon" href="favicon.ico" />
+
+<!-- Bootstrap -->
+<link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+        
 </head>
 <body>
-	<h1>Hello, jpec-server is running!</h1>
-	<h2>version 1.21.0 (<a href="about.html">about</a>)</h2>
-	
-	<h2>List of Rest API</h2>
-	<h3>Test</h3>
-	<ul>
-		<li><a href="api/test">test (GET)</a></li>
-	</ul>
-	<h3>Azioni</h3>
-	<ul>
-		<li><a href="api/azioni/inviaericevi">Invia e Ricevi (GET)</a></li>
-		<li><a href="api/azioni/ricevi">Ricevi (GET)</a></li>
-		<li><a href="api/azioni/invia">Invia (PUT)</a></li>
-		<li><a href="api/azioni/invia/{idMessaggio}">Invia Messaggio Creato (PUT)</a></li>
-		
-		<li><a href="api/azioni/aggiornastato">Aggiorna Stato Messaggi (GET)</a> - aggiorna lo Stato dei messaggi inviati dalle Ricevute</li>
-		<li><a href="api/azioni/invianotifiche">Invia Notifiche (GET)</a> - invia le notifiche in create non ancora inviate</li>
-	</ul>
-	<h3>Messaggi</h3>
-	<ul>
-		<li><a href="api/messaggi/:id">Messaggio (GET)</a></li>
-		<li><a href="api/messaggi/">Nuovo (POST)</a></li>
-	</ul>
-	<h3>Allegati</h3>
-	<ul>
-		<li><a href="api/allegati/upload">Upload (POST MultiPart)</a></li>
-	</ul>	
+	<div class="container">
+		<div class="row">
+			<div class="col-md-6 col-md-offset-3">
+				<div id="result" class="alert alert-success" role="alert"></div>
+				<div id="error" class="alert alert-danger" role="alert"></div>
+			</div>
+		</div>	
+		<div class="row">
+			<div class="col-md-6 col-md-offset-3">
+				<form id="mailboxForm">
+					<div class="form-group">
+						<label for="mailbox">Casella PEC</label>
+						<!-- <input type="text" id="mailbox" name="mailbox" class="form-control" /> -->
+						<!-- <input type="text" id="mailbox" name="mailbox" class="form-control" /> -->
+						<select id="mailbox" name="mailbox" class="form-control" autocomplete="off" autofocus></select>						
+					</div>
+					<div class="form-group">
+						<label for="password">Password</label>
+						<input type="password" id="password" name="password" class="form-control" placeholder="inserisci la password della casella" autocomplete="off"/>
+					</div>
+					<button type="button" id="btnRicevi" class="btn btn-default" accesskey="R" data-loading-text="Ricezione..." autocomplete="off"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> Ricevi</button>
+					<button type="button" id="btnInvia" class="btn btn-default" accesskey="I" data-loading-text="Invio..." autocomplete="off"><span class="glyphicon glyphicon-send" aria-hidden="true"></span> Invia</button>
+					<button type="button" id="btnInviaRicevi" class="btn btn-primary" accesskey="E" data-loading-text="Invio e Ricezione..." autocomplete="off"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Invia e Ricevi</button>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+	<script src="bower_components/jquery/dist/jquery.min.js"></script>
+	<!-- Include all compiled plugins (below), or include individual files as needed -->
+	<script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+
+    <script type="text/javascript">
+ 		// A $( document ).ready() block.
+	    $(document).ready(function() {
+	    	/* inizializzazione ui */
+    		$("#mailbox").empty();
+    		$("#result").hide();
+    		$("#error").hide();
+    		/* caricamento mailboxes su combo */
+    		$("<option/>").val("").text("Seleziona una casella PEC fra quelle disponibili...").attr('selected','selected').attr('disabled','disabled').appendTo("#mailbox");
+    		$.post( "api/azioni/mailboxes", function( data ) {
+				$.each(data, function(i, option)
+				{
+				    $("<option/>").val(option).text(option).appendTo("#mailbox");
+				});
+   			});
+	    	/* gestione azione ricevi */	    	
+	    	$("#btnRicevi").click(function() {
+	    		// $("#btnRicevi").attr("disabled", true);
+	    		var $btn = $(this).button('loading');
+	    		$("#btnInvia").attr("disabled", true);
+	    		$("#btnInviaRicevi").attr("disabled", true);
+	    		
+	    		$( "#result" ).empty().hide();
+	    		$( "#error" ).empty().hide();
+				var data = $( "#mailboxForm" ).serialize();
+	    		console.log(data);
+	    		$.post( "api/azioni/ricevi", data, function( data ) {
+    				$( "#result" ).empty().show().append("Ricezione completata.");
+    				}).fail(function(data) {
+	    				console.log(data);
+	    				$( "#error" ).empty().show().append( data.responseText );
+    			  	}).always(function() {
+    		    		// $("#btnRicevi").removeAttr("disabled");
+    		    		$btn.button('reset');
+    		    		$("#btnInvia").removeAttr("disabled");
+    		    		$("#btnInviaRicevi").removeAttr("disabled");
+    		    		$("#password").val('');
+    			  	});
+	    	});
+	    	/* gestione azione invia */
+	    	$("#btnInvia").click(function() {
+	    		$( "#result" ).empty().hide();
+	    		$( "#error" ).empty().hide();	    		
+				var data = $( "#mailboxForm" ).serialize();
+	    		console.log(data);
+	    		$.post( "api/azioni/invia", data, function(data) {
+	    			$( "#result" ).empty().show().append("Invio completato.");
+	    			}).fail(function(data) {
+	    				console.log(data);
+	    				$( "#error" ).empty().show().append( data.responseText );
+	    			  });
+	    	});
+	    	/* gestione azione invia e ricevi */
+	    	$("#btnInviaRicevi").click(function() {
+	    		$( "#result" ).empty().hide();
+	    		$( "#error" ).empty().hide();	    		
+				var data = $( "#mailboxForm" ).serialize();
+	    		console.log(data);
+	    		$.post( "api/azioni/inviaricevi", data, function(data) {
+	    			$( "#result" ).empty().show().append("Invio e Ricezione completati.");
+	    			}).fail(function(data) {
+	    				console.log(data);
+	    				$( "#error" ).empty().show().append( data.responseText );
+	    			  });
+	    	});	    	
+	    	
+	    });
+    </script>
+    	
 </body>
 </html>
