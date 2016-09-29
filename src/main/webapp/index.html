@@ -39,8 +39,8 @@
 						<label for="password">Password</label>
 						<input type="password" id="password" name="password" class="form-control" placeholder="inserisci la password della casella" autocomplete="off"/>
 					</div>
-					<button type="button" id="btnRicevi" class="btn btn-default" accesskey="R" data-loading-text="Ricezione..." autocomplete="off"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> Ricevi</button>
-					<button type="button" id="btnInvia" class="btn btn-default" accesskey="I" data-loading-text="Invio..." autocomplete="off"><span class="glyphicon glyphicon-send" aria-hidden="true"></span> Invia</button>
+					<!-- <button type="button" id="btnRicevi" class="btn btn-default" accesskey="R" data-loading-text="Ricezione..." autocomplete="off"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> Ricevi</button> -->
+					<!-- <button type="button" id="btnInvia" class="btn btn-default" accesskey="I" data-loading-text="Invio..." autocomplete="off"><span class="glyphicon glyphicon-send" aria-hidden="true"></span> Invia</button> -->
 					<button type="button" id="btnInviaRicevi" class="btn btn-primary" accesskey="E" data-loading-text="Invio e Ricezione..." autocomplete="off"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Invia e Ricevi</button>
 				</form>
 			</div>
@@ -70,9 +70,9 @@
 	    	/* gestione azione ricevi */	    	
 	    	$("#btnRicevi").click(function() {
 	    		// $("#btnRicevi").attr("disabled", true);
-	    		var $btn = $(this).button('loading');
 	    		$("#btnInvia").attr("disabled", true);
 	    		$("#btnInviaRicevi").attr("disabled", true);
+	    		var $btn = $(this).button('loading');
 	    		
 	    		$( "#result" ).empty().hide();
 	    		$( "#error" ).empty().hide();
@@ -84,8 +84,8 @@
 	    				console.log(data);
 	    				$( "#error" ).empty().show().append( data.responseText );
     			  	}).always(function() {
-    		    		// $("#btnRicevi").removeAttr("disabled");
     		    		$btn.button('reset');
+    		    		// $("#btnRicevi").removeAttr("disabled");
     		    		$("#btnInvia").removeAttr("disabled");
     		    		$("#btnInviaRicevi").removeAttr("disabled");
     		    		$("#password").val('');
@@ -93,29 +93,51 @@
 	    	});
 	    	/* gestione azione invia */
 	    	$("#btnInvia").click(function() {
+	    		$("#btnRicevi").attr("disabled", true);
+	    		// $("#btnInvia").attr("disabled", true);
+	    		$("#btnInviaRicevi").attr("disabled", true);
+	    		var $btn = $(this).button('loading');
+	    		
 	    		$( "#result" ).empty().hide();
 	    		$( "#error" ).empty().hide();	    		
 				var data = $( "#mailboxForm" ).serialize();
 	    		console.log(data);
 	    		$.post( "api/azioni/invia", data, function(data) {
 	    			$( "#result" ).empty().show().append("Invio completato.");
-	    			}).fail(function(data) {
+    				}).fail(function(data) {
 	    				console.log(data);
 	    				$( "#error" ).empty().show().append( data.responseText );
-	    			  });
+   			 	 	}).always(function() {
+    		    		$btn.button('reset');
+						$("#btnRicevi").removeAttr("disabled");
+    		    		// $("#btnInvia").removeAttr("disabled");
+    		    		$("#btnInviaRicevi").removeAttr("disabled");
+    		    		$("#password").val('');
+  			  		});
 	    	});
 	    	/* gestione azione invia e ricevi */
 	    	$("#btnInviaRicevi").click(function() {
+	    		$("#btnRicevi").attr("disabled", true);
+	    		$("#btnInvia").attr("disabled", true);
+	    		// $("#btnInviaRicevi").attr("disabled", true);
+	    		var $btn = $(this).button('loading');
+	    		
 	    		$( "#result" ).empty().hide();
 	    		$( "#error" ).empty().hide();	    		
 				var data = $( "#mailboxForm" ).serialize();
 	    		console.log(data);
-	    		$.post( "api/azioni/inviaricevi", data, function(data) {
+	    		$.post( "api/azioni/inviaericevi", data, function(data) {
 	    			$( "#result" ).empty().show().append("Invio e Ricezione completati.");
 	    			}).fail(function(data) {
 	    				console.log(data);
 	    				$( "#error" ).empty().show().append( data.responseText );
-	    			  });
+    			  	}).always(function() {
+    		    		$btn.button('reset');
+						$("#btnRicevi").removeAttr("disabled");
+						$("#btnInvia").removeAttr("disabled");
+    		    		// $("#btnInviaRicevi").removeAttr("disabled");
+    		    		$("#password").val('');
+  			  		});
 	    	});	    	
 	    	
 	    });
