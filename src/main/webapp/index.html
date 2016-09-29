@@ -34,6 +34,29 @@
 </style>
 </head>
 <body>
+	<!-- 
+	<nav class="navbar navbar-inverse">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">JPEC-Server</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Api</a></li>
+          </ul>
+        </div>/.nav-collapse
+      </div>
+    </nav>
+    -->
+    
 	<div class="container">
 		<div class="row">
 			<div class="col-md-6 col-md-offset-3 col-xs-12">
@@ -164,21 +187,21 @@
 	    		
 	    		$.post( "api/azioni/inviaericevi", data, function(data) {
 	    			$( "#result" ).empty().show().append("Invio e Ricezione completati.");
-	    			}).fail(function(data) {
-	    				console.log(data);
-	    				$( "#error" ).empty().show().append( data.responseText );
-    			  	}).always(function() {
-    			  		$("#btnInviaRicevi>span").toggleClass("glyphicon-refresh-animate");
-    			  		// $("#icon").toggleClass("glyphicon-refresh-animate");
-    		    		//$btn.button('reset');
-						//$("#btnRicevi").removeAttr("disabled");
-						//$("#btnInvia").removeAttr("disabled");
-						$("#mailbox").removeAttr("disabled");
-    		    		$("#password").removeAttr("readonly");
-						$("#btnInviaRicevi").removeAttr("disabled");
-    		    		// $("#mailboxForm :input").removeAttr("disabled");
-    		    		$("#password").val('');
-  			  		});
+    			}).fail(function(data) {
+    				console.log(data);
+    				$( "#error" ).empty().show().append( data.responseText );
+   			  	}).always(function() {
+   			  		$("#btnInviaRicevi>span").toggleClass("glyphicon-refresh-animate");
+   			  		// $("#icon").toggleClass("glyphicon-refresh-animate");
+   		    		//$btn.button('reset');
+					//$("#btnRicevi").removeAttr("disabled");
+					//$("#btnInvia").removeAttr("disabled");
+					$("#mailbox").removeAttr("disabled");
+   		    		$("#password").removeAttr("readonly");
+					$("#btnInviaRicevi").removeAttr("disabled");
+   		    		// $("#mailboxForm :input").removeAttr("disabled");
+   		    		$("#password").val('');
+		  		});
 	    	});	    	
 	    	
 	    });
