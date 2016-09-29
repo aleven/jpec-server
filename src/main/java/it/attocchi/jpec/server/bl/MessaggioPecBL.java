@@ -822,18 +822,18 @@ public class MessaggioPecBL {
 
 	}
 
-	public static synchronized List<PecException> aggiornaStatoMessaggi(EntityManagerFactory emf, String utente) throws Exception {
+	public static synchronized List<PecException> aggiornaStatoMessaggi(EntityManagerFactory emf, String utente, String mailbox) throws Exception {
 		List<PecException> erroriAggiornaStato = new ArrayList<PecException>();
 
-		List<PecException> erroriRicevute = aggiornaRicevute(emf, utente);
+		List<PecException> erroriRicevute = aggiornaRicevute(emf, utente, mailbox);
 		erroriAggiornaStato.addAll(erroriRicevute);
-		List<PecException> erroriSegnatura = aggiornaSegnatura(emf, utente);
+		List<PecException> erroriSegnatura = aggiornaSegnatura(emf, utente, mailbox);
 		erroriAggiornaStato.addAll(erroriSegnatura);
 
 		return erroriAggiornaStato;
 	}
 
-	private static List<PecException> aggiornaRicevute(EntityManagerFactory emf, String utente) throws Exception {
+	private static List<PecException> aggiornaRicevute(EntityManagerFactory emf, String utente, String mailbox) throws Exception {
 		List<PecException> erroriAggiornaRicevute = new ArrayList<PecException>();
 		// boolean res = false;
 
@@ -841,12 +841,16 @@ public class MessaggioPecBL {
 		filtroRicevute.setFolder(Folder.IN);
 		filtroRicevute.setSoloNonProcessati(true);
 		filtroRicevute.setSoloRicevuteConRiferimento(true);
+		/* filtro mailbox forzato se specificato*/
+		filtroRicevute.setMailbox(mailbox);
 
 		MessaggioPecFilter filtroInviati = new MessaggioPecFilter();
 		filtroInviati.setFolder(Folder.OUT);
 		// filtroInviati.setEscludiConsegnati(true);
 		filtroInviati.setConStatoDaAggiornare(true);
 		filtroInviati.setConMessageID(true);
+		/* filtro mailbox forzato se specificato*/
+		filtroInviati.setMailbox(mailbox);
 
 		logger.info("query ricevute con riferimento da processare...");
 		List<MessaggioPec> ricevuteDaProcessare = JpaController.callFind(emf, MessaggioPec.class, filtroRicevute);
@@ -1087,13 +1091,15 @@ public class MessaggioPecBL {
 		return erroriAggiornaRicevute;
 	}
 
-	private static List<PecException> aggiornaSegnatura(EntityManagerFactory emf, String utente) throws Exception {
+	private static List<PecException> aggiornaSegnatura(EntityManagerFactory emf, String utente, String mailbox) throws Exception {
 		List<PecException> erroriAggiornaSegnatura = new ArrayList<PecException>();
 
 		MessaggioPecFilter filtroMessaggiNonRicevuteNonProcessati = new MessaggioPecFilter();
 		filtroMessaggiNonRicevuteNonProcessati.setFolder(Folder.IN);
 		filtroMessaggiNonRicevuteNonProcessati.setSoloNonProcessati(true);
 		filtroMessaggiNonRicevuteNonProcessati.setNonRicevute(true);
+		/* filtro mailbox forzato se specificato*/
+		filtroMessaggiNonRicevuteNonProcessati.setMailbox(mailbox);
 
 		logger.info("query messaggi da processare...");
 		List<MessaggioPec> messaggiDaProcessare = JpaController.callFind(emf, MessaggioPec.class, filtroMessaggiNonRicevuteNonProcessati);
