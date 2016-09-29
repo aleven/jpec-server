@@ -1,0 +1,21 @@
+{
+  "name": "webapp",
+  "homepage": "https://github.com/aleven/jpec-server",
+  "authors": [
+    "Mirco <amirco@gmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "^3.3.7",
+    "angular": "angularjs#^1.5.8"
+  }
+}
