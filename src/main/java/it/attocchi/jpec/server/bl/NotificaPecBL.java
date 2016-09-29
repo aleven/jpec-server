@@ -34,11 +34,14 @@ public class NotificaPecBL {
 
 	protected static final Logger logger = Logger.getLogger(NotificaPecBL.class.getName());
 
-	public static List<NotificaPec> notificheDaInviare(EntityManagerFactory emf, String idUtente) throws Exception {
+	public static List<NotificaPec> notificheDaInviare(EntityManagerFactory emf, String idUtente, String mailbox) throws Exception {
 
 		NotificaPecFilter filtro = new NotificaPecFilter();
 		filtro.setDaInviare(true);
-
+		
+		// filtro solo per mailbox, se specificata
+		filtro.setMailbox(mailbox);
+		
 		return JpaController.callFind(emf, NotificaPec.class, filtro);
 	}
 
@@ -54,7 +57,7 @@ public class NotificaPecBL {
 			oggetto = prefisso + oggetto;
 		}
 
-		salva(emf, transactionController, idUtente, messaggio.getId(), TipoNotifica.NUOVO_INVIO, destinatari, oggetto, messaggio.getMessaggio(), protocollo, null);
+		salva(emf, transactionController, idUtente, messaggio.getId(), TipoNotifica.NUOVO_INVIO, destinatari, oggetto, messaggio.getMessaggio(), protocollo, null, mailbox);
 
 	}
 
@@ -91,9 +94,9 @@ public class NotificaPecBL {
 					 * Nel caso di Cambio stato di Consegna Alleghiamo anche
 					 * l'EML
 					 */
-					salva(emf, transactionController, idUtente, messaggioCorrispondente.getId(), TipoNotifica.CAMBIO_STATO, destinatari, oggetto, testo, protocollo, messaggioStato.getEmlFile());
+					salva(emf, transactionController, idUtente, messaggioCorrispondente.getId(), TipoNotifica.CAMBIO_STATO, destinatari, oggetto, testo, protocollo, messaggioStato.getEmlFile(), mailbox);
 				else
-					salva(emf, transactionController, idUtente, messaggioCorrispondente.getId(), TipoNotifica.CAMBIO_STATO, destinatari, oggetto, testo, protocollo, null);
+					salva(emf, transactionController, idUtente, messaggioCorrispondente.getId(), TipoNotifica.CAMBIO_STATO, destinatari, oggetto, testo, protocollo, null, mailbox);
 			}
 		} else {
 			logger.warn("Non Creo la Notifica di CambioStato isEnableNotifyStatus=false");
@@ -115,7 +118,7 @@ public class NotificaPecBL {
 		String protocollo = "";
 		String testo = StringUtils.defaultIfEmpty(messaggio.getMessaggio(), ConfigurazioneBL.getValueString(emf, ConfigurazionePecEnum.PEC_NOTIFICA_RICEZIONE_MESSAGGIO, mailbox));
 
-		salva(emf, transactionController, idUtente, messaggio.getId(), TipoNotifica.RICEZIONE, destinatari, oggetto, testo, protocollo, messaggio.getEmlFile());
+		salva(emf, transactionController, idUtente, messaggio.getId(), TipoNotifica.RICEZIONE, destinatari, oggetto, testo, protocollo, messaggio.getEmlFile(), mailbox);
 	}
 
 	public static void creaNotificaErroreAiResponsabili(EntityManagerFactory emf, JpaController transactionController, long idUtente, MessaggioPec messaggio, String mailbox, String dettaglioErrore, String emlDaAllegare) throws Exception {
@@ -135,7 +138,7 @@ public class NotificaPecBL {
 			testoNotifica = StringUtils.isBlank(testoNotifica) ? dettaglioErrore : testoNotifica + "\n\n" + dettaglioErrore;
 		}
 
-		salva(emf, transactionController, idUtente, messaggio.getId(), TipoNotifica.ERRORE, destinatari, oggettoNotifica, testoNotifica, protocolloOMessageId, emlDaAllegare);
+		salva(emf, transactionController, idUtente, messaggio.getId(), TipoNotifica.ERRORE, destinatari, oggettoNotifica, testoNotifica, protocolloOMessageId, emlDaAllegare, mailbox);
 	}
 
 	public static void creaNotificaObsoletoAiResponsabili(EntityManagerFactory emf, JpaController transactionController, long idUtente, MessaggioPec messaggio, String mailbox) throws Exception {
@@ -160,7 +163,7 @@ public class NotificaPecBL {
 			// salva(emf, transactionController, idUtente, messaggio.getId(),
 			// TipoNotifica.OBSOLETO, destinatari, oggetto, testo, protocollo,
 			// messaggio.getEmlFile());
-			salva(emf, transactionController, idUtente, messaggio.getId(), TipoNotifica.OBSOLETO, destinatari, oggetto, testo, protocollo, null);
+			salva(emf, transactionController, idUtente, messaggio.getId(), TipoNotifica.OBSOLETO, destinatari, oggetto, testo, protocollo, null, mailbox);
 		}
 	}
 
@@ -190,11 +193,11 @@ public class NotificaPecBL {
 			// salva(emf, transactionController, idUtente, messaggio.getId(),
 			// TipoNotifica.OBSOLETO, destinatari, oggetto, testo, protocollo,
 			// messaggio.getEmlFile());
-			salva(emf, transactionController, idUtente, messaggio.getId(), TipoNotifica.OBSOLETO, destinatari, oggetto, testo, protocollo, null);
+			salva(emf, transactionController, idUtente, messaggio.getId(), TipoNotifica.OBSOLETO, destinatari, oggetto, testo, protocollo, null, mailbox);
 		}
 	}
 
-	public static void salva(EntityManagerFactory emf, JpaController transactionController, long idUtente, long idMessaggioPadre, TipoNotifica tipo, String destinatari, String oggetto, String messaggio, String protocollo, String allegati) throws Exception {
+	public static void salva(EntityManagerFactory emf, JpaController transactionController, long idUtente, long idMessaggioPadre, TipoNotifica tipo, String destinatari, String oggetto, String messaggio, String protocollo, String allegati, String mailbox) throws Exception {
 
 		NotificaPec notifica = new NotificaPec();
 		notifica.markAsCreated(idUtente);
@@ -208,6 +211,9 @@ public class NotificaPecBL {
 		notifica.setAllegati(allegati);
 		notifica.setProtocollo(protocollo);
 
+		/* aggiunta mailbox anche sulle notifiche per usare il filtro e notificare solo mailbox specificata */
+		notifica.setMailbox(mailbox);
+		
 		if (transactionController == null) {
 			JpaController.callInsert(emf, notifica);
 		} else {
@@ -219,7 +225,7 @@ public class NotificaPecBL {
 		List<PecException> erroriInviaNotifiche = new ArrayList<PecException>();
 
 		// boolean res = false;
-		List<NotificaPec> notificheDaInviare = notificheDaInviare(emf, currentUser);
+		List<NotificaPec> notificheDaInviare = notificheDaInviare(emf, currentUser, mailbox);
 		for (NotificaPec notifica : notificheDaInviare) {
 			// in caso di errore solleva eccezione ed interrompe il ciclo
 			try {
@@ -333,7 +339,7 @@ public class NotificaPecBL {
 		}
 
 		if (!verificaNotificaGiaCreata(emf, null, messaggioInoltro.getId(), TipoNotifica.INOLTRO, destinatari)) {
-			salva(emf, null, idUtente, messaggioInoltro.getId(), TipoNotifica.INOLTRO, destinatari, oggetto, messaggioInoltro.getMessaggio(), protocollo, allegato);
+			salva(emf, null, idUtente, messaggioInoltro.getId(), TipoNotifica.INOLTRO, destinatari, oggetto, messaggioInoltro.getMessaggio(), protocollo, allegato, mailbox);
 			res = true;
 		} else {
 			logger.warn("Notifica gia' creata");
