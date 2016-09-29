@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>jpec-server</title>
+<link rel="icon" href="favicon.ico" />
+
+    <!-- Bootstrap -->
+    <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+	<h1>Hello, jpec-server is running!</h1>
+	<h2>version 1.21.0 (<a href="about.html">about</a>)</h2>
+	
+	<h2>List of Rest API</h2>
+	<h3>Test</h3>
+	<ul>
+		<li><a href="api/test">test (GET)</a></li>
+	</ul>
+	<h3>Azioni</h3>
+	<ul>
+		<li><a href="api/azioni/inviaericevi">Invia e Ricevi (GET)</a></li>
+		<li><a href="api/azioni/ricevi">Ricevi (GET)</a></li>
+		<li><a href="api/azioni/invia">Invia (PUT)</a></li>
+		<li><a href="api/azioni/invia/{idMessaggio}">Invia Messaggio Creato (PUT)</a></li>
+		
+		<li><a href="api/azioni/aggiornastato">Aggiorna Stato Messaggi (GET)</a> - aggiorna lo Stato dei messaggi inviati dalle Ricevute</li>
+		<li><a href="api/azioni/invianotifiche">Invia Notifiche (GET)</a> - invia le notifiche in create non ancora inviate</li>
+	</ul>
+	<h3>Messaggi</h3>
+	<ul>
+		<li><a href="api/messaggi/:id">Messaggio (GET)</a></li>
+		<li><a href="api/messaggi/">Nuovo (POST)</a></li>
+	</ul>
+	<h3>Allegati</h3>
+	<ul>
+		<li><a href="api/allegati/upload">Upload (POST MultiPart)</a></li>
+	</ul>
+	
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>		
+</body>
+</html>
