@@ -179,7 +179,7 @@ public class MessaggioPecBL {
 						// AzioneEsito regoleImportaConvalidate =
 						// RegolaPecBL.applicaRegole(emf, regoleImporta, mail,
 						// null, mailboxName);
-						AzioneEsito regoleImportaConvalidate = RegolaPecBL.applicaRegole(emf, regoleImporta, AzioneContext.buildContextMessaggi(emf, mail, null, mailboxName));
+						AzioneEsito regoleImportaConvalidate = RegolaPecBL.applicaRegole(emf, regoleImporta, AzioneContext.buildContextMessaggi(emf, mail, null, mailboxName, password));
 						if (regoleImportaConvalidate.stato == AzioneEsitoStato.OK) {
 
 							String headerMessageId = "";
@@ -323,7 +323,7 @@ public class MessaggioPecBL {
 								// RegolaPecBL.applicaRegole(emf,
 								// regoleProtocolla, mail, messaggioPec,
 								// mailboxName);
-								AzioneEsito esitoProtocollo = RegolaPecBL.applicaRegole(emf, regoleProtocolla, AzioneContext.buildContextMessaggi(emf, mail, messaggioPec, mailboxName));
+								AzioneEsito esitoProtocollo = RegolaPecBL.applicaRegole(emf, regoleProtocolla, AzioneContext.buildContextMessaggi(emf, mail, messaggioPec, mailboxName, password));
 								// if (regoleProtocollaConvalidate) {
 								// if (istanzaProtocollo != null) {
 								// AzioneEsito esitoProtocollo =
@@ -822,12 +822,12 @@ public class MessaggioPecBL {
 
 	}
 
-	public static synchronized List<PecException> aggiornaStatoMessaggi(EntityManagerFactory emf, String utente, String mailbox) throws Exception {
+	public static synchronized List<PecException> aggiornaStatoMessaggi(EntityManagerFactory emf, String utente, String mailbox, String password) throws Exception {
 		List<PecException> erroriAggiornaStato = new ArrayList<PecException>();
 
 		List<PecException> erroriRicevute = aggiornaRicevute(emf, utente, mailbox);
 		erroriAggiornaStato.addAll(erroriRicevute);
-		List<PecException> erroriSegnatura = aggiornaSegnatura(emf, utente, mailbox);
+		List<PecException> erroriSegnatura = aggiornaSegnatura(emf, utente, mailbox, password);
 		erroriAggiornaStato.addAll(erroriSegnatura);
 
 		return erroriAggiornaStato;
@@ -1091,7 +1091,7 @@ public class MessaggioPecBL {
 		return erroriAggiornaRicevute;
 	}
 
-	private static List<PecException> aggiornaSegnatura(EntityManagerFactory emf, String utente, String mailbox) throws Exception {
+	private static List<PecException> aggiornaSegnatura(EntityManagerFactory emf, String utente, String mailbox, String password) throws Exception {
 		List<PecException> erroriAggiornaSegnatura = new ArrayList<PecException>();
 
 		MessaggioPecFilter filtroMessaggiNonRicevuteNonProcessati = new MessaggioPecFilter();
@@ -1121,7 +1121,7 @@ public class MessaggioPecBL {
 
 				if (messaggioDaProcessare.getSegnaturaXml() != null && !messaggioDaProcessare.getSegnaturaXml().isEmpty()) {
 					// creo contesto per le regole
-					AzioneContext ctx = AzioneContext.buildContextMessaggi(emf, null, messaggioDaProcessare, messaggioDaProcessare.getMailbox());
+					AzioneContext ctx = AzioneContext.buildContextMessaggi(emf, null, messaggioDaProcessare, messaggioDaProcessare.getMailbox(), password);
 					AzioneEsito esitoRegole = RegolaPecBL.applicaRegole(emf, regoleAggiornaSegnatura, ctx);
 					// verifico esito e gestisco memorizzazione errori o
 					// successo

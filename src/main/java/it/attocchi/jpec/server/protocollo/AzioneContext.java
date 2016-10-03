@@ -22,6 +22,7 @@ public class AzioneContext {
 
 	private Properties configurazioneMailbox;
 	private String mailboxName;
+	private String mailboxPassword;
 
 	private MessaggioPec ricevuta;
 	private MessaggioPec messaggioInviato;
@@ -30,12 +31,22 @@ public class AzioneContext {
 		super();
 	}
 
-	public static AzioneContext buildContextMessaggi(EntityManagerFactory emf, Message email, MessaggioPec pec, String mailboxName) {
+	/**
+	 * 
+	 * @param emf
+	 * @param email
+	 * @param pec
+	 * @param mailboxName
+	 * @param mailboxPassword serve passarla per eventuale uso successivo interno, ed esempio inviare le ricevute di segnatura attraverso la mailbox
+	 * @return
+	 */
+	public static AzioneContext buildContextMessaggi(EntityManagerFactory emf, Message email, MessaggioPec pec, String mailboxName, String mailboxPassword) {
 		AzioneContext res = new AzioneContext();
 		res.emf = emf;
 		res.email = email;
 		res.pec = pec;
 		res.mailboxName = mailboxName;
+		res.mailboxPassword = mailboxPassword;
 		logger.debug("buildContextMessaggi");
 		logger.debug("email={}", email);
 		logger.debug("pec={}", pec);
@@ -134,5 +145,13 @@ public class AzioneContext {
 
 	public void setConfigurazioneMailbox(Properties configurazioneMailbox) {
 		this.configurazioneMailbox = configurazioneMailbox;
+	}
+	
+	public String getMailboxPassword() {
+		return mailboxPassword;
+	}
+	
+	public void setMailboxPassword(String password) {
+		this.mailboxPassword = password;
 	}
 }
