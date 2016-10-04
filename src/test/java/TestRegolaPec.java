@@ -29,7 +29,7 @@ public class TestRegolaPec {
 			EntityManagerFactory emf = Persistence.createEntityManagerFactory("jpec-server-pu_TEST");
 
 			List<RegolaPec> regoleImporta = RegolaPecBL.regole(emf, RegolaPecEventoEnum.IMPORTA_MESSAGGIO);
-			AzioneEsito regoleImportaConvalidate = RegolaPecBL.applicaRegole(emf, regoleImporta, AzioneContext.buildContextMessaggi(emf, null, null, ""));
+			AzioneEsito regoleImportaConvalidate = RegolaPecBL.applicaRegole(emf, regoleImporta, AzioneContext.buildContextMessaggi(emf, null, null, "", ""));
 
 			Assert.assertTrue(regoleImportaConvalidate.stato == AzioneEsitoStato.OK);
 

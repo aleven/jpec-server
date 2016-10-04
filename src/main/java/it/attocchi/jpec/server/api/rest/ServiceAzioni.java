@@ -40,7 +40,7 @@ public class ServiceAzioni extends RestBaseJpa2 {
 	public Response doInviaeRicevi() {
 		Response response = null;
 		try {
-			logger.debug("{}", restServletContext.getContextPath());
+			logger.debug("{}", uriInfo.getAbsolutePath());
 
 			StringBuffer sb = new StringBuffer();
 
@@ -91,7 +91,7 @@ public class ServiceAzioni extends RestBaseJpa2 {
 	public Response doInviaeRiceviPassword(@FormParam(value="mailbox") String mailbox, @FormParam(value="password") String password) {
 		Response response = null;
 		try {
-			logger.debug("{}", restServletContext.getContextPath());
+			logger.debug("{}", uriInfo.getAbsolutePath());
 			checkPassword(mailbox, password);
 			
 			StringBuffer sb = new StringBuffer();
@@ -156,8 +156,9 @@ public class ServiceAzioni extends RestBaseJpa2 {
 	public Response doRicevi() {
 		Response response = null;
 		try {
-			logger.debug("{}", restServletContext.getContextPath());
+			logger.debug("{}", uriInfo.getAbsolutePath());
 			List<PecException> erroriMessaggiImportati = MessaggioPecBL.importaNuoviMessaggi(getContextEmf(), "REST.ANONYMOUS", null, null);
+
 			if (erroriMessaggiImportati.size() > 0) {
 				throw new PecException(generaMessaggio(ERRORI_MESSAGGI_INVIATI, erroriMessaggiImportati));
 			}
@@ -175,7 +176,7 @@ public class ServiceAzioni extends RestBaseJpa2 {
 	public Response doRiceviPassword(@FormParam(value="mailbox") String mailbox, @FormParam(value="password") String password) {
 		Response response = null;
 		try {
-			logger.debug("{}", restServletContext.getContextPath());
+			logger.debug("{}", uriInfo.getAbsolutePath());
 			checkPassword(mailbox, password);
 			
 			List<PecException> erroriMessaggiImportati = MessaggioPecBL.importaNuoviMessaggi(getContextEmf(), "REST.ANONYMOUS", mailbox, password);
@@ -196,8 +197,9 @@ public class ServiceAzioni extends RestBaseJpa2 {
 	public Response doAggiornaStato() {
 		Response response = null;
 		try {
-			logger.debug("{}", restServletContext.getContextPath());
+			logger.debug("{}", uriInfo.getAbsolutePath());
 			List<PecException> erroriAggiornaStato = MessaggioPecBL.aggiornaStatoMessaggi(getContextEmf(), "REST.ANONYMOUS", null, null);
+
 			if (erroriAggiornaStato.size() > 0) {
 				throw new PecException(generaMessaggio(ERRORI_AGGIORNA_STATO, erroriAggiornaStato));
 			}
@@ -215,7 +217,7 @@ public class ServiceAzioni extends RestBaseJpa2 {
 	public Response doInviaNotifiche() {
 		Response response = null;
 		try {
-			logger.debug("{}", restServletContext.getContextPath());
+			logger.debug("{}", uriInfo.getAbsolutePath());
 			List<PecException> erroriInviaNotifiche = NotificaPecBL.inviaNotifiche(getContextEmf(), "REST.ANONYMOUS", false, "");
 			if (erroriInviaNotifiche.size() > 0) {
 				throw new PecException(generaMessaggio(ERRORI_INVIO_NOTIFICHE, erroriInviaNotifiche));
@@ -234,8 +236,9 @@ public class ServiceAzioni extends RestBaseJpa2 {
 	public Response doInvia() {
 		Response response = null;
 		try {
-			logger.debug("{}", restServletContext.getContextPath());
+			logger.debug("{}", uriInfo.getAbsolutePath());
 			List<PecException> erroriMessaggiInviati = MessaggioPecBL.inviaMessaggiInCoda(getContextEmf(), "REST.ANONYMOUS", null, null);
+			
 			if (erroriMessaggiInviati.size() > 0) {
 				throw new PecException(generaMessaggio(ERRORI_MESSAGGI_INVIATI, erroriMessaggiInviati));
 			}
@@ -257,7 +260,7 @@ public class ServiceAzioni extends RestBaseJpa2 {
 	public Response doInviaPassword(@FormParam(value="mailbox") String mailbox, @FormParam(value="password") String password) {
 		Response response = null;
 		try {
-			logger.debug("{}", restServletContext.getContextPath());
+			logger.debug("{}", uriInfo.getAbsolutePath());
 			checkPassword(mailbox, password);
 			
 			List<PecException> erroriMessaggiInviati = MessaggioPecBL.inviaMessaggiInCoda(getContextEmf(), "REST.ANONYMOUS", mailbox, password);
@@ -281,7 +284,7 @@ public class ServiceAzioni extends RestBaseJpa2 {
 	public Response doInvia(@PathParam("idMessaggio") long idMessaggio) {
 		Response response = null;
 		try {
-			logger.debug("{}/{}", restServletContext.getContextPath(), idMessaggio);
+			logger.debug("{}/{}", uriInfo.getAbsolutePath(), idMessaggio);
 			String messageID = MessaggioPecBL.inviaMessaggio(getContextEmf(), idMessaggio, "REST.ANONYMOUS", null, null);
 			response = Response.ok(messageID, MediaType.TEXT_PLAIN).build();
 			// } catch (PecException ex) {
@@ -301,7 +304,7 @@ public class ServiceAzioni extends RestBaseJpa2 {
 	public Response doListaMailboxes() {
 		Response response = null;
 		try {
-			logger.debug("{}", restServletContext.getContextPath());
+			logger.debug("{}", uriInfo.getAbsolutePath());
 			
 			ConfigurazioneBL.resetCurrent();
 			List<String> lista = ConfigurazioneBL.getAllMailboxes(getContextEmf());
