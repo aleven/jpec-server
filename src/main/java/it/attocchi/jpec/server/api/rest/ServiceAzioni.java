@@ -302,6 +302,8 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		Response response = null;
 		try {
 			logger.debug("{}", restServletContext.getContextPath());
+			
+			ConfigurazioneBL.resetCurrent();
 			List<String> lista = ConfigurazioneBL.getAllMailboxes(getContextEmf());
 			
 			// response = Response.ok(new Date().toString(), MediaType.TEXT_PLAIN).build();
