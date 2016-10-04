@@ -37,7 +37,7 @@ public class ResourceMessaggi extends RestBaseJpa2 {
 	public Response getMessaggio(@PathParam("id") long idMessaggio) {
 		Response response = null;
 		try {
-			logger.debug("{}", restServletContext.getContextPath());
+			logger.debug("{}", uriInfo.getAbsolutePath());
 
 			// MessaggioPec messaggio =
 			// JpaController.callFindById(getContextEmf(), MessaggioPec.class,
@@ -59,7 +59,7 @@ public class ResourceMessaggi extends RestBaseJpa2 {
 		Response response = null;
 		NuovoMessaggioResponse responseData = new NuovoMessaggioResponse();
 		try {
-			logger.debug("{}", restServletContext.getContextPath());
+			logger.debug("{}", uriInfo.getAbsolutePath());
 			logger.debug("{}", new Gson().toJson(requestData));
 
 			MessaggioPec messaggioCreato = MessaggioPecBL.creaMessaggio(getContextEmf(), requestData, "REST.ANONYMOUS");
@@ -106,7 +106,7 @@ public class ResourceMessaggi extends RestBaseJpa2 {
 	public Response getStatoMessaggio(@PathParam("id") long idMessaggio) {
 		Response response = null;
 		try {
-			logger.debug("{}", restServletContext.getContextPath());
+			logger.debug("{}", uriInfo.getAbsolutePath());
 
 			MessaggioPec messaggio = getMessaggioFromDb(idMessaggio);
 			String statoDescrizione = "";

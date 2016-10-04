@@ -34,7 +34,7 @@ public class ResourceAllegati extends RestBaseJpa2 {
 	// public Response getMessaggio() {
 	// Response response = null;
 	// try {
-	// logger.debug("{}", restServletContext.getContextPath());
+	// logger.debug("{}", uriInfo.getAbsolutePath());
 	// response = Response.ok(new Date().toString(),
 	// MediaType.TEXT_PLAIN).build();
 	// } catch (Exception ex) {
@@ -53,7 +53,7 @@ public class ResourceAllegati extends RestBaseJpa2 {
 		Response response = null;
 		UploadAllegatoResponse responseData = new UploadAllegatoResponse();
 		try {
-			logger.debug("{}", restServletContext.getContextPath());
+			logger.debug("{}", uriInfo.getAbsolutePath());
 			logger.debug("{}", new Gson().toJson(allegatoRequest));
 
 			AllegatoPec allegato = MessaggioPecBL.saveFile(getContextEmf(), allegatoRequest, file);
