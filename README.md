@@ -75,12 +75,20 @@ Configurazioni Necessarie per Abilitare l'Invio delle Notifiche:
 * PEC_NOTIFICHE_SMTP_USERNAME: [String] smtp username
 * PEC_NOTIFICHE_SMTP_PASSWORD: [String] smtp password
 * PEC_NOTIFICA_INVIO_DESTINATARI: [String] destinatari a cui inviare le notifiche (elenco separato da ,)
-* PEC_NOTIFICHE_SENDER_EMAIL: : [String] smtp password
+* PEC_NOTIFICHE_SENDER_EMAIL: [String] smtp password
 
 Opzionali:
 * PEC_NOTIFICHE_SMTP_SSL: indica se il server smtp necessita di connessione ssl
 * PEC_NOTIFICHE_SMTP_SSLNOCHECK: indica se considerare il certificato SSL del server come attendibile (utile in caso di certificati self-signed)
 * PEC_NOTIFICHE_SENDER_NAME: specifica il nome visualizzato del mittente
+
+La notifica di errore contiene in allegato il file .eml della pec che ha generato errore se PEC_ENABLE_EML_STORE, a tale scopo verifica le tre impostazioni:
+* PEC_ENABLE_EML_STORE: true
+* PEC_EML_STORE_FOLDER: cartella dove salvare il file .eml
+* PEC_FOLDER_IN: nome della sotto-cartella dove salvare .eml errori in ingresso.
+(il programma deve salvare .eml su file system per poter poi inviarlo in secondo momento come file allegato sulla notifica).
+
+
 
 ## Configurazione delle Regole
 Eventi a cui e' possibile agganciare comportamento personalizzato:
