@@ -57,16 +57,6 @@ http://www.agid.gov.it/sites/default/files/leggi_decreti_direttive/pec_regole_te
 ## Configurazione Base del Programma
 fare riferimento alla wiki online https://github.com/mattocchi/jpec-server/wiki/Configurazioni-Necessarie
 
-
-### Generale
-
-### Ricezione
-
-### Invio
-
-### Notifiche
-
-
 ### Configurazione Generale
 * PEC_MAILBOXES_FOLDER: [String] specifica la posizione dei files di configurazione delle mailbox (valore di default ./WEB-INF/)
 * PEC_ATTACH_STORE_FOLDER: [String] specifica la cartella dove salvare gli allegati ai messaggi pec inviati (valore di default ./WEB-INF/allegati). ATTENZIONE: non vengono cancellati automaticamente
