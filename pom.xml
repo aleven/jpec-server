@@ -27,7 +27,7 @@
 		<dependency>
 			<groupId>com.sun.mail</groupId>
 			<artifactId>javax.mail</artifactId>
-			<version>1.5.5</version>
+			<version>1.5.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
@@ -104,6 +104,7 @@
 			<artifactId>httpmime</artifactId>
 			<version>4.5.1</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-json-jackson</artifactId>
@@ -114,6 +115,7 @@
 			<artifactId>jersey-media-multipart</artifactId>
 			<version>2.22.1</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
