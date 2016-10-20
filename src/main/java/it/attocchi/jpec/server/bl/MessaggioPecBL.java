@@ -189,7 +189,7 @@ public class MessaggioPecBL {
 							String headerXRiferimentoMessageId = "";
 
 							logger.debug("--");
-							logger.debug("getMessageNumber=" + mail.getMessageNumber());
+							logger.info("getMessageNumber={}", mail.getMessageNumber());
 							if (mail.getAllHeaders() != null) {
 								Enumeration headers = mail.getAllHeaders();
 								while (headers.hasMoreElements()) {
@@ -201,6 +201,7 @@ public class MessaggioPecBL {
 										headerXTrasporto = h.getValue();
 									} else if (HEADER_MESSAGE_ID.equalsIgnoreCase(headerName)) {
 										headerMessageId = h.getValue();
+										logger.info("{}={}", h.getName(), h.getValue());
 									} else if (HEADER_X_RICEVUTA.equalsIgnoreCase(headerName)) {
 										headerXRicevuta = h.getValue();
 									} else if (HEADER_X_TIPO_RICEVUTA.equalsIgnoreCase(headerName)) {
@@ -210,7 +211,7 @@ public class MessaggioPecBL {
 									}
 								}
 							}
-							logger.debug("getSubject=" + mail.getSubject());
+							logger.info("getSubject={}", mail.getSubject());
 							// logger.debug(" decoded=" +
 							// javax.mail.internet.MimeUtility.decodeText(mail.getSubject()));
 
