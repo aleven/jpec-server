@@ -212,6 +212,7 @@ public class MessaggioPecBL {
 								}
 							}
 							logger.info("getSubject={}", mail.getSubject());
+							// test dev
 							// logger.debug(" decoded=" +
 							// javax.mail.internet.MimeUtility.decodeText(mail.getSubject()));
 
