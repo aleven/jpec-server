@@ -57,16 +57,6 @@ http://www.agid.gov.it/sites/default/files/leggi_decreti_direttive/pec_regole_te
 ## Configurazione Base del Programma
 fare riferimento alla wiki online https://github.com/mattocchi/jpec-server/wiki/Configurazioni-Necessarie
 
-
-### Generale
-
-### Ricezione
-
-### Invio
-
-### Notifiche
-
-
 ### Configurazione Generale
 * PEC_MAILBOXES_FOLDER: [String] specifica la posizione dei files di configurazione delle mailbox (valore di default ./WEB-INF/)
 * PEC_ATTACH_STORE_FOLDER: [String] specifica la cartella dove salvare gli allegati ai messaggi pec inviati (valore di default ./WEB-INF/allegati). ATTENZIONE: non vengono cancellati automaticamente
@@ -85,12 +75,20 @@ Configurazioni Necessarie per Abilitare l'Invio delle Notifiche:
 * PEC_NOTIFICHE_SMTP_USERNAME: [String] smtp username
 * PEC_NOTIFICHE_SMTP_PASSWORD: [String] smtp password
 * PEC_NOTIFICA_INVIO_DESTINATARI: [String] destinatari a cui inviare le notifiche (elenco separato da ,)
-* PEC_NOTIFICHE_SENDER_EMAIL: : [String] smtp password
+* PEC_NOTIFICHE_SENDER_EMAIL: [String] smtp password
 
 Opzionali:
 * PEC_NOTIFICHE_SMTP_SSL: indica se il server smtp necessita di connessione ssl
 * PEC_NOTIFICHE_SMTP_SSLNOCHECK: indica se considerare il certificato SSL del server come attendibile (utile in caso di certificati self-signed)
 * PEC_NOTIFICHE_SENDER_NAME: specifica il nome visualizzato del mittente
+
+La notifica di errore contiene in allegato il file .eml della pec che ha generato errore se PEC_ENABLE_EML_STORE, a tale scopo verifica le tre impostazioni:
+* PEC_ENABLE_EML_STORE: true
+* PEC_EML_STORE_FOLDER: cartella dove salvare il file .eml
+* PEC_FOLDER_IN: nome della sotto-cartella dove salvare .eml errori in ingresso.
+(il programma deve salvare .eml su file system per poter poi inviarlo in secondo momento come file allegato sulla notifica).
+
+
 
 ## Configurazione delle Regole
 Eventi a cui e' possibile agganciare comportamento personalizzato:
@@ -99,11 +97,20 @@ Eventi a cui e' possibile agganciare comportamento personalizzato:
 | --- | --- |
 |IMPORTA_MESSAGGIO|handle per la defizione di criteri per importazione dei messaggi|
 |PROTOCOLLA_MESSAGGIO|handle per la  definizione di un comportamento per la protocollazione dei messaggi|
+|AGGIORNA_STATO|handle per la definizione di regole per l'aggiornamento di (esempio: allega le ricevute nel documentale)|
 |AGGIORNA_SEGNATURA|handle per la definizione di un comportamento quando in presenza di una segnatura, esempio risposta automatica|
 
-### Estensione con Plugin Personalizzati
+| Evento | Descrizione |
+| --- | --- |
+|evento|hande a cui agganciare questa regola|
+|nome|nome della regola|
+|ordine|se sono configurate piu regole sullo stesso handle utile per determinare ordine di esecuzione|
+|criterio|script groovy che viene valutato per verificare se la regola è applicabile, se ritorna true viene "eseguita"|
+|azione|script groovy con il quale è possibile interagire con la regola, settando variabili ad esempio nell'istanza di classe|
+|classe|specifica quale classe istanziare per l'applicazione di questa regola|
+|note|note relative alla regola|
 
-it.attocchi.jpec.server.protocollo.AbstractAzione
+
 
 ### Scripting via Groovy
 
@@ -114,6 +121,6 @@ it.attocchi.jpec.server.protocollo.AbstractAzione
 
 l'istanza "helper" di RegolaPecHelper contiene al suo interno due field con riferimento all'istanza di RegolaPec in .regola (la regola che ha creato l'istanza di questo Helper) e di Message in .messaggioEmail (il messaggio email che sta per essere valuato)
 
+### Estensione con Plugin Personalizzati
 
-
-
+it.attocchi.jpec.server.protocollo.AbstractAzione

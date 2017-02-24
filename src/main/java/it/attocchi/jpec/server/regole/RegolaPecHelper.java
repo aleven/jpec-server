@@ -136,9 +136,9 @@ public class RegolaPecHelper {
 	}
 
 	/**
-	 * 
-	 * @param regExp
-	 * @return
+	 * verifica match con l'oggetto dell'email  
+	 * @param regExp pattern della regular expression 
+	 * @return true if pattern match
 	 */
 	public boolean subjectMatch(String regExp) {
 		boolean res = false;
@@ -157,9 +157,9 @@ public class RegolaPecHelper {
 	}
 
 	/**
-	 * 
-	 * @param regExp
-	 * @return
+	 * verifica match con uno qualsiasi degli indirizzi specificati in reply-to
+	 * @param regExp pattern della regular expression 
+	 * @return true if pattern match
 	 */
 	public boolean replyToMatch(String regExp) {
 		boolean res = false;

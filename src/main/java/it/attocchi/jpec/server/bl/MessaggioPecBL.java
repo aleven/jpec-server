@@ -32,7 +32,7 @@ import java.util.List;
 import javax.mail.Header;
 import javax.mail.Message;
 import javax.mail.MessagingException;
-import javax.mail.internet.MimeUtility;
+import javax.mail.internet.MimeMessage;
 import javax.persistence.EntityManagerFactory;
 
 import org.apache.commons.io.FileUtils;
@@ -167,7 +167,14 @@ public class MessaggioPecBL {
 					logger.info("inizio verifica messaggi gia' importati...");
 					int i = 0;
 
-					for (Message mail : mails) {
+					for (Message mailmessage : mails) {
+						
+						/* creo una copia off-line della email, che altrimenti è legata alla sessione, una volta chiusa la sessione potrebbe non essere possibile accedere alcune info */
+						// https://community.oracle.com/thread/1591794
+						logger.warn("coping Session Message {} to offline MimeMessage...", mailmessage.getClass().getName());
+						MimeMessage tmp = (MimeMessage)mailmessage;
+						MimeMessage mail = new MimeMessage(tmp);
+						
 						// MailMessage m = MailMessage.create(mail);
 						// AzioneEsito regoleImportaConvalidate =
 						// RegolaPecBL.applicaRegole(emf, regoleImporta, mail,
@@ -182,7 +189,7 @@ public class MessaggioPecBL {
 							String headerXRiferimentoMessageId = "";
 
 							logger.debug("--");
-							logger.debug("getMessageNumber=" + mail.getMessageNumber());
+							logger.info("getMessageNumber={}", mail.getMessageNumber());
 							if (mail.getAllHeaders() != null) {
 								Enumeration headers = mail.getAllHeaders();
 								while (headers.hasMoreElements()) {
@@ -194,6 +201,7 @@ public class MessaggioPecBL {
 										headerXTrasporto = h.getValue();
 									} else if (HEADER_MESSAGE_ID.equalsIgnoreCase(headerName)) {
 										headerMessageId = h.getValue();
+										logger.info("{}={}", h.getName(), h.getValue());
 									} else if (HEADER_X_RICEVUTA.equalsIgnoreCase(headerName)) {
 										headerXRicevuta = h.getValue();
 									} else if (HEADER_X_TIPO_RICEVUTA.equalsIgnoreCase(headerName)) {
@@ -203,7 +211,8 @@ public class MessaggioPecBL {
 									}
 								}
 							}
-							logger.debug("getSubject=" + mail.getSubject());
+							logger.info("getSubject={}", mail.getSubject());
+							// test dev
 							// logger.debug(" decoded=" +
 							// javax.mail.internet.MimeUtility.decodeText(mail.getSubject()));
 
@@ -258,18 +267,22 @@ public class MessaggioPecBL {
 								messaggioPec.setMessaggio(body.getBody());
 
 								messaggioPec.setNomeMittente(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllSenders(mail)));
+								String indirizzoMittente = "";
 								if (BUSTA_TRASPORTO.equals(headerXTrasporto)) {
 									/*
 									 * nel caso delle pec il mittente originale
-									 * viene inserito come repy-to
+									 * viene inserito come reply-to ATTENZIONE:
+									 * il campo reply-to potrebbe contenere un
+									 * indirizzo diverso dal mittente (se
+									 * specificato in email originale)
 									 */
-									messaggioPec.setEmailMittente(MailUtils.getReplyToAddress(mail));
+									indirizzoMittente = MailUtils.getReplyToAddress(mail);
 								} else {
 									/*
 									 * in tutti gli altri casi, posta normale o
 									 * ricevute il mittente
 									 */
-									messaggioPec.setEmailMittente(MailUtils.getSenderAddress(mail));
+									indirizzoMittente = MailUtils.getSenderAddress(mail);
 								}
 
 								messaggioPec.setDestinatari(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllRecipents(mail)));
@@ -278,6 +291,7 @@ public class MessaggioPecBL {
 								 * aggiunta informazioni daticert.xml e
 								 * postacert.eml
 								 */
+								logger.info("estrazione dati busta pec: daticert.xml e postacert.eml");
 								PecParser2 pecParser2 = new PecParser2();
 								pecParser2.dumpPart(mail);
 								String daticertXml = pecParser2.getDaticertXml();
@@ -303,7 +317,13 @@ public class MessaggioPecBL {
 									messaggioPec.setPostacertContentType(bodyPostacert.getContentType());
 								}
 								messaggioPec.setSegnaturaXml(pecParser2.getSegnaturaXml());
-
+								String indirizzoMittentePostacertEml = pecParser2.getPostacertEmlSenderAddress();
+								if (indirizzoMittentePostacertEml != null && !indirizzoMittentePostacertEml.equalsIgnoreCase(indirizzoMittente)) {
+									logger.warn("utilizzo indirizzo mittente da postacert.eml in quanto diverso da quanto estratto da header pec {}-{}", indirizzoMittente, indirizzoMittentePostacertEml);
+									indirizzoMittente = indirizzoMittentePostacertEml;
+								}
+								messaggioPec.setEmailMittente(indirizzoMittente);
+								
 								/*
 								 * PROTOCOLLA
 								 */
@@ -406,24 +426,24 @@ public class MessaggioPecBL {
 									 * MessaggioPec
 									 */
 									if (deleteMessageFromServer) {
-										server.markMessageDeleted(mail);
+										server.markMessageDeleted(mailmessage);
 									}
 
 									if (markAsReadFromServer) {
-										server.markMessageAsRead(mail);
+										server.markMessageAsRead(mailmessage);
 									}
 
 									i++;
 								} else {
 									logger.warn("si e' verificato un errore in fase di protocollo ed il messaggio {}@{} non e' stato importato", headerMessageId, messaggioPec.getMailbox());
 									if (markAsReadFromServer) {
-										server.markMessageAsUnRead(mail);
+										server.markMessageAsUnRead(mailmessage);
 									}
 								}
 							} else {
 								logger.warn("messaggio {} gia' importato per mailbox {}", headerMessageId, messaggioEsistente.getMailbox());
 								if (markAsReadFromServer) {
-									server.markMessageAsRead(mail);
+									server.markMessageAsRead(mailmessage);
 								}
 							}
 						} else {
