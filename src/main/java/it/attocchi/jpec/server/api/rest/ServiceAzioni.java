@@ -19,6 +19,12 @@ import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+
+@Api(value = "Azioni")
 @Path("/azioni")
 public class ServiceAzioni extends RestBaseJpa2 {
 
@@ -29,6 +35,11 @@ public class ServiceAzioni extends RestBaseJpa2 {
 	
 	protected static final Logger logger = LoggerFactory.getLogger(ServiceAzioni.class);
 
+	@ApiOperation(value = "/inviaericevi", notes = "invia e ricevi", produces=MediaType.TEXT_PLAIN)
+	@ApiResponses(value = { 
+		@ApiResponse(code = 200, message = "success", response = String.class),
+		@ApiResponse(code = 500, message = "error") 
+	})
 	@GET
 	@Path("/inviaericevi")
 	// @Produces(MediaType.TEXT_PLAIN)
@@ -93,6 +104,11 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		return sbErrori.toString();
 	}
 
+	@ApiOperation(value = "/ricevi", notes = "scarica nuovi messaggi", produces=MediaType.TEXT_PLAIN)
+	@ApiResponses(value = { 
+		@ApiResponse(code = 200, message = "success", response = String.class),
+		@ApiResponse(code = 500, message = "error") 
+	})
 	@GET
 	@Path("/ricevi")
 	// @Produces(MediaType.TEXT_PLAIN)
@@ -112,6 +128,11 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		return response;
 	}
 
+	@ApiOperation(value = "/aggiornastato", notes = "aggiorna stato messaggi", produces=MediaType.TEXT_PLAIN)
+	@ApiResponses(value = { 
+		@ApiResponse(code = 200, message = "success", response = String.class),
+		@ApiResponse(code = 500, message = "error") 
+	})
 	@GET
 	@Path("/aggiornastato")
 	// @Produces(MediaType.TEXT_PLAIN)
@@ -131,6 +152,11 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		return response;
 	}
 
+	@ApiOperation(value = "/invianotifiche", notes = "invia eventuali notifiche messaggi (notifiche in coda)", produces=MediaType.TEXT_PLAIN)
+	@ApiResponses(value = { 
+		@ApiResponse(code = 200, message = "success", response = String.class),
+		@ApiResponse(code = 500, message = "error") 
+	})
 	@GET
 	@Path("/invianotifiche")
 	// @Produces(MediaType.TEXT_PLAIN)
@@ -151,6 +177,12 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		return response;
 	}
 
+	
+	@ApiOperation(value = "/invia", notes = "invia messaggi in coda", produces=MediaType.TEXT_PLAIN)
+	@ApiResponses(value = { 
+		@ApiResponse(code = 200, message = "success", response = String.class),
+		@ApiResponse(code = 500, message = "error") 
+	})
 	@PUT
 	@Path("/invia")
 	public Response doInvia() {
@@ -173,6 +205,11 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		return response;
 	}
 
+	@ApiOperation(value = "/invia", notes = "invia messaggio specifico", produces=MediaType.TEXT_PLAIN)
+	@ApiResponses(value = { 
+		@ApiResponse(code = 200, message = "success", response = String.class),
+		@ApiResponse(code = 500, message = "error") 
+	})
 	@PUT
 	@Path("/invia/{idMessaggio}")
 	public Response doInvia(@PathParam("idMessaggio") long idMessaggio) {

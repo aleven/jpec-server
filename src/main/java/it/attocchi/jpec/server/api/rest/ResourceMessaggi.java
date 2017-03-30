@@ -4,6 +4,7 @@ import it.attocchi.jpa2.JpaController;
 import it.attocchi.jpec.server.api.rest.data.NuovoMessaggioRequest;
 import it.attocchi.jpec.server.api.rest.data.NuovoMessaggioResponse;
 import it.attocchi.jpec.server.bl.MessaggioPecBL;
+import it.attocchi.jpec.server.entities.AllegatoPec;
 import it.attocchi.jpec.server.entities.MessaggioPec;
 import it.attocchi.jpec.server.exceptions.PecException;
 import it.webappcommon.rest.RestBaseJpa2;
@@ -26,11 +27,22 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+
+@Api(value = "Messaggi")
 @Path("/messaggi")
 public class ResourceMessaggi extends RestBaseJpa2 {
 
 	protected static final Logger logger = LoggerFactory.getLogger(ResourceMessaggi.class);
 
+	@ApiOperation(value = "/messaggi", notes = "dati di un messaggio")
+	@ApiResponses(value = { 
+		@ApiResponse(code = 200, message = "success", response = MessaggioPec.class),
+		@ApiResponse(code = 500, message = "error") 
+	})
 	@GET
 	@Path("/{id}/")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -52,6 +64,11 @@ public class ResourceMessaggi extends RestBaseJpa2 {
 		return response;
 	}
 
+	@ApiOperation(value = "/", notes = "crea un nuovo messaggio")
+	@ApiResponses(value = { 
+		@ApiResponse(code = 200, message = "success", response = NuovoMessaggioResponse.class),
+		@ApiResponse(code = 500, message = "error") 
+	})
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
@@ -100,6 +117,11 @@ public class ResourceMessaggi extends RestBaseJpa2 {
 		return response;
 	}
 
+	@ApiOperation(value = "/stato", notes = "stato del mdessaggio")
+	@ApiResponses(value = { 
+		@ApiResponse(code = 200, message = "success", response = String.class),
+		@ApiResponse(code = 500, message = "error") 
+	})
 	@GET
 	@Path("/{id}/stato")
 	@Produces(MediaType.APPLICATION_JSON)
