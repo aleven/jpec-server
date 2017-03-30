@@ -14,7 +14,7 @@ Regole tecniche del servizio di trasmissione di documenti informatici mediante p
 - analisi ricevute PEC per calcolo stato messaggi inviati ed associazione ricevute
 - regole per filtri ed azioni scriptabili via groovy
 - possibilità di estensione, personalizzazione comportamento regole con aggiunta di plugin (es: Protocollo personalizzato)
-- api rest per utilizzo da applicativi aziendali: invio PEC, stato messaggi e ricezione ([API DOC](http://petstore.swagger.io/?url=))
+- api rest per utilizzo da applicativi aziendali: invio PEC, stato messaggi e ricezione ([SWAGGER LIVE API DOC](http://petstore.swagger.io/?url=https://raw.githubusercontent.com/aleven/jpec-server/develop/src/main/webapp/api-doc/swagger.json))
 - supporto estrazione segnatura.xml
 - archiviazione dati e messaggi in database open
 - supporto ad archiviazione messaggi .eml in file system (attivazione opzionale)
