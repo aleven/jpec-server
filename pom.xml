@@ -65,9 +65,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>it.attocchi</groupId>
+			<groupId>it.aleven</groupId>
 			<artifactId>webapp-common</artifactId>
-			<version>3.2.5-SNAPSHOT</version>
+			<version>3.2.6</version>
 		</dependency>
 		
 		<dependency>
