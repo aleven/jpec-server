@@ -65,9 +65,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>it.attocchi</groupId>
+			<groupId>it.aleven</groupId>
 			<artifactId>webapp-common</artifactId>
-			<version>3.2.5-SNAPSHOT</version>
+			<version>3.2.13</version>
 		</dependency>
 		
 		<dependency>
@@ -85,13 +85,6 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-email</artifactId>
 			<version>1.4</version>
-		</dependency>
-	
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
-			<version>3.0.1</version>
-			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
