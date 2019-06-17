@@ -56,7 +56,7 @@ public class ArchivioEmlBL {
 			// os.close();
 			// }
 			// server.saveToEml(mail, emlFile);
-			MailUtils.saveToEml(mail, emlFile);
+			MailUtils.saveToEml(mail, emlFile, false);
 
 			// saved = true;
 			res = emlFile.getPath();
