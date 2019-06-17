@@ -3,7 +3,7 @@ una web-app java per la gestione e smistamento della casella di posta elettronic
 
 ## Specifiche PEC
 Regole tecniche del servizio di trasmissione di documenti informatici mediante posta el ettronica certificata: 
-http://www.agid.gov.it/sites/default/files/leggi_decreti_direttive/pec_regole_tecniche_dm_2-nov-2005.pdf
+[pec_regole_tecniche_dm_2-nov-2005.pdf](http://www.agid.gov.it/sites/default/files/leggi_decreti_direttive/pec_regole_tecniche_dm_2-nov-2005.pdf)
 
 ## Riepilogo Funzionalità (principali)
 - monitor ricezione nuova PEC
@@ -12,12 +12,12 @@ http://www.agid.gov.it/sites/default/files/leggi_decreti_direttive/pec_regole_te
 - condivisione casella PEC nel gruppo di lavoro
 - verifica stato PEC inviata
 - analisi ricevute PEC per calcolo stato messaggi inviati ed associazione ricevute
-- regole per filtri ed azioni scriptabili via groovy ()
+- regole per filtri ed azioni scriptabili via groovy
 - possibilità di estensione, personalizzazione comportamento regole con aggiunta di plugin (es: Protocollo personalizzato)
-- api rest per utilizzo da applicativi aziendali (invio PEC, stato messaggi e ricezione)
+- api rest per utilizzo da applicativi aziendali: invio PEC, stato messaggi e ricezione ([SWAGGER LIVE API DOC](http://petstore.swagger.io/?url=https://raw.githubusercontent.com/aleven/jpec-server/develop/src/main/webapp/api-doc/swagger.json))
 - supporto estrazione segnatura.xml
 - archiviazione dati e messaggi in database open
-- supporto ad archiviazione messaggi .eml in file system (opzionale)
+- supporto ad archiviazione messaggi .eml in file system (attivazione opzionale)
 - supporto a mailbox PEC multiple
 
 ##Requisiti per Installazione
@@ -43,19 +43,23 @@ http://www.agid.gov.it/sites/default/files/leggi_decreti_direttive/pec_regole_te
 
 (*) configurare context.xml del .war
 
+##Requisiti per Compilazione
+### Dipendenze
+* [webapp-common](https://github.com/aleven/webapp-common)
+
 ## Integrazione GDA
 ### Servizi Protocollo e Documentale
 * IP del server per i servizi (da configurare negli opportuni connettori java) (**)
 * username e password per effettuare le richieste REST ai servizi (**)
 
-(**) configurare nel codice java per progetto https://bitbucket.org/comunerivadelgarda/gdapec-protocollo-client
+(**) configurare nel codice java per progetto [gdapec-protocollo-client](https://bitbucket.org/comunerivadelgarda/gdapec-protocollo-client)
 
 ### Dati Mailbox
 * id dell’ufficio (SPORTELLO Protocollo == Attribuzione)
 * id dell’ufficio (ID UFFICIO passato == Destinatario)
 
 ## Configurazione Base del Programma
-fare riferimento alla wiki online https://github.com/mattocchi/jpec-server/wiki/Configurazioni-Necessarie
+fare riferimento alla wiki online [Configurazioni-Necessarie](https://github.com/mattocchi/jpec-server/wiki/Configurazioni-Necessarie)
 
 ### Configurazione Generale
 * PEC_MAILBOXES_FOLDER: [String] specifica la posizione dei files di configurazione delle mailbox (valore di default ./WEB-INF/)
@@ -88,8 +92,6 @@ La notifica di errore contiene in allegato il file .eml della pec che ha generat
 * PEC_FOLDER_IN: nome della sotto-cartella dove salvare .eml errori in ingresso.
 (il programma deve salvare .eml su file system per poter poi inviarlo in secondo momento come file allegato sulla notifica).
 
-
-
 ## Configurazione delle Regole
 Eventi a cui e' possibile agganciare comportamento personalizzato:
 
@@ -109,8 +111,6 @@ Eventi a cui e' possibile agganciare comportamento personalizzato:
 |azione|script groovy con il quale è possibile interagire con la regola, settando variabili ad esempio nell'istanza di classe|
 |classe|specifica quale classe istanziare per l'applicazione di questa regola|
 |note|note relative alla regola|
-
-
 
 ### Scripting via Groovy
 

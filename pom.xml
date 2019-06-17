@@ -65,9 +65,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>it.aleven</groupId>
+			<groupId>it.attocchi</groupId>
 			<artifactId>webapp-common</artifactId>
-			<version>3.2.13</version>
+			<version>3.2.5-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
@@ -127,6 +127,13 @@
 			<version>5.1.38</version>
 			<scope>test</scope>
 		</dependency>
+
+		<!--  swagger gen -->
+	    <dependency>
+	      <groupId>io.swagger</groupId>
+	      <artifactId>swagger-jersey-jaxrs</artifactId>
+	      <version>1.5.13</version>
+	    </dependency>
 	</dependencies>
 	<build>
 		<plugins>

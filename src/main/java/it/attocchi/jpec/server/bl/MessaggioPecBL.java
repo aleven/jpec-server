@@ -267,18 +267,22 @@ public class MessaggioPecBL {
 								messaggioPec.setMessaggio(body.getBody());
 
 								messaggioPec.setNomeMittente(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllSenders(mail)));
+								String indirizzoMittente = "";
 								if (BUSTA_TRASPORTO.equals(headerXTrasporto)) {
 									/*
 									 * nel caso delle pec il mittente originale
-									 * viene inserito come repy-to
+									 * viene inserito come reply-to ATTENZIONE:
+									 * il campo reply-to potrebbe contenere un
+									 * indirizzo diverso dal mittente (se
+									 * specificato in email originale)
 									 */
-									messaggioPec.setEmailMittente(MailUtils.getReplyToAddress(mail));
+									indirizzoMittente = MailUtils.getReplyToAddress(mail);
 								} else {
 									/*
 									 * in tutti gli altri casi, posta normale o
 									 * ricevute il mittente
 									 */
-									messaggioPec.setEmailMittente(MailUtils.getSenderAddress(mail));
+									indirizzoMittente = MailUtils.getSenderAddress(mail);
 								}
 
 								messaggioPec.setDestinatari(ListUtils.toCommaSeparedNoBracket(MailUtils.getAllRecipents(mail)));
@@ -287,6 +291,7 @@ public class MessaggioPecBL {
 								 * aggiunta informazioni daticert.xml e
 								 * postacert.eml
 								 */
+								logger.info("estrazione dati busta pec: daticert.xml e postacert.eml");
 								PecParser2 pecParser2 = new PecParser2();
 								pecParser2.dumpPart(mail);
 								String daticertXml = pecParser2.getDaticertXml();
@@ -312,7 +317,13 @@ public class MessaggioPecBL {
 									messaggioPec.setPostacertContentType(bodyPostacert.getContentType());
 								}
 								messaggioPec.setSegnaturaXml(pecParser2.getSegnaturaXml());
-
+								String indirizzoMittentePostacertEml = pecParser2.getPostacertEmlSenderAddress();
+								if (indirizzoMittentePostacertEml != null && !indirizzoMittentePostacertEml.equalsIgnoreCase(indirizzoMittente)) {
+									logger.warn("utilizzo indirizzo mittente da postacert.eml in quanto diverso da quanto estratto da header pec {}-{}", indirizzoMittente, indirizzoMittentePostacertEml);
+									indirizzoMittente = indirizzoMittentePostacertEml;
+								}
+								messaggioPec.setEmailMittente(indirizzoMittente);
+								
 								/*
 								 * PROTOCOLLA
 								 */

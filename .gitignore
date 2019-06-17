@@ -2,5 +2,6 @@
 /.settings/
 /.classpath
 /.project
-/.idea
-/*.iml
+/.factorypath
+*.iml
+.idea
