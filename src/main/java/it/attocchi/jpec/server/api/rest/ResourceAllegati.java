@@ -8,6 +8,7 @@ import it.attocchi.jpec.server.exceptions.PecException;
 import it.webappcommon.rest.RestBaseJpa2;
 
 import java.io.InputStream;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -23,6 +24,12 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+
+@Api(value = "Allegati")
 @Path("/allegati")
 public class ResourceAllegati extends RestBaseJpa2 {
 
@@ -34,7 +41,7 @@ public class ResourceAllegati extends RestBaseJpa2 {
 	// public Response getMessaggio() {
 	// Response response = null;
 	// try {
-	// logger.debug("{}", restServletContext.getContextPath());
+	// logger.debug("{}", uriInfo.getAbsolutePath());
 	// response = Response.ok(new Date().toString(),
 	// MediaType.TEXT_PLAIN).build();
 	// } catch (Exception ex) {
@@ -45,6 +52,12 @@ public class ResourceAllegati extends RestBaseJpa2 {
 	// return response;
 	// }
 
+	@ApiOperation(value = "/upload", notes = "carica un alleagto")
+	@ApiResponses(value = { 
+		@ApiResponse(code = 200, message = "success", response = AllegatoPec.class),
+		@ApiResponse(code = 412, message = "PRECONDITION_FAILED"),
+		@ApiResponse(code = 500, message = "error") 
+	})
 	@POST
 	@Path("/upload")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -53,7 +66,7 @@ public class ResourceAllegati extends RestBaseJpa2 {
 		Response response = null;
 		UploadAllegatoResponse responseData = new UploadAllegatoResponse();
 		try {
-			logger.debug("{}", restServletContext.getContextPath());
+			logger.debug("{}", uriInfo.getAbsolutePath());
 			logger.debug("{}", new Gson().toJson(allegatoRequest));
 
 			AllegatoPec allegato = MessaggioPecBL.saveFile(getContextEmf(), allegatoRequest, file);

@@ -19,6 +19,12 @@ import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+
+@Api(value = "Azioni")
 @Path("/azioni")
 public class ServiceAzioni extends RestBaseJpa2 {
 
@@ -29,13 +35,18 @@ public class ServiceAzioni extends RestBaseJpa2 {
 	
 	protected static final Logger logger = LoggerFactory.getLogger(ServiceAzioni.class);
 
+	@ApiOperation(value = "/inviaericevi", notes = "invia e ricevi", produces=MediaType.TEXT_PLAIN)
+	@ApiResponses(value = { 
+		@ApiResponse(code = 200, message = "success", response = String.class),
+		@ApiResponse(code = 500, message = "error") 
+	})
 	@GET
 	@Path("/inviaericevi")
 	// @Produces(MediaType.TEXT_PLAIN)
 	public Response doInviaeRicevi() {
 		Response response = null;
 		try {
-			logger.debug("{}", restServletContext.getContextPath());
+			logger.debug("{}", uriInfo.getAbsolutePath());
 
 			StringBuffer sb = new StringBuffer();
 
@@ -93,13 +104,18 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		return sbErrori.toString();
 	}
 
+	@ApiOperation(value = "/ricevi", notes = "scarica nuovi messaggi", produces=MediaType.TEXT_PLAIN)
+	@ApiResponses(value = { 
+		@ApiResponse(code = 200, message = "success", response = String.class),
+		@ApiResponse(code = 500, message = "error") 
+	})
 	@GET
 	@Path("/ricevi")
 	// @Produces(MediaType.TEXT_PLAIN)
 	public Response doRicevi() {
 		Response response = null;
 		try {
-			logger.debug("{}", restServletContext.getContextPath());
+			logger.debug("{}", uriInfo.getAbsolutePath());
 			List<PecException> erroriMessaggiImportati = MessaggioPecBL.importaNuoviMessaggi(getContextEmf(), "REST.ANONYMOUS");
 			if (erroriMessaggiImportati.size() > 0) {
 				throw new PecException(generaMessaggio(ERRORI_MESSAGGI_INVIATI, erroriMessaggiImportati));
@@ -112,13 +128,18 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		return response;
 	}
 
+	@ApiOperation(value = "/aggiornastato", notes = "aggiorna stato messaggi", produces=MediaType.TEXT_PLAIN)
+	@ApiResponses(value = { 
+		@ApiResponse(code = 200, message = "success", response = String.class),
+		@ApiResponse(code = 500, message = "error") 
+	})
 	@GET
 	@Path("/aggiornastato")
 	// @Produces(MediaType.TEXT_PLAIN)
 	public Response doAggiornaStato() {
 		Response response = null;
 		try {
-			logger.debug("{}", restServletContext.getContextPath());
+			logger.debug("{}", uriInfo.getAbsolutePath());
 			List<PecException> erroriAggiornaStato = MessaggioPecBL.aggiornaStatoMessaggi(getContextEmf(), "REST.ANONYMOUS");
 			if (erroriAggiornaStato.size() > 0) {
 				throw new PecException(generaMessaggio(ERRORI_AGGIORNA_STATO, erroriAggiornaStato));
@@ -131,13 +152,18 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		return response;
 	}
 
+	@ApiOperation(value = "/invianotifiche", notes = "invia eventuali notifiche messaggi (notifiche in coda)", produces=MediaType.TEXT_PLAIN)
+	@ApiResponses(value = { 
+		@ApiResponse(code = 200, message = "success", response = String.class),
+		@ApiResponse(code = 500, message = "error") 
+	})
 	@GET
 	@Path("/invianotifiche")
 	// @Produces(MediaType.TEXT_PLAIN)
 	public Response doInviaNotifiche() {
 		Response response = null;
 		try {
-			logger.debug("{}", restServletContext.getContextPath());
+			logger.debug("{}", uriInfo.getAbsolutePath());
 			List<PecException> erroriInviaNotifiche = NotificaPecBL.inviaNotifiche(getContextEmf(), "REST.ANONYMOUS", false, "");
 			if (erroriInviaNotifiche.size() > 0) {
 				throw new PecException(generaMessaggio(ERRORI_INVIO_NOTIFICHE, erroriInviaNotifiche));
@@ -151,12 +177,18 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		return response;
 	}
 
+	
+	@ApiOperation(value = "/invia", notes = "invia messaggi in coda", produces=MediaType.TEXT_PLAIN)
+	@ApiResponses(value = { 
+		@ApiResponse(code = 200, message = "success", response = String.class),
+		@ApiResponse(code = 500, message = "error") 
+	})
 	@PUT
 	@Path("/invia")
 	public Response doInvia() {
 		Response response = null;
 		try {
-			logger.debug("{}", restServletContext.getContextPath());
+			logger.debug("{}", uriInfo.getAbsolutePath());
 			List<PecException> erroriMessaggiInviati = MessaggioPecBL.inviaMessaggiInCoda(getContextEmf(), "REST.ANONYMOUS");
 			if (erroriMessaggiInviati.size() > 0) {
 				throw new PecException(generaMessaggio(ERRORI_MESSAGGI_INVIATI, erroriMessaggiInviati));
@@ -173,12 +205,17 @@ public class ServiceAzioni extends RestBaseJpa2 {
 		return response;
 	}
 
+	@ApiOperation(value = "/invia", notes = "invia messaggio specifico", produces=MediaType.TEXT_PLAIN)
+	@ApiResponses(value = { 
+		@ApiResponse(code = 200, message = "success", response = String.class),
+		@ApiResponse(code = 500, message = "error") 
+	})
 	@PUT
 	@Path("/invia/{idMessaggio}")
 	public Response doInvia(@PathParam("idMessaggio") long idMessaggio) {
 		Response response = null;
 		try {
-			logger.debug("{}/{}", restServletContext.getContextPath(), idMessaggio);
+			logger.debug("{}/{}", uriInfo.getAbsolutePath(), idMessaggio);
 			String messageID = MessaggioPecBL.inviaMessaggio(getContextEmf(), idMessaggio, "REST.ANONYMOUS");
 			response = Response.ok(messageID, MediaType.TEXT_PLAIN).build();
 			// } catch (PecException ex) {

@@ -12,11 +12,16 @@ import javax.ws.rs.core.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+
+@Api(value = "Test")
 @Path("/test")
 public class ServiceTest extends RestBaseJpa2 {
 
 	protected static final Logger logger = LoggerFactory.getLogger(ServiceTest.class);
 	
+	@ApiOperation(value = "/test", notes = "un web service di test per verificare che la webapp sia attiva", produces = MediaType.TEXT_PLAIN, response = String.class)
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	public String getIt() {
