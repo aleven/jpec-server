@@ -5,6 +5,12 @@ una web-app java per la gestione e smistamento della casella di posta elettronic
 Regole tecniche del servizio di trasmissione di documenti informatici mediante posta el ettronica certificata: 
 [pec_regole_tecniche_dm_2-nov-2005.pdf](http://www.agid.gov.it/sites/default/files/leggi_decreti_direttive/pec_regole_tecniche_dm_2-nov-2005.pdf)
 
+### Aggiornamento TLS 1.2
+Come indicato da AgID per supportare TLS 1.2 è necessario eseguire jpec-server su Java 8 (almeno b132)
+
+[sicurezza_del_software_v1.0.pdf]
+(https://www.agid.gov.it/sites/default/files/repository_files/documentazione/linee_guida_per_la_configurazione_per_adeguare_la_sicurezza_del_software_v1.0.pdf)
+
 ## Riepilogo Funzionalità (principali)
 - monitor ricezione nuova PEC
 - notifiche in ricezione/invio nuovi messaggi
@@ -23,9 +29,11 @@ Regole tecniche del servizio di trasmissione di documenti informatici mediante p
 ##Requisiti per Installazione
 ###Sever
 * Tomcat 7 o successivi (servlet container with servlet spec >= 3.0)
-* Java 7 o successivi
+* Java 7 o successivi**
 * Database Postgres o MySql
 * war applicazione
+
+** vedi Aggiornamento TLS 1.2
 
 ### Dati Mailbox Posta Certificata
 * server POP3/IMAP e SMTP per invio e ricezione PEC
