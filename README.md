@@ -7,9 +7,7 @@ Regole tecniche del servizio di trasmissione di documenti informatici mediante p
 
 ### Aggiornamento TLS 1.2
 Come indicato da AgID per supportare TLS 1.2 è necessario eseguire jpec-server su Java 8 (almeno b132)
-
-[sicurezza_del_software_v1.0.pdf]
-(https://www.agid.gov.it/sites/default/files/repository_files/documentazione/linee_guida_per_la_configurazione_per_adeguare_la_sicurezza_del_software_v1.0.pdf)
+[sicurezza_del_software_v1.0.pdf](https://www.agid.gov.it/sites/default/files/repository_files/documentazione/linee_guida_per_la_configurazione_per_adeguare_la_sicurezza_del_software_v1.0.pdf)
 
 ## Riepilogo Funzionalità (principali)
 - monitor ricezione nuova PEC
